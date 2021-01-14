@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_boilerplate/packages/details/main.dart';
-import 'package:flutter_boilerplate/packages/features/animated_container.dart'
-    as AnimatedContainer;
+import './packages/features/animated_container.dart' as AnimatedContainer;
 
 void main() {
   runApp(MyApp());
@@ -44,15 +42,101 @@ class FavoriteWidget extends StatefulWidget {
   _FavoriteWidgetState createState() => _FavoriteWidgetState();
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
+  @override
+  MyAppState createState() => MyAppState();
+}
+
+class MyAppState extends State<MyApp> {
+  MyAppRouteInformationParser _appRouteInformationParser =
+      MyAppRouteInformationParser();
+  MyAppRouterDelegate _myAppRouterDelegate = MyAppRouterDelegate();
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(title: 'Welcome To Flutter', home: Main());
+    return MaterialApp.router(
+      title: 'Welcome To Flutter',
+      routeInformationParser: _appRouteInformationParser,
+      routerDelegate: _myAppRouterDelegate,
+    );
+  }
+}
+
+class RouteConfig {
+  String path;
+  Page page;
+  List<RouteConfig> children;
+}
+
+class MyAppRoutePath {
+  Uri uri;
+  MyAppRoutePath({this.uri});
+}
+
+class MyAppRouteInformationParser extends RouteInformationParser {
+  @override
+  Future<MyAppRoutePath> parseRouteInformation(
+      RouteInformation routeInformation) async {
+    return MyAppRoutePath(uri: Uri.parse(routeInformation.location));
+  }
+}
+
+class MyAppRouterDelegate extends RouterDelegate<MyAppRoutePath>
+    with ChangeNotifier, PopNavigatorRouterDelegateMixin<MyAppRoutePath> {
+  final GlobalKey<NavigatorState> navigatorKey;
+
+  Uri uri;
+
+  MyAppRouterDelegate() : navigatorKey = GlobalKey<NavigatorState>();
+
+  MyAppRoutePath get currentConfiguration {
+    return MyAppRoutePath(uri: uri);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Navigator(
+      key: navigatorKey,
+      pages: [
+        MaterialPage(
+            key: ValueKey('main'),
+            child: Main(
+              onPushRoute: pushRoute,
+            )),
+        if (uri != null &&
+            uri.pathSegments.isNotEmpty &&
+            uri.pathSegments[0] == 'animatedContainer')
+          MaterialPage(
+              key: ValueKey('animatedContainer'),
+              child: AnimatedContainer.Main())
+      ],
+      onPopPage: (route, result) {
+        if (!route.didPop(result)) {
+          return false;
+        }
+
+        uri = uri.replace(path: '/');
+        notifyListeners();
+
+        return true;
+      },
+    );
+  }
+
+  @override
+  Future<void> setNewRoutePath(MyAppRoutePath path) async {
+    uri = path.uri;
+  }
+
+  void pushRoute(String location) {
+    uri = uri.replace(path: location);
+    notifyListeners();
   }
 }
 
 class Main extends StatelessWidget {
+  final Function onPushRoute;
   // This widget is the root of your application.
+  Main({@required this.onPushRoute});
   @override
   Widget build(BuildContext context) {
     Color color = Theme.of(context).primaryColor;
@@ -78,17 +162,23 @@ class Main extends StatelessWidget {
         ));
 
     Widget buttonSection = Container(
-        child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        _buildButtonColumn(
-            color, Icons.call, 'CALL', () => this._goToDetails(context)),
-        _buildButtonColumn(
-            color, Icons.near_me, 'ROUTE', () => this._goToDetails(context)),
-        _buildButtonColumn(
-            color, Icons.share, 'SHARE', () => this._goToDetails(context))
-      ],
-    ));
+        child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+      ButtonColumn(
+          color: color,
+          icon: Icons.call,
+          label: 'CALL',
+          onPress: () => this._goToDetails(context)),
+      ButtonColumn(
+          color: color,
+          icon: Icons.near_me,
+          label: 'ROUTE',
+          onPress: () => this._goToDetails(context)),
+      ButtonColumn(
+          color: color,
+          icon: Icons.share,
+          label: 'SHARE',
+          onPress: () => this._goToDetails(context))
+    ]));
 
     Widget textSection = Container(
       padding: const EdgeInsets.all(32),
@@ -126,8 +216,20 @@ class Main extends StatelessWidget {
         ));
   }
 
-  Column _buildButtonColumn(
-      Color color, IconData icon, String label, void onPress()) {
+  void _goToDetails(BuildContext context) {
+    onPushRoute('/animatedContainer');
+  }
+}
+
+class ButtonColumn extends StatelessWidget {
+  final Color color;
+  final IconData icon;
+  final String label;
+  final Function onPress;
+
+  ButtonColumn({this.color, this.icon, this.label, this.onPress});
+  @override
+  Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
@@ -143,9 +245,5 @@ class Main extends StatelessWidget {
                     fontSize: 12, fontWeight: FontWeight.w400, color: color)))
       ],
     );
-  }
-
-  void _goToDetails(BuildContext context) {
-    Navigator.push(context, MaterialPageRoute(builder: (context) => Details()));
   }
 }
