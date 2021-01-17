@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import './packages/features/animated_container.dart' as AnimatedContainer;
+import './packages/features/physis_animation.dart' as PhysisAnimation;
 
 void main() {
   runApp(MyApp());
@@ -55,6 +57,7 @@ class MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       title: 'Welcome To Flutter',
+      debugShowCheckedModeBanner: false,
       routeInformationParser: _appRouteInformationParser,
       routerDelegate: _myAppRouterDelegate,
     );
@@ -70,6 +73,18 @@ class RouteConfig {
 class MyAppRoutePath {
   Uri uri;
   MyAppRoutePath({this.uri});
+
+  bool get isAnimatedContainer {
+    return this.uri != null &&
+        this.uri.pathSegments.isNotEmpty &&
+        this.uri.pathSegments[0] == 'animatedContainer';
+  }
+
+  bool get isPhysisAnimation {
+    return this.uri != null &&
+        this.uri.pathSegments.isNotEmpty &&
+        this.uri.pathSegments[0] == 'physisAnimation';
+  }
 }
 
 class MyAppRouteInformationParser extends RouteInformationParser {
@@ -77,6 +92,17 @@ class MyAppRouteInformationParser extends RouteInformationParser {
   Future<MyAppRoutePath> parseRouteInformation(
       RouteInformation routeInformation) async {
     return MyAppRoutePath(uri: Uri.parse(routeInformation.location));
+  }
+
+  @override
+  RouteInformation restoreRouteInformation(dynamic path) {
+    if (path.isAnimatedContainer) {
+      return RouteInformation(location: '/animatedContainer');
+    }
+    if (path.isPhysisAnimation) {
+      return RouteInformation(location: '/physisAnimation');
+    }
+    return RouteInformation(location: '/');
   }
 }
 
@@ -94,32 +120,31 @@ class MyAppRouterDelegate extends RouterDelegate<MyAppRoutePath>
 
   @override
   Widget build(BuildContext context) {
-    return Navigator(
-      key: navigatorKey,
-      pages: [
-        MaterialPage(
-            key: ValueKey('main'),
-            child: Main(
-              onPushRoute: pushRoute,
-            )),
-        if (uri != null &&
-            uri.pathSegments.isNotEmpty &&
-            uri.pathSegments[0] == 'animatedContainer')
-          MaterialPage(
-              key: ValueKey('animatedContainer'),
-              child: AnimatedContainer.Main())
-      ],
-      onPopPage: (route, result) {
-        if (!route.didPop(result)) {
-          return false;
-        }
+    return ChangeNotifierProvider.value(
+        value: this,
+        child: Navigator(
+          key: navigatorKey,
+          pages: [
+            MaterialPage(key: ValueKey('main'), child: Main()),
+            if (this.currentConfiguration.isAnimatedContainer)
+              MaterialPage(
+                  key: ValueKey('animatedContainer'),
+                  child: AnimatedContainer.Main())
+            else if (this.currentConfiguration.isPhysisAnimation)
+              MaterialPage(
+                  key: Key('physisAnimation'), child: PhysisAnimation.Main())
+          ],
+          onPopPage: (route, result) {
+            if (!route.didPop(result)) {
+              return false;
+            }
 
-        uri = uri.replace(path: '/');
-        notifyListeners();
+            uri = uri.replace(path: '/');
+            notifyListeners();
 
-        return true;
-      },
-    );
+            return true;
+          },
+        ));
   }
 
   @override
@@ -134,9 +159,7 @@ class MyAppRouterDelegate extends RouterDelegate<MyAppRoutePath>
 }
 
 class Main extends StatelessWidget {
-  final Function onPushRoute;
   // This widget is the root of your application.
-  Main({@required this.onPushRoute});
   @override
   Widget build(BuildContext context) {
     Color color = Theme.of(context).primaryColor;
@@ -167,17 +190,17 @@ class Main extends StatelessWidget {
           color: color,
           icon: Icons.call,
           label: 'CALL',
-          onPress: () => this._goToDetails(context)),
+          onPress: () => this._goToDetails(context, 'animatedContainer')),
       ButtonColumn(
           color: color,
           icon: Icons.near_me,
           label: 'ROUTE',
-          onPress: () => this._goToDetails(context)),
+          onPress: () => this._goToDetails(context, 'physisAnimation')),
       ButtonColumn(
           color: color,
           icon: Icons.share,
           label: 'SHARE',
-          onPress: () => this._goToDetails(context))
+          onPress: () => this._goToDetails(context, ''))
     ]));
 
     Widget textSection = Container(
@@ -216,8 +239,9 @@ class Main extends StatelessWidget {
         ));
   }
 
-  void _goToDetails(BuildContext context) {
-    onPushRoute('/animatedContainer');
+  void _goToDetails(BuildContext context, String route) {
+    Provider.of<MyAppRouterDelegate>(context, listen: false)
+        .pushRoute('/$route');
   }
 }
 
