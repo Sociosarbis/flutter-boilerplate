@@ -75,15 +75,23 @@ class MyAppRoutePath {
   MyAppRoutePath({this.uri});
 
   bool get isAnimatedContainer {
-    return this.uri != null &&
-        this.uri.pathSegments.isNotEmpty &&
-        this.uri.pathSegments[0] == 'animatedContainer';
+    return MyAppRoutePath.testAnimatedContainer(uri);
+  }
+
+  static bool testAnimatedContainer(Uri uri) {
+    return uri != null &&
+        uri.pathSegments.isNotEmpty &&
+        uri.pathSegments[0] == 'animatedContainer';
   }
 
   bool get isPhysisAnimation {
-    return this.uri != null &&
-        this.uri.pathSegments.isNotEmpty &&
-        this.uri.pathSegments[0] == 'physisAnimation';
+    return MyAppRoutePath.testPhysisAnimation(this.uri);
+  }
+
+  static bool testPhysisAnimation(Uri uri) {
+    return uri != null &&
+        uri.pathSegments.isNotEmpty &&
+        uri.pathSegments[0] == 'physisAnimation';
   }
 }
 
@@ -106,13 +114,78 @@ class MyAppRouteInformationParser extends RouteInformationParser {
   }
 }
 
+class RouteDefinition {
+  bool Function(Uri uri) test;
+  String name;
+  Page<dynamic> Function(BuildContext context) builder;
+  RouteDefinition({this.test, this.name, this.builder});
+}
+
+class PageManager with ChangeNotifier {
+  List<RouteDefinition> pages;
+  List<RouteDefinition> configs;
+
+  PageManager({@required this.pages, @required this.configs});
+
+  Uri push<T>(T location) {
+    Uri uri;
+    if (location is Uri) {
+      uri = location;
+    } else {
+      uri = Uri.parse(location as String);
+    }
+    for (var c in configs) {
+      if (c.test(uri)) {
+        pages.add(c);
+        notifyListeners();
+        break;
+      }
+    }
+    return uri;
+  }
+
+  RouteDefinition pop() {
+    final last = pages.removeLast();
+    notifyListeners();
+    return last;
+  }
+}
+
+class MyAppBackButtonDispatcher extends BackButtonDispatcher {}
+
 class MyAppRouterDelegate extends RouterDelegate<MyAppRoutePath>
     with ChangeNotifier, PopNavigatorRouterDelegateMixin<MyAppRoutePath> {
-  final GlobalKey<NavigatorState> navigatorKey;
+  final navigatorKey = GlobalKey<NavigatorState>(debugLabel: 'navigator');
 
   Uri uri;
 
-  MyAppRouterDelegate() : navigatorKey = GlobalKey<NavigatorState>();
+  MyAppRouterDelegate() {
+    pageManager.addListener(notifyListeners);
+  }
+
+  PageManager pageManager = PageManager(pages: [
+    RouteDefinition(
+        test: (Uri uri) => true,
+        name: '/',
+        builder: (BuildContext context) =>
+            MaterialPage(key: UniqueKey(), child: Main())),
+  ], configs: [
+    RouteDefinition(
+        test: MyAppRoutePath.testPhysisAnimation,
+        name: '/physisAnimation',
+        builder: (BuildContext context) =>
+            MaterialPage(key: UniqueKey(), child: PhysisAnimation.Main())),
+    RouteDefinition(
+        test: MyAppRoutePath.testAnimatedContainer,
+        name: '/animatedContainer',
+        builder: (BuildContext context) =>
+            MaterialPage(key: UniqueKey(), child: AnimatedContainer.Main())),
+    RouteDefinition(
+        test: (Uri uri) => true,
+        name: '/',
+        builder: (BuildContext context) =>
+            MaterialPage(key: UniqueKey(), child: Main())),
+  ]);
 
   MyAppRoutePath get currentConfiguration {
     return MyAppRoutePath(uri: uri);
@@ -124,23 +197,13 @@ class MyAppRouterDelegate extends RouterDelegate<MyAppRoutePath>
         value: this,
         child: Navigator(
           key: navigatorKey,
-          pages: [
-            MaterialPage(key: ValueKey('main'), child: Main()),
-            if (this.currentConfiguration.isAnimatedContainer)
-              MaterialPage(
-                  key: ValueKey('animatedContainer'),
-                  child: AnimatedContainer.Main())
-            else if (this.currentConfiguration.isPhysisAnimation)
-              MaterialPage(
-                  key: Key('physisAnimation'), child: PhysisAnimation.Main())
-          ],
+          pages: [for (var def in pageManager.pages) def.builder(context)],
           onPopPage: (route, result) {
             if (!route.didPop(result)) {
               return false;
             }
 
-            uri = uri.replace(path: '/');
-            notifyListeners();
+            pageManager.pop();
 
             return true;
           },
@@ -150,11 +213,16 @@ class MyAppRouterDelegate extends RouterDelegate<MyAppRoutePath>
   @override
   Future<void> setNewRoutePath(MyAppRoutePath path) async {
     uri = path.uri;
+    if (pageManager.pages.isNotEmpty) {
+      if (!pageManager.pages.last.test(path.uri)) {
+        pageManager.push(path.uri);
+      }
+    }
   }
 
   void pushRoute(String location) {
-    uri = uri.replace(path: location);
-    notifyListeners();
+    uri = Uri.parse(location);
+    pageManager.push(uri);
   }
 }
 
