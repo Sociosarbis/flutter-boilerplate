@@ -1,10 +1,19 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import './packages/features/animated_container.dart' as AnimatedContainer;
 import './packages/features/physis_animation.dart' as PhysisAnimation;
+import 'package:gql_http_link/gql_http_link.dart';
+import 'package:ferry/ferry.dart';
+import 'package:flutter_boilerplate/graphql/github.req.gql.dart';
+import 'package:flutter_boilerplate/data/data.dart' as config;
 
-void main() {
-  runApp(MyApp());
+void main() async {
+  final link = HttpLink("https://api.github.com/graphql",
+      defaultHeaders: {"Authorization": "Bearer ${config.data['token']}"});
+  final client = Client(link: link);
+  runApp(Provider(create: (BuildContext context) => client, child: MyApp()));
 }
 
 class _FavoriteWidgetState extends State<FavoriteWidget> {
@@ -284,27 +293,34 @@ class Main extends StatelessWidget {
       ),
     );
 
-    return Scaffold(
-        appBar: AppBar(
-          title: Text('Welcome to Flutter'),
-        ),
-        body: ListView(
-          children: [
-            Image.asset('images/lake.jpg',
-                width: 600, height: 240, fit: BoxFit.cover),
-            titleSection,
-            buttonSection,
-            textSection,
-            ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => AnimatedContainer.Main()));
-                },
-                child: Text('Animated Container'))
-          ],
-        ));
+    return Consumer<Client>(
+        builder: (BuildContext context, Client client, Widget widget) =>
+            Scaffold(
+                appBar: AppBar(
+                  title: Text('Welcome to Flutter'),
+                ),
+                body: ListView(
+                  children: [
+                    Image.asset('images/lake.jpg',
+                        width: 600, height: 240, fit: BoxFit.cover),
+                    titleSection,
+                    buttonSection,
+                    textSection,
+                    ElevatedButton(
+                        onPressed: () async {
+                          final completer = Completer();
+                          client
+                              .request(GFollowersReq(
+                                  (b) => b..vars.login = 'sociosarbis'))
+                              .listen((response) =>
+                                  {completer.complete(response.data.toJson())});
+                          final data = await completer.future;
+                          print(data);
+                          print('request over');
+                        },
+                        child: Text('Animated Container'))
+                  ],
+                )));
   }
 
   void _goToDetails(BuildContext context, String route) {
