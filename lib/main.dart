@@ -4,16 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import './packages/features/animated_container.dart' as AnimatedContainer;
 import './packages/features/physis_animation.dart' as PhysisAnimation;
-import 'package:gql_http_link/gql_http_link.dart';
 import 'package:ferry/ferry.dart';
-import 'package:flutter_boilerplate/graphql/github.req.gql.dart';
-import 'package:flutter_boilerplate/data/data.dart' as config;
+import './packages/features/login.dart' as Login;
 
 void main() async {
-  final link = HttpLink("https://api.github.com/graphql",
-      defaultHeaders: {"Authorization": "Bearer ${config.data['token']}"});
-  final client = Client(link: link);
-  runApp(Provider(create: (BuildContext context) => client, child: MyApp()));
+  runApp(MyApp());
 }
 
 class _FavoriteWidgetState extends State<FavoriteWidget> {
@@ -102,6 +97,16 @@ class MyAppRoutePath {
         uri.pathSegments.isNotEmpty &&
         uri.pathSegments[0] == 'physisAnimation';
   }
+
+  bool get isLogin {
+    return MyAppRoutePath.testLogin(this.uri);
+  }
+
+  static bool testLogin(Uri uri) {
+    return uri != null &&
+        uri.pathSegments.isNotEmpty &&
+        uri.pathSegments[0] == 'login';
+  }
 }
 
 class MyAppRouteInformationParser extends RouteInformationParser {
@@ -118,6 +123,9 @@ class MyAppRouteInformationParser extends RouteInformationParser {
     }
     if (path.isPhysisAnimation) {
       return RouteInformation(location: '/physisAnimation');
+    }
+    if (path.isLogin) {
+      return RouteInformation(location: '/login');
     }
     return RouteInformation(location: '/');
   }
@@ -189,6 +197,11 @@ class MyAppRouterDelegate extends RouterDelegate<MyAppRoutePath>
         name: '/animatedContainer',
         builder: (BuildContext context) =>
             MaterialPage(key: UniqueKey(), child: AnimatedContainer.Main())),
+    RouteDefinition(
+        test: MyAppRoutePath.testLogin,
+        name: '/login',
+        builder: (BuildContext context) =>
+            MaterialPage(key: UniqueKey(), child: Login.Main())),
     RouteDefinition(
         test: (Uri uri) => true,
         name: '/',
@@ -277,7 +290,7 @@ class Main extends StatelessWidget {
           color: color,
           icon: Icons.share,
           label: 'SHARE',
-          onPress: () => this._goToDetails(context, ''))
+          onPress: () => this._goToDetails(context, 'login'))
     ]));
 
     Widget textSection = Container(
@@ -293,34 +306,20 @@ class Main extends StatelessWidget {
       ),
     );
 
-    return Consumer<Client>(
-        builder: (BuildContext context, Client client, Widget widget) =>
-            Scaffold(
-                appBar: AppBar(
-                  title: Text('Welcome to Flutter'),
-                ),
-                body: ListView(
-                  children: [
-                    Image.asset('images/lake.jpg',
-                        width: 600, height: 240, fit: BoxFit.cover),
-                    titleSection,
-                    buttonSection,
-                    textSection,
-                    ElevatedButton(
-                        onPressed: () async {
-                          final completer = Completer();
-                          client
-                              .request(GFollowersReq(
-                                  (b) => b..vars.login = 'sociosarbis'))
-                              .listen((response) =>
-                                  {completer.complete(response.data.toJson())});
-                          final data = await completer.future;
-                          print(data);
-                          print('request over');
-                        },
-                        child: Text('Animated Container'))
-                  ],
-                )));
+    return Scaffold(
+        appBar: AppBar(
+          title: Text('Welcome to Flutter'),
+        ),
+        body: ListView(
+          children: [
+            Image.asset('images/lake.jpg',
+                width: 600, height: 240, fit: BoxFit.cover),
+            titleSection,
+            buttonSection,
+            textSection,
+            ElevatedButton(onPressed: () {}, child: Text('Animated Container'))
+          ],
+        ));
   }
 
   void _goToDetails(BuildContext context, String route) {
