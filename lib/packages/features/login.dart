@@ -49,8 +49,10 @@ class Sub extends StatefulWidget {
 
 class SubState extends State<Sub> {
   bool isRequesting = false;
+  final _textController = TextEditingController();
   ferry.Client client;
   StreamSubscription<Uri> sub;
+  StreamSubscription<dynamic> sub2;
   @override
   void initState() {
     super.initState();
@@ -58,25 +60,41 @@ class SubState extends State<Sub> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-      Container(
-          margin: EdgeInsets.only(bottom: 20),
-          child: ElevatedButton(
-            child: Text('login'),
-            onPressed: () => goToGithubOauth(),
-          )),
-      if (widget.token != '')
-        ElevatedButton(
-          child: Text('followers'),
-          onPressed: () async {
-            final ret = await getFollowers();
-            if (ret != null) {
-              print(ret);
-            }
-          },
-        )
-    ]));
+    return Loading(
+        visible: isRequesting,
+        child: Center(
+            child:
+                Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Container(
+              margin: EdgeInsets.only(bottom: 20),
+              child: ElevatedButton(
+                child: Text('login'),
+                onPressed: () => goToGithubOauth(),
+              )),
+          if (widget.token != '')
+            Column(children: [
+              Container(
+                margin: EdgeInsets.only(bottom: 20),
+                child: SizedBox(
+                    width: 200,
+                    height: 50,
+                    child: TextFormField(
+                      controller: _textController,
+                      decoration: InputDecoration(
+                          hintText: '用户名', border: OutlineInputBorder()),
+                    )),
+              ),
+              ElevatedButton(
+                child: Text('followers'),
+                onPressed: () async {
+                  final ret = await getFollowers();
+                  if (ret != null) {
+                    print(ret);
+                  }
+                },
+              )
+            ])
+        ])));
   }
 
   @override
@@ -87,12 +105,20 @@ class SubState extends State<Sub> {
     client = ferry.Client(link: link);
   }
 
+  @override
+  void dispose() {
+    if (sub2 != null) sub2.cancel();
+    super.dispose();
+  }
+
   goToGithubOauth() async {
     final scope = Uri.encodeComponent('user,repo,read:org,notifications');
     final url =
         'https://github.com/login/oauth/authorize?client_id=$clientId&redirect_uri=$redirectURI&scope=$scope';
+    setState(() {
+      isRequesting = true;
+    });
     if (await canLaunch(url)) {
-      print(await getInitialLink());
       sub = getUriLinksStream().listen((uri) async {
         if (uri.hasQuery) {
           final code = uri.queryParameters['code'] ?? '';
@@ -108,8 +134,14 @@ class SubState extends State<Sub> {
           widget.onAuth(jsonDecode(res.body)['access_token']);
         }
         sub.cancel();
+        setState(() {
+          isRequesting = false;
+        });
       }, onError: (err) {
         print(err);
+        setState(() {
+          isRequesting = false;
+        });
         sub.cancel();
       });
       launch(url);
@@ -118,13 +150,43 @@ class SubState extends State<Sub> {
 
   getFollowers() async {
     if (isRequesting) return;
-    isRequesting = true;
+    setState(() {
+      isRequesting = true;
+    });
     final completer = Completer();
-    client
-        .request(GFollowersReq((b) => b..vars.login = 'sociosarbis'))
+    sub2 = client
+        .request(GFollowersReq((b) => b..vars.login = _textController.text))
         .listen((response) => {completer.complete(response.data.toJson())});
-    final data = await completer.future;
-    isRequesting = false;
-    return data;
+    try {
+      final data = await completer.future;
+      return data;
+    } catch (e) {
+      print(e);
+    } finally {
+      setState(() {
+        isRequesting = false;
+      });
+    }
+  }
+}
+
+class Loading extends StatelessWidget {
+  final Widget child;
+  final bool visible;
+  Loading({@required this.visible, this.child});
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return AbsorbPointer(
+        absorbing: visible,
+        child: Stack(
+          children: [
+            child,
+            if (visible)
+              Center(
+                  child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation(theme.accentColor)))
+          ],
+        ));
   }
 }

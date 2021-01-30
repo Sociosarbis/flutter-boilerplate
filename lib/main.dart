@@ -61,6 +61,7 @@ class MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       title: 'Welcome To Flutter',
+      theme: ThemeData(accentColor: Colors.red),
       debugShowCheckedModeBanner: false,
       routeInformationParser: _appRouteInformationParser,
       routerDelegate: _myAppRouterDelegate,
