@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import './packages/features/animated_container.dart' as AnimatedContainer;
 import './packages/features/physis_animation.dart' as PhysisAnimation;
-import 'package:ferry/ferry.dart';
+import './packages/comment/main.dart' as Comment;
 import './packages/features/login.dart' as Login;
 
 void main() async {
@@ -90,7 +90,7 @@ class MyAppRoutePath {
   }
 
   bool get isPhysisAnimation {
-    return MyAppRoutePath.testPhysisAnimation(this.uri);
+    return MyAppRoutePath.testPhysisAnimation(uri);
   }
 
   static bool testPhysisAnimation(Uri uri) {
@@ -100,13 +100,23 @@ class MyAppRoutePath {
   }
 
   bool get isLogin {
-    return MyAppRoutePath.testLogin(this.uri);
+    return MyAppRoutePath.testLogin(uri);
   }
 
   static bool testLogin(Uri uri) {
     return uri != null &&
         uri.pathSegments.isNotEmpty &&
         uri.pathSegments[0] == 'login';
+  }
+
+  get isComment {
+    return MyAppRoutePath.testComment(uri);
+  }
+
+  static bool testComment(Uri uri) {
+    return uri != null &&
+        uri.pathSegments.isNotEmpty &&
+        uri.pathSegments[0] == 'comment';
   }
 }
 
@@ -127,6 +137,9 @@ class MyAppRouteInformationParser extends RouteInformationParser {
     }
     if (path.isLogin) {
       return RouteInformation(location: '/login');
+    }
+    if (path.isComment) {
+      return RouteInformation(location: '/comment');
     }
     return RouteInformation(location: '/');
   }
@@ -203,6 +216,11 @@ class MyAppRouterDelegate extends RouterDelegate<MyAppRoutePath>
         name: '/login',
         builder: (BuildContext context) =>
             MaterialPage(key: UniqueKey(), child: Login.Main())),
+    RouteDefinition(
+        test: MyAppRoutePath.testComment,
+        name: '/comment',
+        builder: (BuildContext context) =>
+            MaterialPage(key: UniqueKey(), child: Comment.Main())),
     RouteDefinition(
         test: (Uri uri) => true,
         name: '/',
@@ -318,7 +336,11 @@ class Main extends StatelessWidget {
             titleSection,
             buttonSection,
             textSection,
-            ElevatedButton(onPressed: () {}, child: Text('Animated Container'))
+            ElevatedButton(
+                onPressed: () {
+                  _goToDetails(context, 'comment');
+                },
+                child: Text('Comment Section'))
           ],
         ));
   }
