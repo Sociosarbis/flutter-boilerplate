@@ -318,7 +318,7 @@ packages:
     source: hosted
     version: "1.4.4+1"
   html:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: html
       url: "https://mirrors.tuna.tsinghua.edu.cn/dart-pub"
@@ -672,6 +672,20 @@ packages:
       url: "https://mirrors.tuna.tsinghua.edu.cn/dart-pub"
     source: hosted
     version: "1.2.0"
+  webview_cookie_manager:
+    dependency: "direct main"
+    description:
+      name: webview_cookie_manager
+      url: "https://mirrors.tuna.tsinghua.edu.cn/dart-pub"
+    source: hosted
+    version: "1.0.7"
+  webview_flutter:
+    dependency: "direct main"
+    description:
+      name: webview_flutter
+      url: "https://mirrors.tuna.tsinghua.edu.cn/dart-pub"
+    source: hosted
+    version: "1.0.7"
   yaml:
     dependency: transitive
     description:

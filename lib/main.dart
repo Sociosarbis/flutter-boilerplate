@@ -1,11 +1,15 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 import 'package:provider/provider.dart';
+import 'package:html/parser.dart' show parse;
 import './packages/features/animated_container.dart' as AnimatedContainer;
 import './packages/features/physis_animation.dart' as PhysisAnimation;
 import './packages/comment/main.dart' as Comment;
 import './packages/features/login.dart' as Login;
+import './packages/bgm/components/login.dart' as BGMLogin;
 
 void main() async {
   runApp(MyApp());
@@ -272,26 +276,6 @@ class Main extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Color color = Theme.of(context).primaryColor;
-    Widget titleSection = Container(
-        padding: const EdgeInsets.all(32),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Text('Oeschinen Lake Campground',
-                          style: TextStyle(fontWeight: FontWeight.bold))),
-                  Text('Kandersteg, Switzerland',
-                      style: TextStyle(color: Colors.grey[500]))
-                ],
-              ),
-            ),
-            FavoriteWidget(),
-          ],
-        ));
 
     Widget buttonSection = Container(
         child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
@@ -312,37 +296,43 @@ class Main extends StatelessWidget {
           onPress: () => this._goToDetails(context, 'login'))
     ]));
 
-    Widget textSection = Container(
-      padding: const EdgeInsets.all(32),
-      child: Text(
-        'Lake Oeschinen lies at the foot of the Blüemlisalp in the Bernese '
-        'Alps. Situated 1,578 meters above sea level, it is one of the '
-        'larger Alpine Lakes. A gondola ride from Kandersteg, followed by a '
-        'half-hour walk through pastures and pine forest, leads you to the '
-        'lake, which warms to 20 degrees Celsius in the summer. Activities '
-        'enjoyed here include rowing, and riding the summer toboggan run.',
-        softWrap: true,
-      ),
-    );
-
     return Scaffold(
         appBar: AppBar(
           title: Text('Welcome to Flutter'),
         ),
         body: ListView(
           children: [
-            Image.asset('images/lake.jpg',
-                width: 600, height: 240, fit: BoxFit.cover),
-            titleSection,
+            Container(
+              height: 400,
+              child: BGMLogin.Main(onLogin: onLogin),
+            ),
             buttonSection,
-            textSection,
             ElevatedButton(
                 onPressed: () {
                   _goToDetails(context, 'comment');
                 },
-                child: Text('Comment Section'))
+                child: Text('Comment Section')),
           ],
         ));
+  }
+
+  void onLogin(Map<String, String> cookies) async {
+    final cookieStr = ['chii_cookietime', 'chii_auth', 'chii_sid']
+        .map((key) => '$key=${cookies[key] ?? ''}')
+        .join('; ');
+    final res = utf8.decode(
+        (await get('http://bgm.tv/', headers: {'Cookie': cookieStr}))
+            .bodyBytes);
+    final doc = parse(res);
+    final list = doc.querySelector('#prgSubjectList').children.map((item) {
+      final title = item.querySelector('.subjectItem.title');
+      return {
+        'id': title.attributes['data-subject-id'],
+        'name': title.attributes['data-subject-name-cn'] ??
+            title.attributes['data-subject-name']
+      };
+    }).toList();
+    print(list);
   }
 
   void _goToDetails(BuildContext context, String route) {
