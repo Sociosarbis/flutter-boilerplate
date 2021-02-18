@@ -26,11 +26,13 @@ class MainState extends State<Main> {
       },
       navigationDelegate: (request) async {
         final cookies = (await WebviewCookieManager().getCookies(_url))
-            .fold(Map<String, String>(), (acc, item) {
+            .fold<Map<String, String>>(Map<String, String>(), (acc, item) {
           acc[item.name] = item.value;
           return acc;
         });
-        widget.onLogin(cookies);
+        if (cookies['chii_auth'] != null) {
+          widget.onLogin(cookies);
+        }
         return NavigationDecision.prevent;
       },
       gestureRecognizers: Set()

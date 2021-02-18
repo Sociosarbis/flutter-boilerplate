@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'package:provider/provider.dart';
-import 'package:html/parser.dart' show parse;
 import './packages/features/animated_container.dart' as AnimatedContainer;
 import './packages/features/physis_animation.dart' as PhysisAnimation;
 import './packages/comment/main.dart' as Comment;
@@ -320,19 +319,42 @@ class Main extends StatelessWidget {
     final cookieStr = ['chii_cookietime', 'chii_auth', 'chii_sid']
         .map((key) => '$key=${cookies[key] ?? ''}')
         .join('; ');
-    final res = utf8.decode(
-        (await get('http://bgm.tv/', headers: {'Cookie': cookieStr}))
-            .bodyBytes);
-    final doc = parse(res);
-    final list = doc.querySelector('#prgSubjectList').children.map((item) {
-      final title = item.querySelector('.subjectItem.title');
-      return {
-        'id': title.attributes['data-subject-id'],
-        'name': title.attributes['data-subject-name-cn'] ??
-            title.attributes['data-subject-name']
-      };
-    }).toList();
-    print(list);
+    /*final res = utf8.decode(
+        (await post('http://192.168.91.241:8888/.netlify/functions/graphql',
+                headers: {'Cookie': cookieStr},
+                body: jsonEncode({
+                  'operationName': 'GetEpisodeTopic',
+                  'variables': {'id': 994900},
+                  'query': """query GetEpisodeTopic(\$id: Int!) {
+                  episodeTopic(id: \$id) {
+                    comments {
+                      id
+                      floor
+                      time
+                      text
+                      author {
+                        name
+                        id
+                        msg
+                        avatar
+                      }
+                      replies {
+                        id
+                        floor
+                        time
+                        text
+                        author {
+                          name
+                          id
+                          msg
+                          avatar
+                        }
+                      }
+                    }
+                  }
+                }"""
+                })))
+            .bodyBytes);*/
   }
 
   void _goToDetails(BuildContext context, String route) {
