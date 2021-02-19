@@ -8,22 +8,23 @@ final data = [
       "name": "アニメ情報",
       "id": 431617,
       "msg": "(看不到图片大概是Chrome屏蔽了非https图片外链 ...)",
-      "avatar": "//lain.bgm.tv/pic/user/m/000/43/16/431617.jpg?r=1533633612",
+      "avatar":
+          "https://lain.bgm.tv/pic/user/m/000/43/16/431617.jpg?r=1533633612",
       "__typename": "Author"
     },
     "replies": [
       {
         "id": 912910,
-        "quote": null,
         "floor": "3-1",
         "time": "2021-2-13 05:59",
         "text": "予告https://www.youtube.com/watch?v=XJrTjlNImzc",
+        "quote": null,
         "author": {
-          "name": "",
+          "name": "高‮达‮",
           "id": 249165,
           "msg": "",
           "avatar":
-              "//lain.bgm.tv/pic/user/s/000/24/91/249165.jpg?r=1611618826",
+              "https://lain.bgm.tv/pic/user/s/000/24/91/249165.jpg?r=1611618826",
           "__typename": "Author"
         },
         "__typename": "Comment"
@@ -40,7 +41,8 @@ final data = [
       "name": "Asahi",
       "id": 423478,
       "msg": "(自己嫌悪もういいだろう)",
-      "avatar": "//lain.bgm.tv/pic/user/m/000/42/34/423478.jpg?r=1533125588",
+      "avatar":
+          "https://lain.bgm.tv/pic/user/m/000/42/34/423478.jpg?r=1533125588",
       "__typename": "Author"
     },
     "replies": [],
@@ -55,38 +57,39 @@ final data = [
       "name": "sistinafibe",
       "id": 482153,
       "msg": "(日本方言爱了)",
-      "avatar": "//lain.bgm.tv/pic/user/m/000/48/21/482153.jpg?r=1562182528",
+      "avatar":
+          "https://lain.bgm.tv/pic/user/m/000/48/21/482153.jpg?r=1562182528",
       "__typename": "Author"
     },
     "replies": [
       {
         "id": 913310,
-        "quote": null,
         "floor": "5-1",
         "time": "2021-2-14 04:56",
         "text": "似乎早都做好了吧",
+        "quote": null,
         "author": {
-          "name": "",
+          "name": "honami",
           "id": 539566,
           "msg": "",
           "avatar":
-              "//lain.bgm.tv/pic/user/s/000/53/95/539566.jpg?r=1601995592",
+              "https://lain.bgm.tv/pic/user/s/000/53/95/539566.jpg?r=1601995592",
           "__typename": "Author"
         },
         "__typename": "Comment"
       },
       {
         "id": 913316,
-        "quote": {"from": "honami", "text": "似乎早都做好了吧", "__typename": "Quote"},
         "floor": "5-2",
         "time": "2021-2-14 05:34",
         "text": "确实~应该问题不大",
+        "quote": {"from": "honami", "text": "似乎早都做好了吧", "__typename": "Quote"},
         "author": {
-          "name": "",
+          "name": "sistinafibe",
           "id": 482153,
           "msg": "",
           "avatar":
-              "//lain.bgm.tv/pic/user/s/000/48/21/482153.jpg?r=1562182528",
+              "https://lain.bgm.tv/pic/user/s/000/48/21/482153.jpg?r=1562182528",
           "__typename": "Author"
         },
         "__typename": "Comment"
