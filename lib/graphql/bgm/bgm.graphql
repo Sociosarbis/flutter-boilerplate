@@ -1,0 +1,30 @@
+query GetEpisodeTopic($id: Int!) {
+  bgmEpisodeTopic(id: $id) {
+    comments {
+      id
+      floor
+      time
+      text
+      author {
+        id
+        msg
+        avatar
+      }
+      replies {
+        id
+        floor
+        time
+        text
+        quote {
+          from
+          text
+        }
+        author {
+          id
+          msg
+          avatar
+        }
+      }
+    }
+  }
+}

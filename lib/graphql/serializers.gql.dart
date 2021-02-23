@@ -1,7 +1,20 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/serializer.dart';
 import 'package:built_value/standard_json_plugin.dart' show StandardJsonPlugin;
-import 'package:flutter_boilerplate/graphql/github.data.gql.dart'
+import 'package:flutter_boilerplate/graphql/bgm/bgm.data.gql.dart'
+    show
+        GGetEpisodeTopicData,
+        GGetEpisodeTopicData_bgmEpisodeTopic,
+        GGetEpisodeTopicData_bgmEpisodeTopic_comments,
+        GGetEpisodeTopicData_bgmEpisodeTopic_comments_author,
+        GGetEpisodeTopicData_bgmEpisodeTopic_comments_replies,
+        GGetEpisodeTopicData_bgmEpisodeTopic_comments_replies_author,
+        GGetEpisodeTopicData_bgmEpisodeTopic_comments_replies_quote;
+import 'package:flutter_boilerplate/graphql/bgm/bgm.req.gql.dart'
+    show GGetEpisodeTopicReq;
+import 'package:flutter_boilerplate/graphql/bgm/bgm.var.gql.dart'
+    show GGetEpisodeTopicVars;
+import 'package:flutter_boilerplate/graphql/github/github.data.gql.dart'
     show
         GFollowersData,
         GFollowersData_user,
@@ -15,9 +28,9 @@ import 'package:flutter_boilerplate/graphql/github.data.gql.dart'
         GFollowingData_user_following_pageInfo,
         GPageInfoPartsData,
         GUserItemData;
-import 'package:flutter_boilerplate/graphql/github.req.gql.dart'
+import 'package:flutter_boilerplate/graphql/github/github.req.gql.dart'
     show GFollowersReq, GFollowingReq, GPageInfoPartsReq, GUserItemReq;
-import 'package:flutter_boilerplate/graphql/github.var.gql.dart'
+import 'package:flutter_boilerplate/graphql/github/github.var.gql.dart'
     show GFollowersVars, GFollowingVars, GPageInfoPartsVars, GUserItemVars;
 import 'package:flutter_boilerplate/graphql/schema.schema.gql.dart'
     show
@@ -504,6 +517,15 @@ final SerializersBuilder _serializersBuilder = _$serializers.toBuilder()
   GFollowingReq,
   GFollowingVars,
   GFundingPlatform,
+  GGetEpisodeTopicData,
+  GGetEpisodeTopicData_bgmEpisodeTopic,
+  GGetEpisodeTopicData_bgmEpisodeTopic_comments,
+  GGetEpisodeTopicData_bgmEpisodeTopic_comments_author,
+  GGetEpisodeTopicData_bgmEpisodeTopic_comments_replies,
+  GGetEpisodeTopicData_bgmEpisodeTopic_comments_replies_author,
+  GGetEpisodeTopicData_bgmEpisodeTopic_comments_replies_quote,
+  GGetEpisodeTopicReq,
+  GGetEpisodeTopicVars,
   GGistOrder,
   GGistOrderField,
   GGistPrivacy,

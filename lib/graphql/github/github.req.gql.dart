@@ -3,9 +3,9 @@
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 import 'package:ferry_exec/ferry_exec.dart' as _i1;
-import 'package:flutter_boilerplate/graphql/github.ast.gql.dart' as _i5;
-import 'package:flutter_boilerplate/graphql/github.data.gql.dart' as _i2;
-import 'package:flutter_boilerplate/graphql/github.var.gql.dart' as _i3;
+import 'package:flutter_boilerplate/graphql/github/github.ast.gql.dart' as _i5;
+import 'package:flutter_boilerplate/graphql/github/github.data.gql.dart' as _i2;
+import 'package:flutter_boilerplate/graphql/github/github.var.gql.dart' as _i3;
 import 'package:flutter_boilerplate/graphql/serializers.gql.dart' as _i6;
 import 'package:gql/ast.dart' as _i7;
 import 'package:gql_exec/gql_exec.dart' as _i4;

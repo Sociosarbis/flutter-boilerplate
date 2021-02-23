@@ -25201,6 +25201,8 @@ type Query {
   The currently authenticated user.
   """
   viewer: User!
+
+  bgmEpisodeTopic(id: Int!): BgmEpisodeTopic
 }
 
 """
@@ -39975,3 +39977,29 @@ type ViewerHovercardContext implements HovercardContext {
 A valid x509 certificate string
 """
 scalar X509Certificate
+
+type BgmAuthor {
+  name: String
+  id: Int
+  msg: String
+  avatar: String
+}
+
+type BgmQuote {
+  from: String
+  text: String
+}
+
+type BgmComment {
+  id: Int
+  floor: String
+  quote: BgmQuote
+  time: String
+  text: String
+  author: BgmAuthor
+  replies: [BgmComment!]
+}
+
+type BgmEpisodeTopic {
+  comments: [BgmComment!]
+}

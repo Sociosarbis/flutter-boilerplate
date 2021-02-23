@@ -1,7 +1,10 @@
 import 'package:flutter/gestures.dart';
 import "package:flutter/material.dart";
 import "package:flutter_boilerplate/models/bgm/comment.dart" as CommentModel;
+import 'package:flutter_boilerplate/graphql/bgm/bgm.req.gql.dart';
 import 'data.dart';
+import 'package:ferry/ferry.dart' as ferry;
+import 'package:gql_http_link/gql_http_link.dart';
 
 class Main extends StatefulWidget {
   @override
@@ -10,6 +13,20 @@ class Main extends StatefulWidget {
 
 class MainState extends State<Main> {
   bool showInput = false;
+  ferry.Client client;
+
+  @override
+  void initState() {
+    client = ferry.Client(
+        link: HttpLink(
+            "https://sociosarbis-media-player.netlify.app/.netlify/functions/graphql"));
+    super.initState();
+  }
+
+  Future<void> getInitData() async {
+    client.request(GGetEpisodeTopicReq((b) => b..vars.id = 994900));
+  }
+
   @override
   Widget build(BuildContext context) {
     List<CommentModel.Comment> model =
