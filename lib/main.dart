@@ -7,6 +7,8 @@ import './packages/features/physis_animation.dart' as PhysisAnimation;
 import './packages/comment/main.dart' as Comment;
 import './packages/features/login.dart' as Login;
 import './packages/bgm/components/login.dart' as BGMLogin;
+import './stores/user.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
 
 void main() async {
   runApp(MyApp());
@@ -55,18 +57,37 @@ class MyApp extends StatefulWidget {
 }
 
 class MyAppState extends State<MyApp> {
+  UserStore userStore;
+  ValueNotifier<GraphQLClient> client;
+  @override
+  void initState() {
+    userStore = UserStore();
+    client = ValueNotifier(GraphQLClient(
+        cache: GraphQLCache(),
+        link: AuthLink(
+            headerKey: 'Cookie',
+            getToken: () =>
+                userStore.cookieStr).concat(HttpLink(
+            "https://sociosarbis-media-player.netlify.app/.netlify/functions/graphql"))));
+    super.initState();
+  }
+
   MyAppRouteInformationParser _appRouteInformationParser =
       MyAppRouteInformationParser();
   MyAppRouterDelegate _myAppRouterDelegate = MyAppRouterDelegate();
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'Welcome To Flutter',
-      theme: ThemeData(accentColor: Colors.red),
-      debugShowCheckedModeBanner: false,
-      routeInformationParser: _appRouteInformationParser,
-      routerDelegate: _myAppRouterDelegate,
-    );
+    return ChangeNotifierProvider.value(
+        value: userStore,
+        child: GraphQLProvider(
+            client: client,
+            child: MaterialApp.router(
+              title: 'Welcome To Flutter',
+              theme: ThemeData(accentColor: Colors.red),
+              debugShowCheckedModeBanner: false,
+              routeInformationParser: _appRouteInformationParser,
+              routerDelegate: _myAppRouterDelegate,
+            )));
   }
 }
 

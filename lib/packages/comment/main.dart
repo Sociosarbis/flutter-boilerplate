@@ -1,10 +1,45 @@
 import 'package:flutter/gestures.dart';
 import "package:flutter/material.dart";
 import "package:flutter_boilerplate/models/bgm/comment.dart" as CommentModel;
-import 'package:flutter_boilerplate/graphql/bgm/bgm.req.gql.dart';
+import 'package:flutter_boilerplate/stores/user.dart';
+import 'package:provider/provider.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
 import 'data.dart';
-import 'package:ferry/ferry.dart' as ferry;
-import 'package:gql_http_link/gql_http_link.dart';
+
+const String GetEpisodeTopicReq = """
+query GetEpisodeTopic(\$id: Int!) {
+  episodeTopic(id: \$id) {
+    comments {
+      id
+      floor
+      time
+      text
+      author {
+        name
+        id
+        msg
+        avatar
+      }
+      replies {
+        id
+        floor
+        time
+        text
+        quote {
+          from
+          text
+        }
+        author {
+          name
+          id
+          msg
+          avatar
+        }
+      }
+    }
+  }
+}
+""";
 
 class Main extends StatefulWidget {
   @override
@@ -13,46 +48,49 @@ class Main extends StatefulWidget {
 
 class MainState extends State<Main> {
   bool showInput = false;
-  ferry.Client client;
-
-  @override
-  void initState() {
-    client = ferry.Client(
-        link: HttpLink(
-            "https://sociosarbis-media-player.netlify.app/.netlify/functions/graphql"));
-    super.initState();
-  }
-
-  Future<void> getInitData() async {
-    client.request(GGetEpisodeTopicReq((b) => b..vars.id = 994900));
-  }
+  List<CommentModel.Comment> model;
 
   @override
   Widget build(BuildContext context) {
-    List<CommentModel.Comment> model =
-        data.map((item) => CommentModel.Comment.fromJson(item)).toList();
-    return GestureDetector(
-        onTap: () {
-          FocusScope.of(context).unfocus();
-          setState(() {
-            showInput = !showInput;
-          });
-        },
-        child: Scaffold(
-            appBar: AppBar(title: Text('Comment')),
-            body: Stack(children: [
-              ListView(children: [
-                for (var data in model)
-                  Comment(
-                      data: data,
-                      onReply: () {
-                        setState(() {
-                          showInput = true;
-                        });
-                      })
-              ]),
-              CommentInput(show: showInput)
-            ])));
+    List<CommentModel.Comment> model;
+    return Query(
+        options: QueryOptions(
+            document: gql(GetEpisodeTopicReq), variables: {'id': 994900}),
+        builder: (QueryResult result, {Refetch refetch, FetchMore fetchMore}) {
+          if (result.isLoading) {
+            model = null;
+            return Text('loading...');
+          } else if (result.isNotLoading && model == null) {
+            model = (result.data['episodeTopic']['comments'] as List<dynamic>)
+                .map<CommentModel.Comment>(
+                    (item) => CommentModel.Comment.fromJson(item))
+                .toList();
+          }
+          return model != null
+              ? GestureDetector(
+                  onTap: () {
+                    FocusScope.of(context).unfocus();
+                    setState(() {
+                      showInput = !showInput;
+                    });
+                  },
+                  child: Scaffold(
+                      appBar: AppBar(title: Text('Comment')),
+                      body: Stack(children: [
+                        ListView(children: [
+                          for (var data in model)
+                            Comment(
+                                data: data,
+                                onReply: () {
+                                  setState(() {
+                                    showInput = true;
+                                  });
+                                })
+                        ]),
+                        CommentInput(show: showInput)
+                      ])))
+              : Container();
+        });
   }
 }
 

@@ -1,12 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:ferry/ferry.dart' as ferry;
 import 'package:flutter/rendering.dart';
-import 'package:gql_http_link/gql_http_link.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter_boilerplate/graphql/github.req.gql.dart';
 import 'package:uni_links/uni_links.dart';
 import 'package:http/http.dart';
 import 'package:flutter_boilerplate/data/data.dart' as config;
@@ -50,7 +47,6 @@ class Sub extends StatefulWidget {
 class SubState extends State<Sub> {
   bool isRequesting = false;
   final _textController = TextEditingController();
-  ferry.Client client;
   StreamSubscription<Uri> sub;
   StreamSubscription<dynamic> sub2;
   @override
@@ -100,9 +96,6 @@ class SubState extends State<Sub> {
   @override
   void didUpdateWidget(Widget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final link = HttpLink("https://api.github.com/graphql",
-        defaultHeaders: {"Authorization": "Bearer ${widget.token}"});
-    client = ferry.Client(link: link);
   }
 
   @override
@@ -154,9 +147,6 @@ class SubState extends State<Sub> {
       isRequesting = true;
     });
     final completer = Completer();
-    sub2 = client
-        .request(GFollowersReq((b) => b..vars.login = _textController.text))
-        .listen((response) => {completer.complete(response.data.toJson())});
     try {
       final data = await completer.future;
       return data;
