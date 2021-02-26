@@ -20,30 +20,26 @@ class MainState extends State<Main> {
   @override
   Widget build(BuildContext context) {
     return Consumer<UserStore>(
-        builder: (context, userStore, child) =>
-            !userStore.cookie.containsKey('chii_auth')
-                ? WebView(
-                    initialUrl: _url,
-                    javascriptMode: JavascriptMode.unrestricted,
-                    debuggingEnabled: true,
-                    onWebViewCreated: (controller) {
-                      _controller.complete(controller);
-                    },
-                    navigationDelegate: (request) async {
-                      final cookies =
-                          (await WebviewCookieManager().getCookies(_url))
-                              .fold<Map<String, String>>(Map<String, String>(),
-                                  (acc, item) {
-                        acc[item.name] = item.value;
-                        return acc;
-                      });
-                      userStore.setCookie(cookies);
-                      return NavigationDecision.prevent;
-                    },
-                    gestureRecognizers: Set()
-                      ..add(Factory<VerticalDragGestureRecognizer>(
-                          () => VerticalDragGestureRecognizer())),
-                  )
-                : Container());
+        builder: (context, userStore, child) => WebView(
+              initialUrl: _url,
+              javascriptMode: JavascriptMode.unrestricted,
+              debuggingEnabled: true,
+              onWebViewCreated: (controller) {
+                _controller.complete(controller);
+              },
+              navigationDelegate: (request) async {
+                final cookies = (await WebviewCookieManager().getCookies(_url))
+                    .fold<Map<String, String>>(Map<String, String>(),
+                        (acc, item) {
+                  acc[item.name] = item.value;
+                  return acc;
+                });
+                userStore.setCookie(cookies);
+                return NavigationDecision.prevent;
+              },
+              gestureRecognizers: Set()
+                ..add(Factory<VerticalDragGestureRecognizer>(
+                    () => VerticalDragGestureRecognizer())),
+            ));
   }
 }

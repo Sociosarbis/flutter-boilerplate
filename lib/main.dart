@@ -63,7 +63,12 @@ class MyAppState extends State<MyApp> {
   void initState() {
     userStore = UserStore();
     client = ValueNotifier(GraphQLClient(
-        cache: GraphQLCache(),
+        cache: GraphQLCache(dataIdFromObject: (data) {
+          if (data['__typename'] == 'Author') {
+            return "${data['__typename']}:${data['name']}:${data['avatar']}";
+          }
+          return null;
+        }),
         link: AuthLink(
             headerKey: 'Cookie',
             getToken: () =>
@@ -321,7 +326,11 @@ class Main extends StatelessWidget {
         body: ListView(
           children: [
             Container(
-              height: 400,
+              height: Provider.of<UserStore>(context)
+                      .cookie
+                      .containsKey('chii_auth')
+                  ? 0
+                  : 400,
               child: BGMLogin.Main(onLogin: onLogin),
             ),
             buttonSection,

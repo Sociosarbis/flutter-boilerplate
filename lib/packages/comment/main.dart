@@ -3,7 +3,8 @@ import "package:flutter/material.dart";
 import "package:flutter_boilerplate/models/bgm/comment.dart" as CommentModel;
 import 'package:graphql_flutter/graphql_flutter.dart';
 
-const String GetEpisodeTopicReq = """
+const String GetEpisodeTopicReq =
+    """
 query GetEpisodeTopic(\$id: Int!) {
   episodeTopic(id: \$id) {
     comments {
@@ -52,9 +53,7 @@ class MainState extends State<Main> {
     List<CommentModel.Comment> model;
     return Query(
         options: QueryOptions(
-            document: gql(GetEpisodeTopicReq),
-            variables: {'id': 969984},
-            cacheRereadPolicy: CacheRereadPolicy.ignoreAll),
+            document: gql(GetEpisodeTopicReq), variables: {'id': 969984}),
         builder: (QueryResult result, {Refetch refetch, FetchMore fetchMore}) {
           if (result.isLoading) {
             model = null;
