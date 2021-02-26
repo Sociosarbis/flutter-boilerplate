@@ -1,10 +1,7 @@
 import 'package:flutter/gestures.dart';
 import "package:flutter/material.dart";
 import "package:flutter_boilerplate/models/bgm/comment.dart" as CommentModel;
-import 'package:flutter_boilerplate/stores/user.dart';
-import 'package:provider/provider.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-import 'data.dart';
 
 const String GetEpisodeTopicReq = """
 query GetEpisodeTopic(\$id: Int!) {
@@ -55,11 +52,17 @@ class MainState extends State<Main> {
     List<CommentModel.Comment> model;
     return Query(
         options: QueryOptions(
-            document: gql(GetEpisodeTopicReq), variables: {'id': 994900}),
+            document: gql(GetEpisodeTopicReq),
+            variables: {'id': 969984},
+            cacheRereadPolicy: CacheRereadPolicy.ignoreAll),
         builder: (QueryResult result, {Refetch refetch, FetchMore fetchMore}) {
           if (result.isLoading) {
             model = null;
-            return Text('loading...');
+            return Center(
+              child: CircularProgressIndicator(
+                  valueColor:
+                      AlwaysStoppedAnimation(Theme.of(context).accentColor)),
+            );
           } else if (result.isNotLoading && model == null) {
             model = (result.data['episodeTopic']['comments'] as List<dynamic>)
                 .map<CommentModel.Comment>(
@@ -77,16 +80,17 @@ class MainState extends State<Main> {
                   child: Scaffold(
                       appBar: AppBar(title: Text('Comment')),
                       body: Stack(children: [
-                        ListView(children: [
-                          for (var data in model)
-                            Comment(
-                                data: data,
-                                onReply: () {
-                                  setState(() {
-                                    showInput = true;
+                        ListView.builder(
+                            itemCount: model.length,
+                            itemBuilder: (context, index) {
+                              return Comment(
+                                  data: model[index],
+                                  onReply: () {
+                                    setState(() {
+                                      showInput = true;
+                                    });
                                   });
-                                })
-                        ]),
+                            }),
                         CommentInput(show: showInput)
                       ])))
               : Container();
