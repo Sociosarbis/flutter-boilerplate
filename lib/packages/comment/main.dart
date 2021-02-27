@@ -1,10 +1,13 @@
+import 'dart:math';
+
 import 'package:flutter/gestures.dart';
 import "package:flutter/material.dart";
+import 'package:flutter_boilerplate/models/bgm/author.dart';
 import "package:flutter_boilerplate/models/bgm/comment.dart" as CommentModel;
+import 'package:flutter_boilerplate/models/bgm/quote.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 
-const String GetEpisodeTopicReq =
-    """
+const String GetEpisodeTopicReq = """
 query GetEpisodeTopic(\$id: Int!) {
   episodeTopic(id: \$id) {
     comments {
@@ -47,10 +50,11 @@ class Main extends StatefulWidget {
 class MainState extends State<Main> {
   bool showInput = false;
   List<CommentModel.Comment> model;
+  CommentModel.Comment replyTo;
+  List<CommentModel.Comment> replyBelongTo;
 
   @override
   Widget build(BuildContext context) {
-    List<CommentModel.Comment> model;
     return Query(
         options: QueryOptions(
             document: gql(GetEpisodeTopicReq), variables: {'id': 969984}),
@@ -74,23 +78,68 @@ class MainState extends State<Main> {
                     FocusScope.of(context).unfocus();
                     setState(() {
                       showInput = !showInput;
+                      if (showInput) {
+                        replyTo = null;
+                        replyBelongTo = model;
+                      }
                     });
                   },
                   child: Scaffold(
                       appBar: AppBar(title: Text('Comment')),
                       body: Stack(children: [
                         ListView.builder(
+                            padding:
+                                EdgeInsets.only(bottom: showInput ? 192 : 0),
                             itemCount: model.length,
                             itemBuilder: (context, index) {
                               return Comment(
                                   data: model[index],
-                                  onReply: () {
+                                  onReply: (replyTo) {
                                     setState(() {
+                                      this.replyTo = replyTo;
+                                      replyBelongTo = model[index].replies;
                                       showInput = true;
                                     });
                                   });
                             }),
-                        CommentInput(show: showInput)
+                        CommentInput(
+                          show: showInput,
+                          replyTo: replyTo,
+                          onCommit: (text) {
+                            if (text.isEmpty) return;
+                            var floor = "#${model.length + 1}";
+                            if (replyTo != null) {
+                              floor = replyTo.floor.replaceAllMapped(
+                                  new RegExp(r'(\d).*'), (match) {
+                                return "${match.group(1)}-${replyBelongTo.length + 1}";
+                              });
+                            }
+                            var now = DateTime.now();
+                            var newComment = new CommentModel.Comment(
+                                author: Author(
+                                    id: 0,
+                                    msg: '(我思故我在)',
+                                    name: 'sociosarbis',
+                                    avatar:
+                                        "https://lain.bgm.tv/pic/user/s/icon.jpg"),
+                                floor: floor,
+                                id: Random().nextInt(1 << 30),
+                                text: text,
+                                quote:
+                                    replyTo != null && replyTo.replies == null
+                                        ? Quote(
+                                            from: replyTo.author.name,
+                                            text: replyTo.text)
+                                        : null,
+                                time:
+                                    "${now.year}-${now.month}-${now.day} ${now.hour}:${now.minute}");
+                            setState(() {
+                              replyBelongTo.add(newComment);
+                              showInput = false;
+                              FocusScope.of(context).unfocus();
+                            });
+                          },
+                        )
                       ])))
               : Container();
         });
@@ -100,7 +149,7 @@ class MainState extends State<Main> {
 class Comment extends StatelessWidget {
   final CommentModel.Comment data;
   final bool isReply;
-  final void Function() onReply;
+  final void Function(CommentModel.Comment replyTo) onReply;
   Comment({@required this.data, this.isReply = false, @required this.onReply})
       : super(key: ValueKey(data.id));
   @override
@@ -161,7 +210,7 @@ class Comment extends StatelessWidget {
                                   alignment: PlaceholderAlignment.baseline,
                                   child: InkWell(
                                       onTap: () {
-                                        onReply();
+                                        onReply(data);
                                       },
                                       child: Text.rich(TextSpan(
                                           style: TextStyle(
@@ -233,12 +282,15 @@ class Comment extends StatelessWidget {
 
 class CommentInput extends StatefulWidget {
   final bool show;
-  CommentInput({this.show});
+  final CommentModel.Comment replyTo;
+  final void Function(String text) onCommit;
+  CommentInput({this.show, this.replyTo, @required this.onCommit});
   @override
   CommentInputState createState() => CommentInputState();
 }
 
 class CommentInputState extends State<CommentInput> {
+  TextEditingController _controller = new TextEditingController(text: '');
   @override
   Widget build(BuildContext context) {
     return Positioned(
@@ -272,12 +324,16 @@ class CommentInputState extends State<CommentInput> {
                         child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('添加新回复',
+                              Text(
+                                  widget.replyTo == null
+                                      ? '添加新回复'
+                                      : '回复：${widget.replyTo.author.name}',
                                   style: TextStyle(color: Color(0xff3399ff))),
                               Container(
                                   margin: EdgeInsets.symmetric(vertical: 3),
                                   child: TextField(
                                       maxLines: null,
+                                      controller: _controller,
                                       decoration: InputDecoration(
                                         enabledBorder: OutlineInputBorder(
                                             borderSide: BorderSide(
@@ -295,11 +351,17 @@ class CommentInputState extends State<CommentInput> {
                                     padding: EdgeInsets.all(0),
                                     color: Color(0xff319abf),
                                     textColor: Colors.white,
-                                    child: Text('加上去'),
+                                    child: Text(
+                                        widget.replyTo == null ? '加上去' : '写好了'),
                                     shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(5)),
-                                    onPressed: () {},
+                                    onPressed: reply,
                                   ))
                             ]))))));
+  }
+
+  Future<void> reply() async {
+    widget.onCommit(_controller.text);
+    _controller.text = '';
   }
 }

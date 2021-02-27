@@ -17,11 +17,14 @@ class Main extends StatefulWidget {
 class MainState extends State<Main> {
   Completer<WebViewController> _controller = Completer<WebViewController>();
   String _url = 'https://bgm.tv/login';
+  String userAgent =
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36 Edg/88.0.705.68';
   @override
   Widget build(BuildContext context) {
     return Consumer<UserStore>(
         builder: (context, userStore, child) => WebView(
               initialUrl: _url,
+              userAgent: userAgent,
               javascriptMode: JavascriptMode.unrestricted,
               debuggingEnabled: true,
               onWebViewCreated: (controller) {
