@@ -9,12 +9,7 @@ class Author {
   String msg;
   String avatar;
 
-  Author({
-    this.name,
-    this.id,
-    this.msg,
-    this.avatar,
-  });
+  Author({this.name, this.id, this.msg, this.avatar});
 
   factory Author.fromJson(Map<String, dynamic> json) => _$AuthorFromJson(json);
 

@@ -63,12 +63,7 @@ class MyAppState extends State<MyApp> {
   void initState() {
     userStore = UserStore();
     client = ValueNotifier(GraphQLClient(
-        cache: GraphQLCache(dataIdFromObject: (data) {
-          if (data['__typename'] == 'Author') {
-            return "${data['__typename']}:${data['name']}:${data['avatar']}";
-          }
-          return null;
-        }),
+        cache: GraphQLCache(),
         link: AuthLink(
             headerKey: 'Cookie',
             getToken: () =>

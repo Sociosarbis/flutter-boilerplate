@@ -7,7 +7,8 @@ import "package:flutter_boilerplate/models/bgm/comment.dart" as CommentModel;
 import 'package:flutter_boilerplate/models/bgm/quote.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 
-const String GetEpisodeTopicReq = """
+const String GetEpisodeTopicReq =
+    """
 query GetEpisodeTopic(\$id: Int!) {
   episodeTopic(id: \$id) {
     comments {
@@ -42,6 +43,28 @@ query GetEpisodeTopic(\$id: Int!) {
 }
 """;
 
+const String GetRepliesFrag =
+    """
+fragment replies on Comment {
+  replies {
+    id
+    floor
+    time
+    text
+    quote {
+      from
+      text
+    }
+    author {
+      name
+      id
+      msg
+      avatar
+    }
+  }
+}
+""";
+
 class Main extends StatefulWidget {
   @override
   MainState createState() => MainState();
@@ -51,7 +74,7 @@ class MainState extends State<Main> {
   bool showInput = false;
   List<CommentModel.Comment> model;
   CommentModel.Comment replyTo;
-  List<CommentModel.Comment> replyBelongTo;
+  CommentModel.Comment replyBelongTo;
 
   @override
   Widget build(BuildContext context) {
@@ -80,7 +103,7 @@ class MainState extends State<Main> {
                       showInput = !showInput;
                       if (showInput) {
                         replyTo = null;
-                        replyBelongTo = model;
+                        replyBelongTo = null;
                       }
                     });
                   },
@@ -97,7 +120,7 @@ class MainState extends State<Main> {
                                   onReply: (replyTo) {
                                     setState(() {
                                       this.replyTo = replyTo;
-                                      replyBelongTo = model[index].replies;
+                                      replyBelongTo = model[index];
                                       showInput = true;
                                     });
                                   });
@@ -111,7 +134,7 @@ class MainState extends State<Main> {
                             if (replyTo != null) {
                               floor = replyTo.floor.replaceAllMapped(
                                   new RegExp(r'(\d).*'), (match) {
-                                return "${match.group(1)}-${replyBelongTo.length + 1}";
+                                return "${match.group(1)}-${replyBelongTo.replies.length + 1}";
                               });
                             }
                             var now = DateTime.now();
@@ -134,7 +157,40 @@ class MainState extends State<Main> {
                                 time:
                                     "${now.year}-${now.month}-${now.day} ${now.hour}:${now.minute}");
                             setState(() {
-                              replyBelongTo.add(newComment);
+                              Map<String, dynamic> json = newComment.toJson();
+                              json['__typename'] = 'Comment';
+                              if (newComment.quote != null) {
+                                json['quote']['__typename'] = 'Quote';
+                              }
+                              if (newComment.author != null) {
+                                json['author']['__typename'] = 'Author';
+                              }
+                              GraphQLClient client =
+                                  GraphQLProvider.of(context).value;
+                              if (replyBelongTo == null) {
+                                final req = Request(
+                                    operation: Operation(
+                                        document: gql(GetEpisodeTopicReq)),
+                                    variables: {'id': 969984});
+                                final cache = client.readQuery(req);
+                                (cache['episodeTopic']['comments']
+                                        as List<dynamic>)
+                                    .add(json);
+                                client.writeQuery(req, data: cache);
+                                model.add(newComment);
+                              } else {
+                                replyBelongTo.replies.add(newComment);
+                                final req = FragmentRequest(
+                                    idFields: {
+                                      '__typename': 'Comment',
+                                      'id': replyBelongTo.id
+                                    },
+                                    fragment: Fragment(
+                                        document: gql(GetRepliesFrag)));
+                                final cache = client.readFragment(req);
+                                (cache['replies'] as List<dynamic>).add(json);
+                                client.writeFragment(req, data: cache);
+                              }
                               showInput = false;
                               FocusScope.of(context).unfocus();
                             });
