@@ -7,8 +7,7 @@ import "package:flutter_boilerplate/models/bgm/comment.dart" as CommentModel;
 import 'package:flutter_boilerplate/models/bgm/quote.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 
-const String GetEpisodeTopicReq =
-    """
+const String GetEpisodeTopicReq = """
 query GetEpisodeTopic(\$id: Int!) {
   episodeTopic(id: \$id) {
     comments {
@@ -43,8 +42,7 @@ query GetEpisodeTopic(\$id: Int!) {
 }
 """;
 
-const String GetRepliesFrag =
-    """
+const String GetRepliesFrag = """
 fragment replies on Comment {
   replies {
     id
@@ -158,13 +156,6 @@ class MainState extends State<Main> {
                                     "${now.year}-${now.month}-${now.day} ${now.hour}:${now.minute}");
                             setState(() {
                               Map<String, dynamic> json = newComment.toJson();
-                              json['__typename'] = 'Comment';
-                              if (newComment.quote != null) {
-                                json['quote']['__typename'] = 'Quote';
-                              }
-                              if (newComment.author != null) {
-                                json['author']['__typename'] = 'Author';
-                              }
                               GraphQLClient client =
                                   GraphQLProvider.of(context).value;
                               if (replyBelongTo == null) {
@@ -200,6 +191,19 @@ class MainState extends State<Main> {
               : Container();
         });
   }
+
+  replySomeone(
+      /** 如果是回复评论，是自己的id；如果是回复评论的回复，则是评论用户的id */
+      {int subReplyUid,
+      /** 讨论页的id */
+      int topicId,
+      /** 评论或评论回复用户的id */
+      int postUid,
+      /** 评论的id */
+      int postId,
+      String content}) {}
+
+  replyTopic(String content) {}
 }
 
 class Comment extends StatelessWidget {

@@ -13,6 +13,8 @@ class Comment {
   Author author;
   Quote quote;
   List<Comment> replies;
+  @JsonKey(name: '__typename')
+  String typename;
   Comment(
       {this.id,
       this.floor,
@@ -20,7 +22,8 @@ class Comment {
       this.text,
       this.author,
       this.quote,
-      this.replies});
+      this.replies,
+      this.typename});
 
   factory Comment.fromJson(Map<String, dynamic> json) =>
       _$CommentFromJson(json);

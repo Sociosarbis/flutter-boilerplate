@@ -12,6 +12,7 @@ Author _$AuthorFromJson(Map<String, dynamic> json) {
     id: json['id'] as int,
     msg: json['msg'] as String,
     avatar: json['avatar'] as String,
+    typename: json['__typename'] as String,
   );
 }
 
@@ -28,5 +29,6 @@ Map<String, dynamic> _$AuthorToJson(Author instance) {
   writeNotNull('id', instance.id);
   writeNotNull('msg', instance.msg);
   writeNotNull('avatar', instance.avatar);
+  writeNotNull('__typename', instance.typename);
   return val;
 }
