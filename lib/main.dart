@@ -202,6 +202,17 @@ class PageManager with ChangeNotifier {
     notifyListeners();
     return last;
   }
+
+  void popUntil(bool Function(RouteDefinition) test) {
+    while (pages.isNotEmpty && !test(pages.last)) {
+      pages.removeLast();
+    }
+  }
+
+  Uri replace<T>(T location) {
+    pages.removeLast();
+    return push<T>(location);
+  }
 }
 
 class MyAppBackButtonDispatcher extends BackButtonDispatcher {}
@@ -287,6 +298,15 @@ class MyAppRouterDelegate extends RouterDelegate<MyAppRoutePath>
     uri = Uri.parse(location);
     pageManager.push(uri);
   }
+
+  void popRouteUntil(bool Function(RouteDefinition) test) {
+    pageManager.popUntil(test);
+  }
+
+  void replaceRoute(String location) {
+    uri = Uri.parse(location);
+    pageManager.replace(uri);
+  }
 }
 
 class Main extends StatelessWidget {
@@ -326,7 +346,10 @@ class Main extends StatelessWidget {
                       .containsKey('chii_auth')
                   ? 0
                   : 400,
-              child: BGMLogin.Main(onLogin: onLogin),
+              child: BGMLogin.Main(onLogin: (cookie) {
+                print(Provider.of<MyAppRouterDelegate>(context, listen: false)
+                    .uri);
+              }),
             ),
             buttonSection,
             ElevatedButton(
@@ -336,48 +359,6 @@ class Main extends StatelessWidget {
                 child: Text('Comment Section')),
           ],
         ));
-  }
-
-  void onLogin(Map<String, String> cookies) async {
-    final cookieStr = ['chii_cookietime', 'chii_auth', 'chii_sid']
-        .map((key) => '$key=${cookies[key] ?? ''}')
-        .join('; ');
-    /*final res = utf8.decode(
-        (await post('http://192.168.91.241:8888/.netlify/functions/graphql',
-                headers: {'Cookie': cookieStr},
-                body: jsonEncode({
-                  'operationName': 'GetEpisodeTopic',
-                  'variables': {'id': 994900},
-                  'query': """query GetEpisodeTopic(\$id: Int!) {
-                  episodeTopic(id: \$id) {
-                    comments {
-                      id
-                      floor
-                      time
-                      text
-                      author {
-                        name
-                        id
-                        msg
-                        avatar
-                      }
-                      replies {
-                        id
-                        floor
-                        time
-                        text
-                        author {
-                          name
-                          id
-                          msg
-                          avatar
-                        }
-                      }
-                    }
-                  }
-                }"""
-                })))
-            .bodyBytes);*/
   }
 
   void _goToDetails(BuildContext context, String route) {

@@ -11,6 +11,10 @@ class UserStore with ChangeNotifier {
     return arr.join("; ");
   }
 
+  bool get isAuth {
+    return cookie.containsKey('chii_auth');
+  }
+
   setCookie(Map<String, String> c) {
     cookie = c;
     notifyListeners();

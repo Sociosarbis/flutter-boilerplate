@@ -38,6 +38,7 @@ class MainState extends State<Main> {
                   return acc;
                 });
                 userStore.setCookie(cookies);
+                widget.onLogin(cookies);
                 return NavigationDecision.prevent;
               },
               gestureRecognizers: Set()
