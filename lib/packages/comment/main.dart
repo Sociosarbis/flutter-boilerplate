@@ -82,7 +82,7 @@ class MainState extends State<Main> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (Provider.of<UserStore>(context, listen: false).isAuth) {
+    if (!Provider.of<UserStore>(context, listen: false).isAuth) {
       WidgetsBinding.instance.addPostFrameCallback((_) => {
             Provider.of<MyAppRouterDelegate>(context, listen: false)
               ..popRouteUntil((def) => def.name == '/')
@@ -94,7 +94,7 @@ class MainState extends State<Main> {
 
   @override
   Widget build(BuildContext context) {
-    return !Provider.of<UserStore>(context).isAuth
+    return Provider.of<UserStore>(context).isAuth
         ? Query(
             options: QueryOptions(
                 document: gql(GetEpisodeTopicReq), variables: {'id': 969984}),

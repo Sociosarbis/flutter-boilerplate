@@ -8,6 +8,7 @@ import './packages/comment/main.dart' as Comment;
 import './packages/features/login.dart' as Login;
 import './packages/bgm/components/login.dart' as BGMLogin;
 import './stores/user.dart';
+import 'package:uni_links/uni_links.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 
 void main() async {
@@ -59,6 +60,7 @@ class MyApp extends StatefulWidget {
 class MyAppState extends State<MyApp> {
   UserStore userStore;
   ValueNotifier<GraphQLClient> client;
+  StreamSubscription<Uri> sub;
   @override
   void initState() {
     userStore = UserStore();
@@ -69,7 +71,24 @@ class MyAppState extends State<MyApp> {
             getToken: () =>
                 userStore.cookieStr).concat(HttpLink(
             "https://sociosarbis-media-player.netlify.app/.netlify/functions/graphql"))));
+    getInitialUri().then(onLaunch);
+    sub = getUriLinksStream().listen(onLaunch);
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    sub.cancel();
+    super.dispose();
+  }
+
+  void onLaunch(Uri uri) {
+    switch (uri.host) {
+      case 'episodetopic':
+        _myAppRouterDelegate.pushRoute('/comment');
+        break;
+      default:
+    }
   }
 
   MyAppRouteInformationParser _appRouteInformationParser =
@@ -347,8 +366,13 @@ class Main extends StatelessWidget {
                   ? 0
                   : 400,
               child: BGMLogin.Main(onLogin: (cookie) {
-                print(Provider.of<MyAppRouterDelegate>(context, listen: false)
-                    .uri);
+                final router =
+                    Provider.of<MyAppRouterDelegate>(context, listen: false);
+                final uri = router.uri;
+                if (uri.queryParameters.containsKey('redirect_from')) {
+                  router.pushRoute(Uri.decodeComponent(
+                      uri.queryParameters['redirect_from']));
+                }
               }),
             ),
             buttonSection,
