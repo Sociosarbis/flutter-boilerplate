@@ -83,11 +83,13 @@ class MyAppState extends State<MyApp> {
   }
 
   void onLaunch(Uri uri) {
-    switch (uri.host) {
-      case 'episodetopic':
-        _myAppRouterDelegate.pushRoute('/comment');
-        break;
-      default:
+    if (uri != null) {
+      switch (uri.host) {
+        case 'episodetopic':
+          _myAppRouterDelegate.pushRoute('/comment?${uri.query}');
+          break;
+        default:
+      }
     }
   }
 
@@ -378,7 +380,7 @@ class Main extends StatelessWidget {
             buttonSection,
             ElevatedButton(
                 onPressed: () {
-                  _goToDetails(context, 'comment');
+                  _goToDetails(context, 'comment?id=436209');
                 },
                 child: Text('Comment Section')),
           ],
