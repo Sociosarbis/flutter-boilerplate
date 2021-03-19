@@ -10,8 +10,7 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_boilerplate/main.dart' show MyAppRouterDelegate;
 
-const String GetEpisodeTopicReq =
-    """
+const String GetEpisodeTopicReq = """
 query GetEpisodeTopic(\$id: Int!) {
   episodeTopic(id: \$id) {
     comments {
@@ -46,8 +45,7 @@ query GetEpisodeTopic(\$id: Int!) {
 }
 """;
 
-const String GetRepliesFrag =
-    """
+const String GetRepliesFrag = """
 fragment replies on Comment {
   replies {
     id
@@ -83,12 +81,14 @@ class MainState extends State<Main> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!Provider.of<UserStore>(context, listen: false).isAuth) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => {
-            Provider.of<MyAppRouterDelegate>(context, listen: false)
-              ..popRouteUntil((def) => def.name == '/')
-              ..replaceRoute(
-                  '/?redirect_from=${Uri.encodeComponent('/comment')}')
-          });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final router = Provider.of<MyAppRouterDelegate>(context, listen: false);
+        final currentPath = router.currentConfiguration;
+        final currentUrl = '${currentPath.uri.path}?${currentPath.uri.query}';
+        router
+          ..popRouteUntil((def) => def.name == '/')
+          ..replaceRoute('/?redirect_from=${Uri.encodeComponent(currentUrl)}');
+      });
     }
   }
 
