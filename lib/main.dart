@@ -359,32 +359,35 @@ class Main extends StatelessWidget {
         appBar: AppBar(
           title: Text('Welcome to Flutter'),
         ),
-        body: ListView(
-          children: [
-            Container(
-              height: Provider.of<UserStore>(context)
-                      .cookie
-                      .containsKey('chii_auth')
-                  ? 0
-                  : 400,
-              child: BGMLogin.Main(onLogin: (cookie) {
-                final router =
-                    Provider.of<MyAppRouterDelegate>(context, listen: false);
-                final uri = router.uri;
-                if (uri.queryParameters.containsKey('redirect_from')) {
-                  router.pushRoute(Uri.decodeComponent(
-                      uri.queryParameters['redirect_from']));
-                }
-              }),
-            ),
-            buttonSection,
-            ElevatedButton(
-                onPressed: () {
-                  _goToDetails(context, 'comment?id=436209');
-                },
-                child: Text('Comment Section')),
-          ],
-        ));
+        body: Login.Loading(
+            visible: Provider.of<UserStore>(context).isLogining,
+            text: '登录中',
+            child: ListView(
+              children: [
+                Container(
+                  height: Provider.of<UserStore>(context)
+                          .cookie
+                          .containsKey('chii_auth')
+                      ? 0
+                      : 400,
+                  child: BGMLogin.Main(onLogin: (cookie) {
+                    final router = Provider.of<MyAppRouterDelegate>(context,
+                        listen: false);
+                    final uri = router.uri;
+                    if (uri.queryParameters.containsKey('redirect_from')) {
+                      router.pushRoute(Uri.decodeComponent(
+                          uri.queryParameters['redirect_from']));
+                    }
+                  }),
+                ),
+                buttonSection,
+                ElevatedButton(
+                    onPressed: () {
+                      _goToDetails(context, 'comment?id=436209');
+                    },
+                    child: Text('Comment Section')),
+              ],
+            )));
   }
 
   void _goToDetails(BuildContext context, String route) {

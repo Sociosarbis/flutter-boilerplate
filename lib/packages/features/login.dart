@@ -163,7 +163,8 @@ class SubState extends State<Sub> {
 class Loading extends StatelessWidget {
   final Widget child;
   final bool visible;
-  Loading({@required this.visible, this.child});
+  final String text;
+  Loading({@required this.visible, this.child, this.text});
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -174,8 +175,15 @@ class Loading extends StatelessWidget {
             child,
             if (visible)
               Center(
-                  child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation(theme.accentColor)))
+                  child: Column(mainAxisSize: MainAxisSize.min, children: [
+                CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation(theme.accentColor)),
+                Container(
+                    margin: EdgeInsets.only(top: 20),
+                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    color: Colors.black,
+                    child: Text(text, style: TextStyle(color: Colors.white)))
+              ]))
           ],
         ));
   }
