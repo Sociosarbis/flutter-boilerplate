@@ -76,6 +76,7 @@ class MainState extends State<Main> {
   List<CommentModel.Comment> model;
   CommentModel.Comment replyTo;
   CommentModel.Comment replyBelongTo;
+  ScrollController _controller = ScrollController();
 
   @override
   void didChangeDependencies() {
@@ -99,7 +100,7 @@ class MainState extends State<Main> {
             onTap: () {
               FocusScope.of(context).unfocus();
               setState(() {
-                showInput = !showInput;
+                setShowInput(!showInput);
                 if (showInput) {
                   replyTo = null;
                   replyBelongTo = null;
@@ -107,7 +108,6 @@ class MainState extends State<Main> {
               });
             },
             child: Scaffold(
-                appBar: AppBar(title: Text('Comment')),
                 body: Query(
                     options: QueryOptions(
                         document: gql(GetEpisodeTopicReq),
@@ -120,13 +120,15 @@ class MainState extends State<Main> {
                         }),
                     builder: (QueryResult result,
                         {Refetch refetch, FetchMore fetchMore}) {
+                      Widget loading;
                       if (result.isLoading) {
                         model = null;
-                        return Center(
+                        loading = SliverFillRemaining(
+                            child: Center(
                           child: CircularProgressIndicator(
                               valueColor: AlwaysStoppedAnimation(
                                   Theme.of(context).accentColor)),
-                        );
+                        ));
                       } else if (result.isNotLoading && model == null) {
                         model = (result.data['episodeTopic']['comments']
                                 as List<dynamic>)
@@ -134,94 +136,112 @@ class MainState extends State<Main> {
                                 (item) => CommentModel.Comment.fromJson(item))
                             .toList();
                       }
-                      return model != null
-                          ? Stack(children: [
-                              ListView.builder(
-                                  padding: EdgeInsets.only(
-                                      bottom: showInput ? 192 : 0),
-                                  itemCount: model.length,
-                                  itemBuilder: (context, index) {
-                                    return Comment(
-                                        data: model[index],
-                                        onReply: (replyTo) {
-                                          setState(() {
-                                            this.replyTo = replyTo;
-                                            replyBelongTo = model[index];
-                                            showInput = true;
-                                          });
-                                        });
-                                  }),
-                              CommentInput(
-                                show: showInput,
-                                replyTo: replyTo,
-                                onCommit: (text) {
-                                  if (text.isEmpty) return;
-                                  var floor = "#${model.length + 1}";
-                                  if (replyTo != null) {
-                                    floor = replyTo.floor.replaceAllMapped(
-                                        new RegExp(r'(\d).*'), (match) {
-                                      return "${match.group(1)}-${replyBelongTo.replies.length + 1}";
-                                    });
-                                  }
-                                  var now = DateTime.now();
-                                  var newComment = new CommentModel.Comment(
-                                      author: Author(
-                                          id: 0,
-                                          msg: '(我思故我在)',
-                                          name: 'sociosarbis',
-                                          avatar:
-                                              "https://lain.bgm.tv/pic/user/s/icon.jpg"),
-                                      floor: floor,
-                                      id: Random().nextInt(1 << 30),
-                                      text: text,
-                                      quote: replyTo != null &&
-                                              replyTo.replies == null
-                                          ? Quote(
-                                              from: replyTo.author.name,
-                                              text: replyTo.text)
-                                          : null,
-                                      time:
-                                          "${now.year}-${now.month}-${now.day} ${now.hour}:${now.minute}");
-                                  setState(() {
-                                    Map<String, dynamic> json =
-                                        newComment.toJson();
-                                    GraphQLClient client =
-                                        GraphQLProvider.of(context).value;
-                                    if (replyBelongTo == null) {
-                                      final req = Request(
-                                          operation: Operation(
-                                              document:
-                                                  gql(GetEpisodeTopicReq)),
-                                          variables: {'id': 969984});
-                                      final cache = client.readQuery(req);
-                                      (cache['episodeTopic']['comments']
-                                              as List<dynamic>)
-                                          .add(json);
-                                      client.writeQuery(req, data: cache);
-                                      model.add(newComment);
-                                    } else {
-                                      replyBelongTo.replies.add(newComment);
-                                      final req = FragmentRequest(
-                                          idFields: {
-                                            '__typename': 'Comment',
-                                            'id': replyBelongTo.id
-                                          },
-                                          fragment: Fragment(
-                                              document: gql(GetRepliesFrag)));
-                                      final cache = client.readFragment(req);
-                                      (cache['replies'] as List<dynamic>)
-                                          .add(json);
-                                      client.writeFragment(req, data: cache);
-                                    }
-                                    showInput = false;
-                                    FocusScope.of(context).unfocus();
-                                  });
-                                },
-                              )
-                            ])
-                          : Container();
+                      return Stack(children: [
+                        Padding(
+                            padding:
+                                EdgeInsets.only(bottom: showInput ? 192 : 0),
+                            child: CustomScrollView(
+                                controller: _controller,
+                                slivers: [
+                                  SliverAppBar(
+                                    floating: true,
+                                    pinned: true,
+                                    flexibleSpace: FlexibleSpaceBar(
+                                      title: Text('Comment'),
+                                    ),
+                                    expandedHeight: 250,
+                                  ),
+                                  model != null
+                                      ? SliverList(
+                                          delegate: SliverChildBuilderDelegate(
+                                              (context, index) {
+                                          return Comment(
+                                              data: model[index],
+                                              onReply: (replyTo) {
+                                                setState(() {
+                                                  this.replyTo = replyTo;
+                                                  replyBelongTo = model[index];
+                                                  setShowInput(true);
+                                                });
+                                              });
+                                        }, childCount: model.length))
+                                      : loading
+                                ])),
+                        CommentInput(
+                          show: showInput,
+                          replyTo: replyTo,
+                          onCommit: (text) {
+                            if (text.isEmpty) return;
+                            var floor = "#${model.length + 1}";
+                            if (replyTo != null) {
+                              floor = replyTo.floor.replaceAllMapped(
+                                  new RegExp(r'(\d).*'), (match) {
+                                return "${match.group(1)}-${replyBelongTo.replies.length + 1}";
+                              });
+                            }
+                            var now = DateTime.now();
+                            var newComment = new CommentModel.Comment(
+                                author: Author(
+                                    id: 0,
+                                    msg: '(我思故我在)',
+                                    name: 'sociosarbis',
+                                    avatar:
+                                        "https://lain.bgm.tv/pic/user/s/icon.jpg"),
+                                floor: floor,
+                                id: Random().nextInt(1 << 30),
+                                text: text,
+                                quote:
+                                    replyTo != null && replyTo.replies == null
+                                        ? Quote(
+                                            from: replyTo.author.name,
+                                            text: replyTo.text)
+                                        : null,
+                                time:
+                                    "${now.year}-${now.month}-${now.day} ${now.hour}:${now.minute}");
+                            setState(() {
+                              Map<String, dynamic> json = newComment.toJson();
+                              GraphQLClient client =
+                                  GraphQLProvider.of(context).value;
+                              if (replyBelongTo == null) {
+                                final req = Request(
+                                    operation: Operation(
+                                        document: gql(GetEpisodeTopicReq)),
+                                    variables: {'id': 969984});
+                                final cache = client.readQuery(req);
+                                (cache['episodeTopic']['comments']
+                                        as List<dynamic>)
+                                    .add(json);
+                                client.writeQuery(req, data: cache);
+                                model.add(newComment);
+                              } else {
+                                replyBelongTo.replies.add(newComment);
+                                final req = FragmentRequest(
+                                    idFields: {
+                                      '__typename': 'Comment',
+                                      'id': replyBelongTo.id
+                                    },
+                                    fragment: Fragment(
+                                        document: gql(GetRepliesFrag)));
+                                final cache = client.readFragment(req);
+                                (cache['replies'] as List<dynamic>).add(json);
+                                client.writeFragment(req, data: cache);
+                              }
+                              setShowInput(false);
+                              FocusScope.of(context).unfocus();
+                            });
+                          },
+                        )
+                      ]);
                     })))
         : Container();
+  }
+
+  setShowInput(bool state) {
+    showInput = state;
+    if (state == true) {
+      _controller.animateTo(_controller.offset + 192,
+          duration: Duration(milliseconds: 100), curve: Curves.easeOutCubic);
+    }
   }
 
   replySomeone(
