@@ -383,7 +383,8 @@ class Main extends StatelessWidget {
                 buttonSection,
                 ElevatedButton(
                     onPressed: () {
-                      _goToDetails(context, 'comment?id=436209');
+                      _goToDetails(
+                          context, 'comment?id=436209&subject_id=104906');
                     },
                     child: Text('Comment Section')),
               ],

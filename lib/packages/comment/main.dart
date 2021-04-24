@@ -66,6 +66,14 @@ fragment replies on Comment {
 }
 """;
 
+const String GetSubjectPosterReq = """
+query GetEpisodePoster(\$id: Int!) {
+  subjectDetail(id: \$id) {
+    image
+  }
+}
+""";
+
 class Main extends StatefulWidget {
   @override
   MainState createState() => MainState();
@@ -74,6 +82,9 @@ class Main extends StatefulWidget {
 class MainState extends State<Main> {
   bool showInput = false;
   List<CommentModel.Comment> model;
+  int subjectId = 0;
+  int epId = 0;
+  String poster = '';
   CommentModel.Comment replyTo;
   CommentModel.Comment replyBelongTo;
   ScrollController _controller = ScrollController();
@@ -90,6 +101,13 @@ class MainState extends State<Main> {
           ..popRouteUntil((def) => def.name == '/')
           ..replaceRoute('/?redirect_from=${Uri.encodeComponent(currentUrl)}');
       });
+    } else {
+      final params = Provider.of<MyAppRouterDelegate>(context)
+          .currentConfiguration
+          .uri
+          .queryParameters;
+      epId = int.parse(params['id']);
+      subjectId = int.parse(params['subject_id']);
     }
   }
 
@@ -108,132 +126,154 @@ class MainState extends State<Main> {
               });
             },
             child: Scaffold(
-                body: Query(
-                    options: QueryOptions(
-                        document: gql(GetEpisodeTopicReq),
-                        variables: {
-                          'id': int.parse(
-                              Provider.of<MyAppRouterDelegate>(context)
-                                  .currentConfiguration
-                                  .uri
-                                  .queryParameters['id'])
-                        }),
-                    builder: (QueryResult result,
-                        {Refetch refetch, FetchMore fetchMore}) {
-                      Widget loading;
-                      if (result.isLoading) {
-                        model = null;
-                        loading = SliverFillRemaining(
-                            child: Center(
-                          child: CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation(
-                                  Theme.of(context).accentColor)),
-                        ));
-                      } else if (result.isNotLoading && model == null) {
-                        model = (result.data['episodeTopic']['comments']
-                                as List<dynamic>)
-                            .map<CommentModel.Comment>(
-                                (item) => CommentModel.Comment.fromJson(item))
-                            .toList();
-                      }
-                      return Stack(children: [
-                        Padding(
-                            padding:
-                                EdgeInsets.only(bottom: showInput ? 192 : 0),
-                            child: CustomScrollView(
-                                controller: _controller,
-                                slivers: [
-                                  SliverAppBar(
-                                    floating: true,
-                                    pinned: true,
-                                    flexibleSpace: FlexibleSpaceBar(
-                                      title: Text('Comment'),
-                                    ),
-                                    expandedHeight: 250,
-                                  ),
-                                  model != null
-                                      ? SliverList(
-                                          delegate: SliverChildBuilderDelegate(
-                                              (context, index) {
-                                          return Comment(
-                                              data: model[index],
-                                              onReply: (replyTo) {
-                                                setState(() {
-                                                  this.replyTo = replyTo;
-                                                  replyBelongTo = model[index];
-                                                  setShowInput(true);
-                                                });
-                                              });
-                                        }, childCount: model.length))
-                                      : loading
-                                ])),
-                        CommentInput(
-                          show: showInput,
-                          replyTo: replyTo,
-                          onCommit: (text) {
-                            if (text.isEmpty) return;
-                            var floor = "#${model.length + 1}";
-                            if (replyTo != null) {
-                              floor = replyTo.floor.replaceAllMapped(
-                                  new RegExp(r'(\d).*'), (match) {
-                                return "${match.group(1)}-${replyBelongTo.replies.length + 1}";
-                              });
-                            }
-                            var now = DateTime.now();
-                            var newComment = new CommentModel.Comment(
-                                author: Author(
-                                    id: 0,
-                                    msg: '(我思故我在)',
-                                    name: 'sociosarbis',
-                                    avatar:
-                                        "https://lain.bgm.tv/pic/user/s/icon.jpg"),
-                                floor: floor,
-                                id: Random().nextInt(1 << 30),
-                                text: text,
-                                quote:
-                                    replyTo != null && replyTo.replies == null
-                                        ? Quote(
-                                            from: replyTo.author.name,
-                                            text: replyTo.text)
-                                        : null,
-                                time:
-                                    "${now.year}-${now.month}-${now.day} ${now.hour}:${now.minute}");
+                body: Stack(children: [
+              Query(
+                  options: QueryOptions(
+                      document: gql(GetSubjectPosterReq),
+                      variables: {'id': subjectId}),
+                  builder: (QueryResult result,
+                      {Refetch refetch, FetchMore fetchMore}) {
+                    if (result.isNotLoading) {
+                      if (result.data.isNotEmpty) {
+                        final newPoster =
+                            result.data['subjectDetail']['image'] as String;
+                        if (newPoster != poster) {
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
                             setState(() {
-                              Map<String, dynamic> json = newComment.toJson();
-                              GraphQLClient client =
-                                  GraphQLProvider.of(context).value;
-                              if (replyBelongTo == null) {
-                                final req = Request(
-                                    operation: Operation(
-                                        document: gql(GetEpisodeTopicReq)),
-                                    variables: {'id': 969984});
-                                final cache = client.readQuery(req);
-                                (cache['episodeTopic']['comments']
-                                        as List<dynamic>)
-                                    .add(json);
-                                client.writeQuery(req, data: cache);
-                                model.add(newComment);
-                              } else {
-                                replyBelongTo.replies.add(newComment);
-                                final req = FragmentRequest(
-                                    idFields: {
-                                      '__typename': 'Comment',
-                                      'id': replyBelongTo.id
-                                    },
-                                    fragment: Fragment(
-                                        document: gql(GetRepliesFrag)));
-                                final cache = client.readFragment(req);
-                                (cache['replies'] as List<dynamic>).add(json);
-                                client.writeFragment(req, data: cache);
-                              }
-                              setShowInput(false);
-                              FocusScope.of(context).unfocus();
+                              poster = newPoster;
                             });
-                          },
-                        )
-                      ]);
-                    })))
-        : Container();
+                          });
+                        }
+                      }
+                    }
+                    return SizedBox.shrink();
+                  }),
+              Query(
+                  options: QueryOptions(
+                      document: gql(GetEpisodeTopicReq),
+                      variables: {'id': epId}),
+                  builder: (QueryResult result,
+                      {Refetch refetch, FetchMore fetchMore}) {
+                    Widget loading;
+                    if (result.isLoading) {
+                      model = null;
+                      loading = SliverFillRemaining(
+                          child: Center(
+                        child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation(
+                                Theme.of(context).accentColor)),
+                      ));
+                    } else if (result.isNotLoading && model == null) {
+                      model = (result.data['episodeTopic']['comments']
+                              as List<dynamic>)
+                          .map<CommentModel.Comment>(
+                              (item) => CommentModel.Comment.fromJson(item))
+                          .toList();
+                    }
+                    return Stack(children: [
+                      Padding(
+                          padding: EdgeInsets.only(bottom: showInput ? 192 : 0),
+                          child: CustomScrollView(
+                              controller: _controller,
+                              slivers: [
+                                SliverAppBar(
+                                  floating: true,
+                                  pinned: true,
+                                  flexibleSpace: FlexibleSpaceBar(
+                                      title: Text('Comment'),
+                                      background: poster.isNotEmpty
+                                          ? Image.network(poster,
+                                              fit: BoxFit.cover,
+                                              color:
+                                                  Colors.black.withOpacity(0.5),
+                                              colorBlendMode:
+                                                  BlendMode.hardLight)
+                                          : SizedBox.shrink()),
+                                  expandedHeight: 250,
+                                ),
+                                model != null
+                                    ? SliverList(
+                                        delegate: SliverChildBuilderDelegate(
+                                            (context, index) {
+                                        return Comment(
+                                            data: model[index],
+                                            onReply: (replyTo) {
+                                              setState(() {
+                                                this.replyTo = replyTo;
+                                                replyBelongTo = model[index];
+                                                setShowInput(true);
+                                              });
+                                            });
+                                      }, childCount: model.length))
+                                    : loading
+                              ])),
+                      CommentInput(
+                        show: showInput,
+                        replyTo: replyTo,
+                        onCommit: (text) {
+                          if (text.isEmpty) return;
+                          var floor = "#${model.length + 1}";
+                          if (replyTo != null) {
+                            floor = replyTo.floor.replaceAllMapped(
+                                new RegExp(r'(\d).*'), (match) {
+                              return "${match.group(1)}-${replyBelongTo.replies.length + 1}";
+                            });
+                          }
+                          var now = DateTime.now();
+                          var newComment = new CommentModel.Comment(
+                              author: Author(
+                                  id: 0,
+                                  msg: '(我思故我在)',
+                                  name: 'sociosarbis',
+                                  avatar:
+                                      "https://lain.bgm.tv/pic/user/s/icon.jpg"),
+                              floor: floor,
+                              id: Random().nextInt(1 << 30),
+                              text: text,
+                              quote: replyTo != null && replyTo.replies == null
+                                  ? Quote(
+                                      from: replyTo.author.name,
+                                      text: replyTo.text)
+                                  : null,
+                              time:
+                                  "${now.year}-${now.month}-${now.day} ${now.hour}:${now.minute}");
+                          setState(() {
+                            Map<String, dynamic> json = newComment.toJson();
+                            GraphQLClient client =
+                                GraphQLProvider.of(context).value;
+                            if (replyBelongTo == null) {
+                              final req = Request(
+                                  operation: Operation(
+                                      document: gql(GetEpisodeTopicReq)),
+                                  variables: {'id': 969984});
+                              final cache = client.readQuery(req);
+                              (cache['episodeTopic']['comments']
+                                      as List<dynamic>)
+                                  .add(json);
+                              client.writeQuery(req, data: cache);
+                              model.add(newComment);
+                            } else {
+                              replyBelongTo.replies.add(newComment);
+                              final req = FragmentRequest(
+                                  idFields: {
+                                    '__typename': 'Comment',
+                                    'id': replyBelongTo.id
+                                  },
+                                  fragment:
+                                      Fragment(document: gql(GetRepliesFrag)));
+                              final cache = client.readFragment(req);
+                              (cache['replies'] as List<dynamic>).add(json);
+                              client.writeFragment(req, data: cache);
+                            }
+                            setShowInput(false);
+                            FocusScope.of(context).unfocus();
+                          });
+                        },
+                      )
+                    ]);
+                  })
+            ])))
+        : SizedBox.shrink();
   }
 
   setShowInput(bool state) {
