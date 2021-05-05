@@ -208,68 +208,9 @@ class MainState extends State<Main> {
                                     : loading
                               ])),
                       CommentInput(
-                        show: showInput,
-                        replyTo: replyTo,
-                        onCommit: (text) {
-                          if (text.isEmpty) return;
-                          var floor = "#${model.length + 1}";
-                          if (replyTo != null) {
-                            floor = replyTo.floor.replaceAllMapped(
-                                new RegExp(r'(\d).*'), (match) {
-                              return "${match.group(1)}-${replyBelongTo.replies.length + 1}";
-                            });
-                          }
-                          var now = DateTime.now();
-                          var newComment = new CommentModel.Comment(
-                              author: Author(
-                                  id: 0,
-                                  msg: '(我思故我在)',
-                                  name: 'sociosarbis',
-                                  avatar:
-                                      "https://lain.bgm.tv/pic/user/s/icon.jpg"),
-                              floor: floor,
-                              id: Random().nextInt(1 << 30),
-                              text: text,
-                              quote: replyTo != null && replyTo.replies == null
-                                  ? Quote(
-                                      from: replyTo.author.name,
-                                      text: replyTo.text)
-                                  : null,
-                              time:
-                                  "${now.year}-${now.month}-${now.day} ${now.hour}:${now.minute}");
-                          setState(() {
-                            Map<String, dynamic> json = newComment.toJson();
-                            GraphQLClient client =
-                                GraphQLProvider.of(context).value;
-                            if (replyBelongTo == null) {
-                              final req = Request(
-                                  operation: Operation(
-                                      document: gql(GetEpisodeTopicReq)),
-                                  variables: {'id': 969984});
-                              final cache = client.readQuery(req);
-                              (cache['episodeTopic']['comments']
-                                      as List<dynamic>)
-                                  .add(json);
-                              client.writeQuery(req, data: cache);
-                              model.add(newComment);
-                            } else {
-                              replyBelongTo.replies.add(newComment);
-                              final req = FragmentRequest(
-                                  idFields: {
-                                    '__typename': 'Comment',
-                                    'id': replyBelongTo.id
-                                  },
-                                  fragment:
-                                      Fragment(document: gql(GetRepliesFrag)));
-                              final cache = client.readFragment(req);
-                              (cache['replies'] as List<dynamic>).add(json);
-                              client.writeFragment(req, data: cache);
-                            }
-                            setShowInput(false);
-                            FocusScope.of(context).unfocus();
-                          });
-                        },
-                      )
+                          show: showInput,
+                          replyTo: replyTo,
+                          onCommit: confirmReply)
                     ]);
                   })
             ])))
@@ -296,6 +237,53 @@ class MainState extends State<Main> {
       String content}) {}
 
   replyTopic(String content) {}
+
+  confirmReply(String text) {
+    if (text.isEmpty) return;
+    var floor = "#${model.length + 1}";
+    if (replyTo != null) {
+      floor = replyTo.floor.replaceAllMapped(new RegExp(r'(\d).*'), (match) {
+        return "${match.group(1)}-${replyBelongTo.replies.length + 1}";
+      });
+    }
+    var now = DateTime.now();
+    var newComment = new CommentModel.Comment(
+        author: Author(
+            id: 0,
+            msg: '(我思故我在)',
+            name: 'sociosarbis',
+            avatar: "https://lain.bgm.tv/pic/user/s/icon.jpg"),
+        floor: floor,
+        id: Random().nextInt(1 << 30),
+        text: text,
+        quote: replyTo != null && replyTo.replies == null
+            ? Quote(from: replyTo.author.name, text: replyTo.text)
+            : null,
+        time: "${now.year}-${now.month}-${now.day} ${now.hour}:${now.minute}");
+    setState(() {
+      Map<String, dynamic> json = newComment.toJson();
+      GraphQLClient client = GraphQLProvider.of(context).value;
+      if (replyBelongTo == null) {
+        final req = Request(
+            operation: Operation(document: gql(GetEpisodeTopicReq)),
+            variables: {'id': 969984});
+        final cache = client.readQuery(req);
+        (cache['episodeTopic']['comments'] as List<dynamic>).add(json);
+        client.writeQuery(req, data: cache);
+        model.add(newComment);
+      } else {
+        replyBelongTo.replies.add(newComment);
+        final req = FragmentRequest(
+            idFields: {'__typename': 'Comment', 'id': replyBelongTo.id},
+            fragment: Fragment(document: gql(GetRepliesFrag)));
+        final cache = client.readFragment(req);
+        (cache['replies'] as List<dynamic>).add(json);
+        client.writeFragment(req, data: cache);
+      }
+      setShowInput(false);
+      FocusScope.of(context).unfocus();
+    });
+  }
 }
 
 class Comment extends StatelessWidget {

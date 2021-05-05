@@ -253,33 +253,28 @@ class MyAppRouterDelegate extends RouterDelegate<MyAppRoutePath>
         test: (Uri uri) => true,
         name: '/',
         builder: (BuildContext context) =>
-            MaterialPage(key: UniqueKey(), child: Main())),
+            SlidePage(key: Key('root'), child: Main())),
   ], configs: [
     RouteDefinition(
         test: MyAppRoutePath.testPhysisAnimation,
         name: '/physisAnimation',
-        builder: (BuildContext context) =>
-            MaterialPage(key: UniqueKey(), child: PhysisAnimation.Main())),
+        builder: (BuildContext context) => SlidePage(
+            key: Key('physisAnimation'), child: PhysisAnimation.Main())),
     RouteDefinition(
         test: MyAppRoutePath.testAnimatedContainer,
         name: '/animatedContainer',
-        builder: (BuildContext context) =>
-            MaterialPage(key: UniqueKey(), child: AnimatedContainer.Main())),
+        builder: (BuildContext context) => SlidePage(
+            key: Key('animatedContainer'), child: AnimatedContainer.Main())),
     RouteDefinition(
         test: MyAppRoutePath.testLogin,
         name: '/login',
         builder: (BuildContext context) =>
-            MaterialPage(key: UniqueKey(), child: Login.Main())),
+            SlidePage(key: Key('login'), child: Login.Main())),
     RouteDefinition(
         test: MyAppRoutePath.testComment,
         name: '/comment',
         builder: (BuildContext context) =>
-            MaterialPage(key: UniqueKey(), child: Comment.Main())),
-    RouteDefinition(
-        test: (Uri uri) => true,
-        name: '/',
-        builder: (BuildContext context) =>
-            MaterialPage(key: UniqueKey(), child: Main())),
+            SlidePage(key: Key('comment'), child: Comment.Main()))
   ]);
 
   MyAppRoutePath get currentConfiguration {
@@ -309,7 +304,12 @@ class MyAppRouterDelegate extends RouterDelegate<MyAppRoutePath>
   Future<void> setNewRoutePath(MyAppRoutePath path) async {
     uri = path.uri;
     if (pageManager.pages.isNotEmpty) {
-      if (!pageManager.pages.last.test(path.uri)) {
+      final i = pageManager.pages.indexWhere((routeDefinition) {
+        return routeDefinition.test(path.uri);
+      });
+      if (i != -1) {
+        pageManager.pages.add(pageManager.pages.removeAt(i));
+      } else {
         pageManager.push(path.uri);
       }
     }
@@ -421,5 +421,26 @@ class ButtonColumn extends StatelessWidget {
                     fontSize: 12, fontWeight: FontWeight.w400, color: color)))
       ],
     );
+  }
+}
+
+class SlidePage<T> extends Page<T> {
+  final Widget child;
+  SlidePage({@required this.child, LocalKey key}) : super(key: key);
+  @override
+  Route<T> createRoute(BuildContext context) {
+    return PageRouteBuilder(
+        settings: this,
+        pageBuilder: (_, __, ___) {
+          return child;
+        },
+        transitionsBuilder: (context, animation, secondaryAnimation, page) {
+          final begin = Offset(1.0, 0.0);
+          final end = Offset.zero;
+          final tween = Tween(begin: begin, end: end)
+              .chain(CurveTween(curve: Curves.ease));
+          final offsetAnimation = animation.drive(tween);
+          return SlideTransition(position: offsetAnimation, child: page);
+        });
   }
 }
