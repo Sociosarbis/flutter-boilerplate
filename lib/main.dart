@@ -330,7 +330,13 @@ class MyAppRouterDelegate extends RouterDelegate<MyAppRoutePath>
   }
 }
 
-class Main extends StatelessWidget {
+class Main extends StatefulWidget {
+  @override
+  MainState createState() => MainState();
+}
+
+class MainState extends State<Main> {
+  bool isOpened = false;
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -355,40 +361,75 @@ class Main extends StatelessWidget {
           onPress: () => this._goToDetails(context, 'login'))
     ]));
 
-    return Scaffold(
-        appBar: AppBar(
-          title: Text('Welcome to Flutter'),
-        ),
-        body: Login.Loading(
-            visible: Provider.of<UserStore>(context).isLogining,
-            text: '登录中',
-            child: ListView(
-              children: [
-                Container(
-                  height: Provider.of<UserStore>(context)
-                          .cookie
-                          .containsKey('chii_auth')
-                      ? 0
-                      : 400,
-                  child: BGMLogin.Main(onLogin: (cookie) {
-                    final router = Provider.of<MyAppRouterDelegate>(context,
-                        listen: false);
-                    final uri = router.uri;
-                    if (uri.queryParameters.containsKey('redirect_from')) {
-                      router.pushRoute(Uri.decodeComponent(
-                          uri.queryParameters['redirect_from']));
-                    }
-                  }),
+    return WillPopScope(
+      onWillPop: handleBackButtonPressed,
+      child: Scaffold(
+          appBar: AppBar(
+            title: Text('Welcome to Flutter'),
+          ),
+          body: Login.Loading(
+              visible: Provider.of<UserStore>(context).isLogining,
+              text: '登录中',
+              child: ListView(
+                children: [
+                  Container(
+                    height: Provider.of<UserStore>(context)
+                            .cookie
+                            .containsKey('chii_auth')
+                        ? 0
+                        : 400,
+                    child: BGMLogin.Main(onLogin: (cookie) {
+                      final router = Provider.of<MyAppRouterDelegate>(context,
+                          listen: false);
+                      final uri = router.uri;
+                      if (uri.queryParameters.containsKey('redirect_from')) {
+                        router.pushRoute(Uri.decodeComponent(
+                            uri.queryParameters['redirect_from']));
+                      }
+                    }),
+                  ),
+                  buttonSection,
+                  ElevatedButton(
+                      onPressed: () {
+                        _goToDetails(
+                            context, 'comment?id=436209&subject_id=104906');
+                      },
+                      child: Text('Comment Section')),
+                ],
+              ))),
+    );
+  }
+
+  Future<bool> handleBackButtonPressed() async {
+    if (isOpened) return false;
+    isOpened = true;
+    final completer = Completer<bool>();
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+              title: Text('提示'),
+              content: Text('确认退出？'),
+              actions: [
+                TextButton(
+                  child: Text('取消'),
+                  onPressed: () {
+                    isOpened = false;
+                    completer.complete(false);
+                    Navigator.pop(context);
+                  },
                 ),
-                buttonSection,
-                ElevatedButton(
-                    onPressed: () {
-                      _goToDetails(
-                          context, 'comment?id=436209&subject_id=104906');
-                    },
-                    child: Text('Comment Section')),
-              ],
-            )));
+                TextButton(
+                  child: Text('确认'),
+                  onPressed: () {
+                    isOpened = false;
+                    completer.complete(true);
+                    Navigator.pop(context);
+                  },
+                )
+              ]);
+        });
+    return await completer.future;
   }
 
   void _goToDetails(BuildContext context, String route) {
