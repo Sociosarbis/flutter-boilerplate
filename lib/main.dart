@@ -404,7 +404,7 @@ class MainState extends State<Main> {
     if (isOpened) return false;
     isOpened = true;
     final completer = Completer<bool>();
-    showDialog(
+    showDialog<bool>(
         context: context,
         builder: (context) {
           return AlertDialog(
@@ -414,21 +414,22 @@ class MainState extends State<Main> {
                 TextButton(
                   child: Text('取消'),
                   onPressed: () {
-                    isOpened = false;
                     completer.complete(false);
-                    Navigator.pop(context);
+                    Navigator.pop(context, false);
                   },
                 ),
                 TextButton(
                   child: Text('确认'),
                   onPressed: () {
-                    isOpened = false;
                     completer.complete(true);
-                    Navigator.pop(context);
+                    Navigator.pop(context, true);
                   },
                 )
               ]);
-        });
+        }).then((res) async {
+      completer.complete(res ?? false);
+      isOpened = false;
+    });
     return await completer.future;
   }
 
