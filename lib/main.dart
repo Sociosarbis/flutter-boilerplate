@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import './packages/features/animated_container.dart' as AnimatedContainer;
 import './packages/features/physis_animation.dart' as PhysisAnimation;
@@ -337,6 +338,26 @@ class Main extends StatefulWidget {
 
 class MainState extends State<Main> {
   bool isOpened = false;
+  int _counter = 0;
+  bool isServiceRunning = false;
+  final channel = MethodChannel('notification');
+  @override
+  void initState() {
+    super.initState();
+    channel.setMethodCallHandler((call) {
+      if (call.method == 'increase') {
+        setState(() {
+          _counter++;
+        });
+      } else if (call.method == 'decrease') {
+        setState(() {
+          _counter--;
+        });
+      }
+      return;
+    });
+  }
+
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -395,6 +416,15 @@ class MainState extends State<Main> {
                             context, 'comment?id=436209&subject_id=104906');
                       },
                       child: Text('Comment Section')),
+                  ElevatedButton(
+                      onPressed: () {
+                        !isServiceRunning ? _startService() : _stopService();
+                        setState(() {
+                          isServiceRunning = !isServiceRunning;
+                        });
+                      },
+                      child: Text(
+                          '${isServiceRunning ? 'running' : 'stopped'} ($_counter)'))
                 ],
               ))),
     );
@@ -436,6 +466,22 @@ class MainState extends State<Main> {
   void _goToDetails(BuildContext context, String route) {
     Provider.of<MyAppRouterDelegate>(context, listen: false)
         .pushRoute('/$route');
+  }
+
+  void _startService() async {
+    try {
+      await channel.invokeMethod('create');
+    } catch (error) {
+      print(error);
+    }
+  }
+
+  void _stopService() async {
+    try {
+      await channel.invokeMethod('destroy');
+    } catch (error) {
+      print(error);
+    }
   }
 }
 

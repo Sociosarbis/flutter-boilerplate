@@ -51,5 +51,7 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <receiver android:name=".Notification"  android:exported="true">
+        </receiver>
     </application>
 </manifest>
