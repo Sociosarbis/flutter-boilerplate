@@ -11,6 +11,9 @@ import './packages/bgm/components/login.dart' as BGMLogin;
 import './stores/user.dart';
 import 'package:uni_links/uni_links.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_boilerplate/utils/hooks.dart';
+import 'package:flutter_boilerplate/components/floatingRollMenu.dart' as FloatingRollMenu;
 
 void main() async {
   runApp(MyApp());
@@ -331,108 +334,19 @@ class MyAppRouterDelegate extends RouterDelegate<MyAppRoutePath>
   }
 }
 
-class Main extends StatefulWidget {
-  @override
-  MainState createState() => MainState();
+void Function(String) useRoutePush() {
+  final router = useProviderContext<MyAppRouterDelegate>(false);
+  return useCallback((String route) {
+    router.pushRoute(route);
+  }, [router]);
 }
 
-class MainState extends State<Main> {
-  bool isOpened = false;
-  int _counter = 0;
-  bool isServiceRunning = false;
-  final channel = MethodChannel('notification');
-  @override
-  void initState() {
-    super.initState();
-    channel.setMethodCallHandler((call) {
-      if (call.method == 'increase') {
-        setState(() {
-          _counter++;
-        });
-      } else if (call.method == 'decrease') {
-        setState(() {
-          _counter--;
-        });
-      }
-      return;
-    });
-  }
-
-  // This widget is the root of your application.
-  @override
-  Widget build(BuildContext context) {
-    Color color = Theme.of(context).primaryColor;
-
-    Widget buttonSection = Container(
-        child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-      ButtonColumn(
-          color: color,
-          icon: Icons.call,
-          label: 'CALL',
-          onPress: () => this._goToDetails(context, 'animatedContainer')),
-      ButtonColumn(
-          color: color,
-          icon: Icons.near_me,
-          label: 'ROUTE',
-          onPress: () => this._goToDetails(context, 'physisAnimation')),
-      ButtonColumn(
-          color: color,
-          icon: Icons.share,
-          label: 'SHARE',
-          onPress: () => this._goToDetails(context, 'login'))
-    ]));
-
-    return WillPopScope(
-      onWillPop: handleBackButtonPressed,
-      child: Scaffold(
-          appBar: AppBar(
-            title: Text('Welcome to Flutter'),
-          ),
-          body: Login.Loading(
-              visible: Provider.of<UserStore>(context).isLogining,
-              text: '登录中',
-              child: ListView(
-                children: [
-                  Container(
-                    height: Provider.of<UserStore>(context)
-                            .cookie
-                            .containsKey('chii_auth')
-                        ? 0
-                        : 400,
-                    child: BGMLogin.Main(onLogin: (cookie) {
-                      final router = Provider.of<MyAppRouterDelegate>(context,
-                          listen: false);
-                      final uri = router.uri;
-                      if (uri.queryParameters.containsKey('redirect_from')) {
-                        router.pushRoute(Uri.decodeComponent(
-                            uri.queryParameters['redirect_from']));
-                      }
-                    }),
-                  ),
-                  buttonSection,
-                  ElevatedButton(
-                      onPressed: () {
-                        _goToDetails(
-                            context, 'comment?id=436209&subject_id=104906');
-                      },
-                      child: Text('Comment Section')),
-                  ElevatedButton(
-                      onPressed: () {
-                        !isServiceRunning ? _startService() : _stopService();
-                        setState(() {
-                          isServiceRunning = !isServiceRunning;
-                        });
-                      },
-                      child: Text(
-                          '${isServiceRunning ? 'running' : 'stopped'} ($_counter)'))
-                ],
-              ))),
-    );
-  }
-
-  Future<bool> handleBackButtonPressed() async {
-    if (isOpened) return false;
-    isOpened = true;
+Future<bool> Function() useBackButtonPressed() {
+  final isOpened = useRef(false);
+  final context = useContext();
+  return useCallback(() async {
+    if (isOpened.value) return false;
+    isOpened.value = true;
     final completer = Completer<bool>();
     showDialog<bool>(
         context: context,
@@ -458,30 +372,116 @@ class MainState extends State<Main> {
               ]);
         }).then((res) async {
       completer.complete(res ?? false);
-      isOpened = false;
+      isOpened.value = false;
     });
     return await completer.future;
-  }
+  }, [context]);
+}
 
-  void _goToDetails(BuildContext context, String route) {
-    Provider.of<MyAppRouterDelegate>(context, listen: false)
-        .pushRoute('/$route');
-  }
+class Main extends HookWidget {
+  // This widget is the root of your application.
+  @override
+  Widget build(BuildContext context) {
+    Color color = Theme.of(context).primaryColor;
+    final channel = useRef<MethodChannel>(null);
+    final counter = useState(0);
+    final isServiceRunning = useState(false);
+    final startService = useCallback(() async {
+      try {
+        await channel.value?.invokeMethod('create');
+      } catch (error) {
+        print(error);
+      }
+    }, [channel]);
 
-  void _startService() async {
-    try {
-      await channel.invokeMethod('create');
-    } catch (error) {
-      print(error);
-    }
-  }
+    final stopService = useCallback(() async {
+      try {
+        await channel.value.invokeMethod('destroy');
+      } catch (error) {
+        print(error);
+      }
+    }, [channel]);
 
-  void _stopService() async {
-    try {
-      await channel.invokeMethod('destroy');
-    } catch (error) {
-      print(error);
-    }
+    useEffect(() {
+      channel.value = MethodChannel('notification');
+      channel.value.setMethodCallHandler((call) {
+        if (call.method == 'increase') {
+          counter.value++;
+        } else if (call.method == 'decrease') {
+          counter.value--;
+        }
+        return;
+      });
+      return stopService;
+    }, [stopService]);
+
+    final handleBackButtonPressed = useBackButtonPressed();
+
+    final goToDetails = useRoutePush();
+
+    final userStore = useProviderContext<UserStore>(true);
+
+    final router = useProviderContext<MyAppRouterDelegate>(false);
+
+    Widget buttonSection = Container(
+        child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+      ButtonColumn(
+          color: color,
+          icon: Icons.call,
+          label: 'CALL',
+          onPress: () => goToDetails('animatedContainer')),
+      ButtonColumn(
+          color: color,
+          icon: Icons.near_me,
+          label: 'ROUTE',
+          onPress: () => goToDetails('physisAnimation')),
+      ButtonColumn(
+          color: color,
+          icon: Icons.share,
+          label: 'SHARE',
+          onPress: () => goToDetails('login'))
+    ]));
+
+    return WillPopScope(
+      onWillPop: handleBackButtonPressed,
+      child: Scaffold(
+          appBar: AppBar(
+            title: Text('Welcome to Flutter'),
+          ),
+          floatingActionButton: FloatingRollMenu.Main(),
+          body: Login.Loading(
+              visible: userStore.isLogining,
+              text: '登录中',
+              child: ListView(
+                children: [
+                  Container(
+                    height: userStore.cookie.containsKey('chii_auth') ? 0 : 400,
+                    child: BGMLogin.Main(onLogin: (cookie) {
+                      final uri = router.uri;
+                      if (uri.queryParameters.containsKey('redirect_from')) {
+                        router.pushRoute(Uri.decodeComponent(
+                            uri.queryParameters['redirect_from']));
+                      }
+                    }),
+                  ),
+                  buttonSection,
+                  ElevatedButton(
+                      onPressed: () {
+                        // goToDetails('comment?id=436209&subject_id=104906');
+                      },
+                      child: Text('Comment Section')),
+                  ElevatedButton(
+                      onPressed: () {
+                        /*!isServiceRunning.value
+                            ? startService()
+                            : stopService();
+                        isServiceRunning.value = !isServiceRunning.value;*/
+                      },
+                      child: Text(
+                          '${isServiceRunning.value ? 'running' : 'stopped'} (${counter.value})'))
+                ],
+              ))),
+    );
   }
 }
 
