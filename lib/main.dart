@@ -73,7 +73,7 @@ class MyAppState extends State<MyApp> {
                 userStore.cookieStr).concat(HttpLink(
             "https://sociosarbis-media-player.netlify.app/.netlify/functions/graphql"))));
     getInitialUri().then(onLaunch);
-    sub = getUriLinksStream().listen(onLaunch);
+    sub = uriLinkStream.listen(onLaunch);
     super.initState();
   }
 

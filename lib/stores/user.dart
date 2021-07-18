@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:provider/provider.dart';
 
 class UserStore with ChangeNotifier {
   Map<String, String> cookie = Map<String, String>();
@@ -33,8 +31,3 @@ class UserStore with ChangeNotifier {
   }
 }
 
-UserStore useUserStore(bool listen) {
-  return useMemoized(() {
-    return Provider.of<UserStore>(useContext(), listen: listen);
-  }, [listen]);
-}

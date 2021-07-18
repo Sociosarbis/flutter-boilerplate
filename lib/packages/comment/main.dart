@@ -486,15 +486,20 @@ class CommentInputState extends State<CommentInput> {
                               SizedBox(
                                   width: 71,
                                   height: 25,
-                                  child: RaisedButton(
-                                    elevation: 0,
-                                    padding: EdgeInsets.all(0),
-                                    color: Color(0xff319abf),
-                                    textColor: Colors.white,
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(5)),
+                                      elevation: 0,
+                                      padding: EdgeInsets.all(0),
+                                      primary: Color(0xff319abf),
+                                      textStyle : TextStyle(
+                                        color: Colors.white
+                                      ),
+                                    ),
                                     child: Text(
                                         widget.replyTo == null ? '加上去' : '写好了'),
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(5)),
                                     onPressed: reply,
                                   ))
                             ]))))));

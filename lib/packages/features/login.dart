@@ -112,10 +112,10 @@ class SubState extends State<Sub> {
       isRequesting = true;
     });
     if (await canLaunch(url)) {
-      sub = getUriLinksStream().listen((uri) async {
+      sub = uriLinkStream.listen((uri) async {
         if (uri.hasQuery) {
           final code = uri.queryParameters['code'] ?? '';
-          final res = await post('https://github.com/login/oauth/access_token',
+          final res = await post(Uri.dataFromString('https://github.com/login/oauth/access_token'),
               headers: {
                 'Accept': 'application/json'
               },
