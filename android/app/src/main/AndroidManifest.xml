@@ -6,7 +6,7 @@
          additional functionality it is fine to subclass or reimplement
          FlutterApplication and put your custom class here. -->
     <application
-        android:name="io.flutter.app.FlutterApplication"
+        android:name="com.example.flutter_boilerplate.MyApplication"
         android:label="flutter_boilerplate"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -51,6 +51,9 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <meta-data
+            android:name="com.baidu.lbsapi.API_KEY"
+            android:value="gVM56C5mxCEn8nAWmXtwchvw76S7NwV1" />
         <receiver android:name=".Notification"  android:exported="true">
         </receiver>
     </application>

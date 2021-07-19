@@ -258,6 +258,20 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_baidu_mapapi_base:
+    dependency: transitive
+    description:
+      name: flutter_baidu_mapapi_base
+      url: "https://mirrors.tuna.tsinghua.edu.cn/dart-pub"
+    source: hosted
+    version: "2.0.1"
+  flutter_baidu_mapapi_map:
+    dependency: "direct main"
+    description:
+      name: flutter_baidu_mapapi_map
+      url: "https://mirrors.tuna.tsinghua.edu.cn/dart-pub"
+    source: hosted
+    version: "2.0.1"
   flutter_hooks:
     dependency: "direct main"
     description:
@@ -265,6 +279,13 @@ packages:
       url: "https://mirrors.tuna.tsinghua.edu.cn/dart-pub"
     source: hosted
     version: "0.18.0"
+  flutter_plugin_android_lifecycle:
+    dependency: transitive
+    description:
+      name: flutter_plugin_android_lifecycle
+      url: "https://mirrors.tuna.tsinghua.edu.cn/dart-pub"
+    source: hosted
+    version: "1.0.11"
   flutter_test:
     dependency: "direct dev"
     description: flutter

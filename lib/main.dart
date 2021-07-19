@@ -13,7 +13,11 @@ import 'package:uni_links/uni_links.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_boilerplate/utils/hooks.dart';
-import 'package:flutter_boilerplate/components/floatingRollMenu.dart' as FloatingRollMenu;
+import 'package:flutter_baidu_mapapi_map/flutter_baidu_mapapi_map.dart';
+import 'package:flutter_baidu_mapapi_base/flutter_baidu_mapapi_base.dart';
+
+import 'package:flutter_boilerplate/components/floatingRollMenu.dart'
+    as FloatingRollMenu;
 
 void main() async {
   runApp(MyApp());
@@ -465,6 +469,16 @@ class Main extends HookWidget {
                     }),
                   ),
                   buttonSection,
+                  Container(
+                      height: 500,
+                      child: BMFMapWidget(
+                        onBMFMapCreated: (controller) {},
+                        mapOptions: BMFMapOptions(
+                            center: BMFCoordinate(39.917215, 116.380341),
+                            zoomLevel: 12,
+                            mapPadding: BMFEdgeInsets(
+                                left: 30, top: 0, right: 30, bottom: 0)),
+                      )),
                   ElevatedButton(
                       onPressed: () {
                         // goToDetails('comment?id=436209&subject_id=104906');
