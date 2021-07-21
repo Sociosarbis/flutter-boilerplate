@@ -446,6 +446,8 @@ class Main extends HookWidget {
           onPress: () => goToDetails('login'))
     ]));
 
+    final controller = useRef<ScrollController>(ScrollController());
+
     return WillPopScope(
       onWillPop: handleBackButtonPressed,
       child: Scaffold(
@@ -457,6 +459,7 @@ class Main extends HookWidget {
               visible: userStore.isLogining,
               text: '登录中',
               child: ListView(
+                controller: controller.value,
                 children: [
                   Container(
                     height: userStore.cookie.containsKey('chii_auth') ? 0 : 400,
@@ -466,6 +469,8 @@ class Main extends HookWidget {
                         router.pushRoute(Uri.decodeComponent(
                             uri.queryParameters['redirect_from']));
                       }
+                    }, onScrollBound: (offset) {
+                      controller.value.jumpTo((controller.value.offset - offset).clamp(controller.value.position.minScrollExtent, controller.value.position.maxScrollExtent));
                     }),
                   ),
                   buttonSection,
