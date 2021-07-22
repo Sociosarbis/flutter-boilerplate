@@ -469,8 +469,21 @@ class Main extends HookWidget {
                         router.pushRoute(Uri.decodeComponent(
                             uri.queryParameters['redirect_from']));
                       }
-                    }, onScrollBound: (offset) {
-                      controller.value.jumpTo((controller.value.offset - offset).clamp(controller.value.position.minScrollExtent, controller.value.position.maxScrollExtent));
+                    }, onScrollBound: (touchDetails) {
+                      final position = controller.value.position;
+                      if (touchDetails[2] == 1) {
+                        controller.value.animateTo(
+                            (controller.value.offset - touchDetails[1] * 125)
+                                .clamp(position.minScrollExtent,
+                                    position.maxScrollExtent),
+                            duration: Duration(milliseconds: 250),
+                            curve: Curves.easeOutCubic);
+                      } else {
+                        controller.value.jumpTo(
+                            (controller.value.offset - touchDetails[0]).clamp(
+                                position.minScrollExtent,
+                                position.maxScrollExtent));
+                      }
                     }),
                   ),
                   buttonSection,

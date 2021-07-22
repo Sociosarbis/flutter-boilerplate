@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -12,20 +13,45 @@ const String url = 'https://bgm.tv/login';
 const String userAgent =
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36 Edg/88.0.705.68';
 
-const int TRIGGER_THRESHOLD = 20;
+const int TRIGGER_THRESHOLD = 3;
 const String listenScrollToBoundJS = """
 {
   let touchStartY = 0
+  let startTime = 0
+  let triggerId = 0
+  let touchDelta = 0
+  let timeDelta = 0
+  let moveCount = 0
+  const triggerScrollBound = (isEnd) => {
+    window.flutterBridge.postMessage(JSON.stringify([touchDelta, touchDelta / timeDelta, isEnd ? 1 : 0]));
+  }
+
+  document.addEventListener('scroll', (e) => {
+    if (moveCount !== 0) {
+      moveCount = moveCount > 0 ? moveCount - 1 : moveCount + 1;
+    }
+  })
+
   document.addEventListener('touchstart', (e) => {
     touchStartY = e.touches[0].clientY
+    startTime = performance.now()
+    moveCount = 0
   })
+
   document.addEventListener('touchmove', (e) => {
-    const touchDelta = e.touches[0].clientY - touchStartY
+    touchDelta = e.touches[0].clientY - touchStartY
+    timeDelta = performance.now() - startTime
     touchStartY = e.touches[0].clientY
-    if ((document.documentElement.scrollTop <= $TRIGGER_THRESHOLD && touchDelta > 0) ||
-      (touchDelta < 0 && document.documentElement.scrollTop + document.documentElement.clientHeight >= document.documentElement.scrollHeight - $TRIGGER_THRESHOLD)
-    ) {
-      window.flutterBridge.postMessage(JSON.stringify(touchDelta));
+    startTime = performance.now()
+    moveCount += timeDelta > 0 ? 1 : -1;
+    if (Math.abs(moveCount) > $TRIGGER_THRESHOLD) {
+      triggerScrollBound(false)
+    }
+  })
+
+  document.addEventListener('touchend', (e) => {
+    if (moveCount > $TRIGGER_THRESHOLD) {
+      triggerScrollBound(true)
     }
   })
 }
@@ -33,7 +59,7 @@ const String listenScrollToBoundJS = """
 
 class Main extends HookWidget {
   final void Function(Map<String, String> cookies) onLogin;
-  final void Function(double offset) onScrollBound;
+  final void Function(List<double> touchDetails) onScrollBound;
   Main({@required this.onLogin, this.onScrollBound});
 
   @override
@@ -44,12 +70,20 @@ class Main extends HookWidget {
       initialUrl: url,
       userAgent: userAgent,
       javascriptMode: JavascriptMode.unrestricted,
-      javascriptChannels: Set()..add(JavascriptChannel(name: 'flutterBridge', onMessageReceived: (data) {
-        final offset = double.tryParse(data.message);
-        if (offset != null) {
-          onScrollBound(offset);
-        }
-      })),
+      javascriptChannels: Set()
+        ..add(JavascriptChannel(
+            name: 'flutterBridge',
+            onMessageReceived: (data) {
+              try {
+                List<double> touchDetails =
+                    (jsonDecode(data.message) as List).map((item) {
+                  return item is double ? item : (item as int).toDouble();
+                }).toList();
+                onScrollBound(touchDetails);
+              } catch (e) {
+                print(e);
+              }
+            })),
       debuggingEnabled: true,
       onWebViewCreated: (_controller) {
         controller.value = _controller;
@@ -74,8 +108,8 @@ class Main extends HookWidget {
         return NavigationDecision.prevent;
       },
       gestureRecognizers: Set()
-        ..add(Factory<VerticalDragGestureRecognizer>(
-            () => VerticalDragGestureRecognizer())),
+            ..add(Factory<VerticalDragGestureRecognizer>(
+                () => VerticalDragGestureRecognizer()))
     );
   }
 }
