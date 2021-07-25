@@ -13,6 +13,7 @@ import 'package:uni_links/uni_links.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_boilerplate/utils/hooks.dart';
+import 'package:flutter_boilerplate/utils/geolocator_manager.dart';
 import 'package:flutter_baidu_mapapi_map/flutter_baidu_mapapi_map.dart';
 import 'package:flutter_baidu_mapapi_base/flutter_baidu_mapapi_base.dart';
 
@@ -68,10 +69,12 @@ class MyApp extends StatefulWidget {
 class MyAppState extends State<MyApp> {
   UserStore userStore;
   ValueNotifier<GraphQLClient> client;
+  GeolocatorManager geolocatorManager;
   StreamSubscription<Uri> sub;
   @override
   void initState() {
     userStore = UserStore();
+    geolocatorManager = GeolocatorManager()..init();
     client = ValueNotifier(GraphQLClient(
         cache: GraphQLCache(),
         link: AuthLink(
@@ -87,6 +90,7 @@ class MyAppState extends State<MyApp> {
   @override
   void dispose() {
     sub.cancel();
+    geolocatorManager.dispose();
     super.dispose();
   }
 
@@ -106,17 +110,22 @@ class MyAppState extends State<MyApp> {
   MyAppRouterDelegate _myAppRouterDelegate = MyAppRouterDelegate();
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider.value(
-        value: userStore,
-        child: GraphQLProvider(
-            client: client,
-            child: MaterialApp.router(
-              title: 'Welcome To Flutter',
-              theme: ThemeData(accentColor: Colors.red),
-              debugShowCheckedModeBanner: false,
-              routeInformationParser: _appRouteInformationParser,
-              routerDelegate: _myAppRouterDelegate,
-            )));
+    return MultiProvider(
+        providers: [
+          ChangeNotifierProvider.value(value: userStore),
+          ValueListenableProvider.value(value: geolocatorManager.position)
+        ],
+        builder: (context, widget) {
+          return GraphQLProvider(
+              client: client,
+              child: MaterialApp.router(
+                title: 'Welcome To Flutter',
+                theme: ThemeData(accentColor: Colors.red),
+                debugShowCheckedModeBanner: false,
+                routeInformationParser: _appRouteInformationParser,
+                routerDelegate: _myAppRouterDelegate,
+              ));
+        });
   }
 }
 
@@ -427,6 +436,8 @@ class Main extends HookWidget {
 
     final router = useProviderContext<MyAppRouterDelegate>(false);
 
+    final position = useProviderContext<Position>(true);
+
     Widget buttonSection = Container(
         child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
       ButtonColumn(
@@ -447,6 +458,23 @@ class Main extends HookWidget {
     ]));
 
     final controller = useRef<ScrollController>(ScrollController());
+    final mapController = useRef<BMFMapController>(null);
+
+    usePreviousEffect((keys) {
+      if (keys != null) {
+        if (keys[1] == null || keys[0] == null) {
+          if (mapController.value != null && position != null) {
+            mapController.value.showUserLocation(true);
+            final coord = BMFCoordinate(position.latitude, position.longitude);
+            mapController.value.updateLocationData(
+                BMFUserLocation(location: BMFLocation(coordinate: coord)));
+            mapController.value
+                .setCenterCoordinate(coord, true, animateDurationMs: 250);
+          }
+        }
+      }
+      return () {};
+    }, [mapController.value, position]);
 
     return WillPopScope(
       onWillPop: handleBackButtonPressed,
@@ -490,7 +518,9 @@ class Main extends HookWidget {
                   Container(
                       height: 500,
                       child: BMFMapWidget(
-                        onBMFMapCreated: (controller) {},
+                        onBMFMapCreated: (controller) {
+                          mapController.value = controller;
+                        },
                         mapOptions: BMFMapOptions(
                             center: BMFCoordinate(39.917215, 116.380341),
                             zoomLevel: 12,
