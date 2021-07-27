@@ -3,7 +3,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
-class Main extends HookWidget {
+class FloatingRollMenu extends HookWidget {
+  final void Function(String) onSelect;
+  FloatingRollMenu({this.onSelect});
   @override
   Widget build(context) {
     final isOpen = useState(false);
@@ -15,6 +17,16 @@ class Main extends HookWidget {
             parent: controller, curve: Interval(0.25, 1, curve: Curves.easeIn))
         .value;
     final translateX = 50 + 2 * pi * 25 * move;
+    final toggleOpen = useCallback(() async {
+      if (!isOpen.value) {
+        isOpen.value = true;
+        controller.reset();
+        controller.forward();
+      } else {
+        await controller.reverse();
+        isOpen.value = false;
+      }
+    }, []);
     return SizedBox.fromSize(
         size: Size(500, 50),
         child: Stack(alignment: Alignment.centerRight, children: [
@@ -34,28 +46,18 @@ class Main extends HookWidget {
                       fixedSize: Size.square(50),
                       minimumSize: Size.square(15)),
                   onPressed: () {
-                    // todo
-                    print('get weather data');
+                    onSelect?.call('weather');
+                    toggleOpen();
                   },
                 )),
           ],
           ElevatedButton(
               style: ElevatedButton.styleFrom(
-                primary: Colors.black,
-                padding: EdgeInsets.all(0),
-                fixedSize: Size.square(50),
-                alignment: Alignment.center
-              ),
-              onPressed: () async {
-                if (!isOpen.value) {
-                  isOpen.value = true;
-                  controller.reset();
-                  controller.forward();
-                } else {
-                  await controller.reverse();
-                  isOpen.value = false;
-                }
-              },
+                  primary: Colors.black,
+                  padding: EdgeInsets.all(0),
+                  fixedSize: Size.square(50),
+                  alignment: Alignment.center),
+              onPressed: toggleOpen,
               child: Icon(Icons.work)),
         ]));
   }

@@ -7,6 +7,7 @@ import './packages/features/animated_container.dart' as AnimatedContainer;
 import './packages/features/physis_animation.dart' as PhysisAnimation;
 import './packages/comment/main.dart' as Comment;
 import './packages/features/login.dart' as Login;
+import './packages/weather/weather_page.dart';
 import './packages/bgm/components/login.dart' as BGMLogin;
 import './stores/user.dart';
 import 'package:uni_links/uni_links.dart';
@@ -14,11 +15,8 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_boilerplate/utils/hooks.dart';
 import 'package:flutter_boilerplate/utils/geolocator_manager.dart';
-import 'package:flutter_baidu_mapapi_map/flutter_baidu_mapapi_map.dart';
-import 'package:flutter_baidu_mapapi_base/flutter_baidu_mapapi_base.dart';
 
-import 'package:flutter_boilerplate/components/floatingRollMenu.dart'
-    as FloatingRollMenu;
+import 'package:flutter_boilerplate/components/floating_roll_menu.dart';
 
 void main() async {
   runApp(MyApp());
@@ -178,6 +176,17 @@ class MyAppRoutePath {
         uri.pathSegments.isNotEmpty &&
         uri.pathSegments[0] == 'comment';
   }
+
+  static bool testWeather(Uri uri) {
+    return uri != null &&
+      uri.pathSegments.isNotEmpty &&
+      uri.pathSegments[0] == 'weather';
+  }
+
+  get isWeather {
+    return MyAppRoutePath.testWeather(uri);
+  }
+
 }
 
 class MyAppRouteInformationParser extends RouteInformationParser {
@@ -291,7 +300,12 @@ class MyAppRouterDelegate extends RouterDelegate<MyAppRoutePath>
         test: MyAppRoutePath.testComment,
         name: '/comment',
         builder: (BuildContext context) =>
-            SlidePage(key: Key('comment'), child: Comment.Main()))
+            SlidePage(key: Key('comment'), child: Comment.Main())),
+    RouteDefinition(
+        test: MyAppRoutePath.testWeather,
+        name: '/weather',
+        builder: (BuildContext context) =>
+            SlidePage(key: Key('weather'), child: WeatherPage()))
   ]);
 
   MyAppRoutePath get currentConfiguration {
@@ -349,9 +363,9 @@ class MyAppRouterDelegate extends RouterDelegate<MyAppRoutePath>
 
 void Function(String) useRoutePush() {
   final router = useProviderContext<MyAppRouterDelegate>(false);
-  return useCallback((String route) {
+  return (String route) {
     router.pushRoute(route);
-  }, [router]);
+  };
 }
 
 Future<bool> Function() useBackButtonPressed() {
@@ -436,8 +450,6 @@ class Main extends HookWidget {
 
     final router = useProviderContext<MyAppRouterDelegate>(false);
 
-    final position = useProviderContext<Position>(true);
-
     Widget buttonSection = Container(
         child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
       ButtonColumn(
@@ -458,23 +470,6 @@ class Main extends HookWidget {
     ]));
 
     final controller = useRef<ScrollController>(ScrollController());
-    final mapController = useRef<BMFMapController>(null);
-
-    usePreviousEffect((keys) {
-      if (keys != null) {
-        if (keys[1] == null || keys[0] == null) {
-          if (mapController.value != null && position != null) {
-            mapController.value.showUserLocation(true);
-            final coord = BMFCoordinate(position.latitude, position.longitude);
-            mapController.value.updateLocationData(
-                BMFUserLocation(location: BMFLocation(coordinate: coord)));
-            mapController.value
-                .setCenterCoordinate(coord, true, animateDurationMs: 250);
-          }
-        }
-      }
-      return () {};
-    }, [mapController.value, position]);
 
     return WillPopScope(
       onWillPop: handleBackButtonPressed,
@@ -482,7 +477,7 @@ class Main extends HookWidget {
           appBar: AppBar(
             title: Text('Welcome to Flutter'),
           ),
-          floatingActionButton: FloatingRollMenu.Main(),
+          floatingActionButton: FloatingRollMenu(onSelect: goToDetails,),
           body: Login.Loading(
               visible: userStore.isLogining,
               text: '登录中',
@@ -515,18 +510,6 @@ class Main extends HookWidget {
                     }),
                   ),
                   buttonSection,
-                  Container(
-                      height: 500,
-                      child: BMFMapWidget(
-                        onBMFMapCreated: (controller) {
-                          mapController.value = controller;
-                        },
-                        mapOptions: BMFMapOptions(
-                            center: BMFCoordinate(39.917215, 116.380341),
-                            zoomLevel: 12,
-                            mapPadding: BMFEdgeInsets(
-                                left: 30, top: 0, right: 30, bottom: 0)),
-                      )),
                   ElevatedButton(
                       onPressed: () {
                         // goToDetails('comment?id=436209&subject_id=104906');
