@@ -8,7 +8,7 @@ import 'package:flutter_boilerplate/models/bgm/quote.dart';
 import 'package:flutter_boilerplate/stores/user.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_boilerplate/main.dart' show MyAppRouterDelegate;
+import 'package:flutter_boilerplate/my_app.dart' show MyAppRouterDelegate;
 
 const String GetEpisodeTopicReq = """
 query GetEpisodeTopic(\$id: Int!) {
