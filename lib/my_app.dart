@@ -532,8 +532,8 @@ class Main extends HookWidget {
                           '${isServiceRunning.value ? 'running' : 'stopped'} (${counter.value})')),
                   ElevatedButton(
                       onPressed: () async {
-                        final res = await bookServiceClient.listBooks(Empty());
-                        print(res.books);
+                        final res = await bookServiceClient.createBook(Book(isbn: "0-670-81302-9", title: "白銀の墟　玄の月　第一巻　十二国記 (新潮文庫)", author: Author(firstName: "不由美", lastName: "小野")));
+                        print(res);
                       },
                       child: Text('call grpc')),
                 ],

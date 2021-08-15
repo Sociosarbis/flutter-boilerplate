@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:http/io_client.dart';
 import 'package:http/http.dart';
@@ -6,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:grpc/grpc.dart';
 import 'package:grpc/grpc_connection_interface.dart';
 import 'web_streams.dart';
+import 'package:flutter_boilerplate/env.dart';
 
 const _contentTypeKey = 'content-type';
 
@@ -36,7 +38,7 @@ class IOTransportStream implements GrpcTransportStream {
       {@required ErrorHandler onError, @required onDone})
       : _onError = onError,
         _onDone = onDone {
-    _outgoingMessages.stream.map(frame)
+    _outgoingMessages.stream.map(frame).map((chunk) => env.isProd ? base64.encode(chunk).codeUnits : chunk)
       .listen(_request.sink.add, cancelOnError: true, onDone: () {
       _request.sink.close();
     });
@@ -168,7 +170,7 @@ class IOClientConnection extends ClientConnection {
       {CallOptions callOptions}) {
     // gRPC-web headers.
     if (_getContentTypeHeader(metadata) == null) {
-      metadata['Content-Type'] = 'application/grpc-web+proto';
+      metadata['Content-Type'] = env.isProd ? 'text/plain' : 'application/grpc-web+proto';
       metadata['X-User-Agent'] = 'grpc-web-dart/0.1';
       metadata['X-Grpc-Web'] = '1';
     }
