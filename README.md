@@ -20,3 +20,7 @@ samples, guidance on mobile development, and a full API reference.
 ```bash
 flutter pub run build_runner watch 
 ```
+## Generate protobuf binding codes
+```bash
+protoc -I protos/ <PROTO_FILES...> --dart_out=grpc:lib/protos
+```
