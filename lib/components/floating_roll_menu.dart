@@ -10,13 +10,13 @@ class FloatingRollMenu extends HookWidget {
   Widget build(context) {
     final isOpen = useState(false);
     final controller = useAnimationController(
-        duration: Duration(seconds: 1),
-        reverseDuration: Duration(milliseconds: 500));
+        duration: Duration(milliseconds: 250),
+        reverseDuration: Duration(milliseconds: 200));
     useAnimation(controller);
     final move = CurvedAnimation(
             parent: controller, curve: Interval(0.25, 1, curve: Curves.easeIn))
         .value;
-    final translateX = 50 + 2 * pi * 25 * move;
+    final translateX = 50 + pi * 50 * move;
     final toggleOpen = useCallback(() async {
       if (!isOpen.value) {
         isOpen.value = true;
@@ -37,19 +37,26 @@ class FloatingRollMenu extends HookWidget {
                   ..translate(-translateX)
                   ..rotateZ(-4 * pi * move),
                 child: ElevatedButton(
-                  child: Icon(Icons.cloud, size: 15),
-                  style: ElevatedButton.styleFrom(
-                      primary: Colors.orange,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(50),
+                      child: ShaderMask(
+                        child: Icon(Icons.cloud, size: 15),
+                        shaderCallback: (rect) {
+                          return LinearGradient(
+                                  colors: [Colors.orange, Colors.white],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight)
+                              .createShader(Offset.zero & rect.size);
+                        },
                       ),
-                      fixedSize: Size.square(50),
-                      minimumSize: Size.square(15)),
-                  onPressed: () {
-                    onSelect?.call('weather');
-                    toggleOpen();
-                  },
-                )),
+                      style: ElevatedButton.styleFrom(
+                          primary: Colors.black,
+                          fixedSize: Size.square(50),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                          minimumSize: Size.square(15)),
+                      onPressed: () {
+                        onSelect?.call('weather');
+                        toggleOpen();
+                      },
+                    )),
           ],
           ElevatedButton(
               style: ElevatedButton.styleFrom(
