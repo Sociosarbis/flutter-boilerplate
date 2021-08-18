@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 export 'package:geolocator/geolocator.dart';
 
 class GeolocatorManager {
-  ValueNotifier<Position> position = ValueNotifier(null);
-  StreamSubscription<Position> positionStream;
+  ValueNotifier<Position?> position = ValueNotifier(null);
+  StreamSubscription<Position>? positionStream;
   void init() async {
     if (position.value != null) return;
     bool serviceEnabled;
@@ -50,7 +50,7 @@ class GeolocatorManager {
 
   dispose() {
     if (positionStream != null) {
-      positionStream.cancel();
+      positionStream?.cancel();
       positionStream = null;
     }
     if (position.value != null) {

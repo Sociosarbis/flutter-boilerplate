@@ -23,7 +23,7 @@ import 'package:grpc/grpc_connection_interface.dart';
 enum _GrpcWebParseState { Init, Length, Message }
 
 class GrpcMessageSink extends Sink<GrpcMessage> {
-  GrpcMessage message;
+  GrpcMessage? message;
   bool _messageReceived = false;
 
   @override
@@ -50,7 +50,7 @@ class GrpcWebDecoder extends Converter<ByteBuffer, GrpcMessage> {
     startChunkedConversion(sink)
       ..add(input)
       ..close();
-    return sink.message;
+    return sink.message!;
   }
 
   @override
@@ -69,9 +69,9 @@ class _GrpcWebConversionSink extends ChunkedConversionSink<ByteBuffer> {
 
   _GrpcWebParseState _state = _GrpcWebParseState.Init;
   var _chunkOffset = 0;
-  int _frameType;
+  int? _frameType;
   var _dataOffset = 0;
-  Uint8List _data;
+  Uint8List? _data;
 
   _GrpcWebConversionSink(this._out);
 
@@ -79,7 +79,7 @@ class _GrpcWebConversionSink extends ChunkedConversionSink<ByteBuffer> {
     final frameType = chunkData[_chunkOffset];
     _chunkOffset++;
     if (frameType != frameTypeData && frameType != frameTypeTrailers) {
-      throw GrpcError.unimplemented('Invalid frame type: ${frameType}');
+      throw GrpcError.unimplemented('Invalid frame type: $frameType');
     }
     _state = _GrpcWebParseState.Length;
     return frameType;
@@ -108,16 +108,16 @@ class _GrpcWebConversionSink extends ChunkedConversionSink<ByteBuffer> {
   }
 
   void _parseMessage(List<int> chunkData) {
-    final dataRemaining = _data.lengthInBytes - _dataOffset;
+    final dataRemaining = _data!.lengthInBytes - _dataOffset;
     if (dataRemaining > 0) {
       final chunkRemaining = chunkData.length - _chunkOffset;
       final toCopy = min(dataRemaining, chunkRemaining);
       _data
-          .setRange(_dataOffset, _dataOffset + toCopy, chunkData, _chunkOffset);
+          !.setRange(_dataOffset, _dataOffset + toCopy, chunkData, _chunkOffset);
       _dataOffset += toCopy;
       _chunkOffset += toCopy;
     }
-    if (_dataOffset == _data.lengthInBytes) {
+    if (_dataOffset == _data!.lengthInBytes) {
       _finishMessage();
     }
   }
@@ -125,10 +125,10 @@ class _GrpcWebConversionSink extends ChunkedConversionSink<ByteBuffer> {
   void _finishMessage() {
     switch (_frameType) {
       case frameTypeData:
-        _out.add(GrpcData(_data, isCompressed: false));
+        _out.add(GrpcData(_data!, isCompressed: false));
         break;
       case frameTypeTrailers:
-        final stringData = String.fromCharCodes(_data);
+        final stringData = String.fromCharCodes(_data!);
         final headers = _parseHttp1Headers(stringData);
         _out.add(GrpcMetadata(headers));
         break;

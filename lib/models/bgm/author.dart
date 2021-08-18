@@ -4,12 +4,12 @@ part 'author.g.dart';
 
 @JsonSerializable(includeIfNull: false)
 class Author {
-  String name;
-  int id;
-  String msg;
-  String avatar;
+  String? name;
+  int? id;
+  String? msg;
+  String? avatar;
   @JsonKey(name: '__typename')
-  String typename;
+  String? typename;
 
   Author({this.name, this.id, this.msg, this.avatar, this.typename});
 

@@ -7,17 +7,17 @@ class Main extends StatefulWidget {
 }
 
 class MainState extends State<Main> with SingleTickerProviderStateMixin {
-  AnimationController _controller;
+  AnimationController? _controller;
   Alignment _dragAligenment = Alignment.center;
-  Animation<Alignment> _animation;
+  Animation<Alignment>? _animation;
 
   @override
   void initState() {
     _controller =
         AnimationController(vsync: this, duration: Duration(seconds: 1));
-    _controller.addListener(() {
+    _controller?.addListener(() {
       setState(() {
-        _dragAligenment = _animation.value;
+        _dragAligenment = _animation!.value;
       });
     });
     super.initState();
@@ -32,7 +32,7 @@ class MainState extends State<Main> with SingleTickerProviderStateMixin {
       ),
       body: GestureDetector(
           onPanDown: (details) {
-            _controller.stop();
+            _controller?.stop();
           },
           onPanUpdate: (details) {
             setState(() {
@@ -51,7 +51,7 @@ class MainState extends State<Main> with SingleTickerProviderStateMixin {
 
   void _runAnimation(Offset pixelsPerSecond, Size size) {
     _animation = _controller
-        .drive(AlignmentTween(begin: _dragAligenment, end: Alignment.center));
+        ?.drive(AlignmentTween(begin: _dragAligenment, end: Alignment.center));
 
     final unitVelocity = Offset(
             pixelsPerSecond.dx / size.width, pixelsPerSecond.dy / size.height)
@@ -59,12 +59,12 @@ class MainState extends State<Main> with SingleTickerProviderStateMixin {
 
     const spring = SpringDescription(mass: 30, stiffness: 1, damping: 1);
 
-    _controller.animateWith(SpringSimulation(spring, 0, 1, -unitVelocity));
+    _controller?.animateWith(SpringSimulation(spring, 0, 1, -unitVelocity));
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _controller?.dispose();
     super.dispose();
   }
 }

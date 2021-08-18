@@ -21,7 +21,7 @@ class UserStore with ChangeNotifier {
     notifyListeners();
   }
 
-  get isLogining {
+  bool get isLogining {
     return _isLoggingIn;
   }
 

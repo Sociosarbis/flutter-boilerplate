@@ -39,7 +39,7 @@ class MainState extends State<Main> {
 class Sub extends StatefulWidget {
   final String token;
   final void Function(String token) onAuth;
-  Sub({@required this.token, @required this.onAuth});
+  Sub({required this.token, required this.onAuth});
   @override
   SubState createState() => SubState();
 }
@@ -47,8 +47,8 @@ class Sub extends StatefulWidget {
 class SubState extends State<Sub> {
   bool isRequesting = false;
   final _textController = TextEditingController();
-  StreamSubscription<Uri> sub;
-  StreamSubscription<dynamic> sub2;
+  StreamSubscription<Uri?>? sub;
+  StreamSubscription<dynamic>? sub2;
   @override
   void initState() {
     super.initState();
@@ -95,12 +95,12 @@ class SubState extends State<Sub> {
 
   @override
   void didUpdateWidget(Widget oldWidget) {
-    super.didUpdateWidget(oldWidget);
+    super.didUpdateWidget(oldWidget as Sub);
   }
 
   @override
   void dispose() {
-    if (sub2 != null) sub2.cancel();
+    sub2?.cancel();
     super.dispose();
   }
 
@@ -113,7 +113,7 @@ class SubState extends State<Sub> {
     });
     if (await canLaunch(url)) {
       sub = uriLinkStream.listen((uri) async {
-        if (uri.hasQuery) {
+        if (uri!.hasQuery) {
           final code = uri.queryParameters['code'] ?? '';
           final res = await post(Uri.dataFromString('https://github.com/login/oauth/access_token'),
               headers: {
@@ -126,7 +126,7 @@ class SubState extends State<Sub> {
               });
           widget.onAuth(jsonDecode(res.body)['access_token']);
         }
-        sub.cancel();
+        sub?.cancel();
         setState(() {
           isRequesting = false;
         });
@@ -135,7 +135,7 @@ class SubState extends State<Sub> {
         setState(() {
           isRequesting = false;
         });
-        sub.cancel();
+        sub?.cancel();
       });
       launch(url);
     }
@@ -161,10 +161,10 @@ class SubState extends State<Sub> {
 }
 
 class Loading extends StatelessWidget {
-  final Widget child;
+  final Widget? child;
   final bool visible;
-  final String text;
-  Loading({@required this.visible, this.child, this.text});
+  final String? text;
+  Loading({required this.visible, this.child, this.text});
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -172,7 +172,7 @@ class Loading extends StatelessWidget {
         absorbing: visible,
         child: Stack(
           children: [
-            child,
+            if (child != null) child!,
             if (visible)
               Center(
                   child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -182,7 +182,7 @@ class Loading extends StatelessWidget {
                     margin: EdgeInsets.only(top: 20),
                     padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     color: Colors.black,
-                    child: Text(text, style: TextStyle(color: Colors.white)))
+                    child: Text(text ?? '', style: TextStyle(color: Colors.white)))
               ]))
           ],
         ));

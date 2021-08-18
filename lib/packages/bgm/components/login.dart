@@ -59,12 +59,12 @@ const String listenScrollToBoundJS = """
 
 class Main extends HookWidget {
   final void Function(Map<String, String> cookies) onLogin;
-  final void Function(List<double> touchDetails) onScrollBound;
-  Main({@required this.onLogin, this.onScrollBound});
+  final void Function(List<double> touchDetails)? onScrollBound;
+  Main({required this.onLogin, this.onScrollBound});
 
   @override
   Widget build(BuildContext context) {
-    final controller = useRef<WebViewController>(null);
+    final controller = useRef<WebViewController?>(null);
     final userStore = useProviderContext<UserStore>(false);
     return WebView(
       initialUrl: url,
@@ -79,7 +79,7 @@ class Main extends HookWidget {
                     (jsonDecode(data.message) as List).map((item) {
                   return item is double ? item : (item as int).toDouble();
                 }).toList();
-                onScrollBound(touchDetails);
+                onScrollBound?.call((touchDetails));
               } catch (e) {
                 print(e);
               }
@@ -90,7 +90,7 @@ class Main extends HookWidget {
         userStore.isLogining = true;
       },
       onPageStarted: (_) async {
-        await controller.value.evaluateJavascript(listenScrollToBoundJS);
+        await controller.value?.evaluateJavascript(listenScrollToBoundJS);
       },
       onPageFinished: (_) {
         userStore.isLogining = false;

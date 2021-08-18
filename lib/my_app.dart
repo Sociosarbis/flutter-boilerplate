@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_boilerplate/protos/book/google/protobuf/empty.pb.dart';
 import 'package:provider/provider.dart';
 import './packages/features/animated_container.dart' as AnimatedContainer;
 import './packages/features/physis_animation.dart' as PhysisAnimation;
@@ -66,22 +65,23 @@ class MyApp extends StatefulWidget {
 }
 
 class MyAppState extends State<MyApp> {
-  UserStore userStore;
-  ValueNotifier<GraphQLClient> client;
-  GeolocatorManager geolocatorManager;
-  BookServiceClient bookServiceClient;
-  StreamSubscription<Uri> sub;
+  UserStore? userStore;
+  ValueNotifier<GraphQLClient>? client;
+  GeolocatorManager? geolocatorManager;
+  BookServiceClient? bookServiceClient;
+  StreamSubscription<Uri?>? sub;
   @override
   void initState() {
     userStore = UserStore();
     geolocatorManager = GeolocatorManager()..init();
-    bookServiceClient = BookServiceClient(GrpcIOClientChannel(Uri.parse('${env.grpcBaseUrl}/.netlify/functions/grpc')));
+    bookServiceClient = BookServiceClient(GrpcIOClientChannel(
+        Uri.parse('${env!.grpcBaseUrl}/.netlify/functions/grpc')));
     client = ValueNotifier(GraphQLClient(
         cache: GraphQLCache(),
         link: AuthLink(
             headerKey: 'Cookie',
             getToken: () =>
-                userStore.cookieStr).concat(HttpLink(
+                userStore!.cookieStr).concat(HttpLink(
             "https://sociosarbis-media-player.netlify.app/.netlify/functions/graphql"))));
     getInitialUri().then(onLaunch);
     sub = uriLinkStream.listen(onLaunch);
@@ -90,12 +90,12 @@ class MyAppState extends State<MyApp> {
 
   @override
   void dispose() {
-    sub.cancel();
-    geolocatorManager.dispose();
+    sub?.cancel();
+    geolocatorManager?.dispose();
     super.dispose();
   }
 
-  void onLaunch(Uri uri) {
+  void onLaunch(Uri? uri) {
     if (uri != null) {
       switch (uri.host) {
         case 'episodetopic':
@@ -115,7 +115,7 @@ class MyAppState extends State<MyApp> {
         providers: [
           ChangeNotifierProvider.value(value: userStore),
           Provider.value(value: bookServiceClient),
-          ValueListenableProvider.value(value: geolocatorManager.position)
+          ValueListenableProvider.value(value: geolocatorManager!.position)
         ],
         builder: (context, widget) {
           return GraphQLProvider(
@@ -131,21 +131,15 @@ class MyAppState extends State<MyApp> {
   }
 }
 
-class RouteConfig {
-  String path;
-  Page page;
-  List<RouteConfig> children;
-}
-
 class MyAppRoutePath {
   Uri uri;
-  MyAppRoutePath({this.uri});
+  MyAppRoutePath({required this.uri});
 
   bool get isAnimatedContainer {
     return MyAppRoutePath.testAnimatedContainer(uri);
   }
 
-  static bool testAnimatedContainer(Uri uri) {
+  static bool testAnimatedContainer(Uri? uri) {
     return uri != null &&
         uri.pathSegments.isNotEmpty &&
         uri.pathSegments[0] == 'animatedContainer';
@@ -155,7 +149,7 @@ class MyAppRoutePath {
     return MyAppRoutePath.testPhysisAnimation(uri);
   }
 
-  static bool testPhysisAnimation(Uri uri) {
+  static bool testPhysisAnimation(Uri? uri) {
     return uri != null &&
         uri.pathSegments.isNotEmpty &&
         uri.pathSegments[0] == 'physisAnimation';
@@ -165,7 +159,7 @@ class MyAppRoutePath {
     return MyAppRoutePath.testLogin(uri);
   }
 
-  static bool testLogin(Uri uri) {
+  static bool testLogin(Uri? uri) {
     return uri != null &&
         uri.pathSegments.isNotEmpty &&
         uri.pathSegments[0] == 'login';
@@ -175,13 +169,13 @@ class MyAppRoutePath {
     return MyAppRoutePath.testComment(uri);
   }
 
-  static bool testComment(Uri uri) {
+  static bool testComment(Uri? uri) {
     return uri != null &&
         uri.pathSegments.isNotEmpty &&
         uri.pathSegments[0] == 'comment';
   }
 
-  static bool testWeather(Uri uri) {
+  static bool testWeather(Uri? uri) {
     return uri != null &&
         uri.pathSegments.isNotEmpty &&
         uri.pathSegments[0] == 'weather';
@@ -192,11 +186,11 @@ class MyAppRoutePath {
   }
 }
 
-class MyAppRouteInformationParser extends RouteInformationParser {
+class MyAppRouteInformationParser extends RouteInformationParser<Object> {
   @override
   Future<MyAppRoutePath> parseRouteInformation(
       RouteInformation routeInformation) async {
-    return MyAppRoutePath(uri: Uri.parse(routeInformation.location));
+    return MyAppRoutePath(uri: Uri.parse(routeInformation.location ?? ''));
   }
 
   @override
@@ -221,14 +215,15 @@ class RouteDefinition {
   bool Function(Uri uri) test;
   String name;
   Page<dynamic> Function(BuildContext context) builder;
-  RouteDefinition({this.test, this.name, this.builder});
+  RouteDefinition(
+      {required this.test, required this.name, required this.builder});
 }
 
 class PageManager with ChangeNotifier {
   List<RouteDefinition> pages;
   List<RouteDefinition> configs;
 
-  PageManager({@required this.pages, @required this.configs});
+  PageManager({required this.pages, required this.configs});
 
   Uri push<T>(T location) {
     Uri uri;
@@ -271,7 +266,7 @@ class MyAppRouterDelegate extends RouterDelegate<MyAppRoutePath>
     with ChangeNotifier, PopNavigatorRouterDelegateMixin<MyAppRoutePath> {
   final navigatorKey = GlobalKey<NavigatorState>(debugLabel: 'navigator');
 
-  Uri uri;
+  Uri? uri;
 
   MyAppRouterDelegate() {
     pageManager.addListener(notifyListeners);
@@ -282,37 +277,38 @@ class MyAppRouterDelegate extends RouterDelegate<MyAppRoutePath>
         test: (Uri uri) => true,
         name: '/',
         builder: (BuildContext context) =>
-            SlidePage(key: Key('root'), child: Main())),
+            SlidePage(key: ValueKey('root'), child: Main())),
   ], configs: [
     RouteDefinition(
         test: MyAppRoutePath.testPhysisAnimation,
         name: '/physisAnimation',
         builder: (BuildContext context) => SlidePage(
-            key: Key('physisAnimation'), child: PhysisAnimation.Main())),
+            key: ValueKey('physisAnimation'), child: PhysisAnimation.Main())),
     RouteDefinition(
         test: MyAppRoutePath.testAnimatedContainer,
         name: '/animatedContainer',
         builder: (BuildContext context) => SlidePage(
-            key: Key('animatedContainer'), child: AnimatedContainer.Main())),
+            key: ValueKey('animatedContainer'),
+            child: AnimatedContainer.Main())),
     RouteDefinition(
         test: MyAppRoutePath.testLogin,
         name: '/login',
         builder: (BuildContext context) =>
-            SlidePage(key: Key('login'), child: Login.Main())),
+            SlidePage(key: ValueKey('login'), child: Login.Main())),
     RouteDefinition(
         test: MyAppRoutePath.testComment,
         name: '/comment',
         builder: (BuildContext context) =>
-            SlidePage(key: Key('comment'), child: Comment.Main())),
+            SlidePage(key: ValueKey('comment'), child: Comment.Main())),
     RouteDefinition(
         test: MyAppRoutePath.testWeather,
         name: '/weather',
         builder: (BuildContext context) =>
-            SlidePage(key: Key('weather'), child: WeatherPage()))
+            SlidePage(key: ValueKey('weather'), child: WeatherPage()))
   ]);
 
   MyAppRoutePath get currentConfiguration {
-    return MyAppRoutePath(uri: uri);
+    return MyAppRoutePath(uri: uri!);
   }
 
   @override
@@ -413,7 +409,7 @@ class Main extends HookWidget {
   @override
   Widget build(BuildContext context) {
     Color color = Theme.of(context).primaryColor;
-    final channel = useRef<MethodChannel>(null);
+    final channel = useRef<MethodChannel?>(null);
     final counter = useState(0);
     final isServiceRunning = useState(false);
     final startService = useCallback(() async {
@@ -426,7 +422,7 @@ class Main extends HookWidget {
 
     final stopService = useCallback(() async {
       try {
-        await channel.value.invokeMethod('destroy');
+        await channel.value?.invokeMethod('destroy');
       } catch (error) {
         print(error);
       }
@@ -434,13 +430,12 @@ class Main extends HookWidget {
 
     useEffect(() {
       channel.value = MethodChannel('notification');
-      channel.value.setMethodCallHandler((call) {
+      channel.value?.setMethodCallHandler((call) async {
         if (call.method == 'increase') {
           counter.value++;
         } else if (call.method == 'decrease') {
           counter.value--;
         }
-        return;
       });
       return stopService;
     }, [stopService]);
@@ -494,9 +489,11 @@ class Main extends HookWidget {
                     height: userStore.cookie.containsKey('chii_auth') ? 0 : 400,
                     child: BGMLogin.Main(onLogin: (cookie) {
                       final uri = router.uri;
-                      if (uri.queryParameters.containsKey('redirect_from')) {
-                        router.pushRoute(Uri.decodeComponent(
-                            uri.queryParameters['redirect_from']));
+                      if (uri != null) {
+                        if (uri.queryParameters.containsKey('redirect_from')) {
+                          router.pushRoute(Uri.decodeComponent(
+                              uri.queryParameters['redirect_from']!));
+                        }
                       }
                     }, onScrollBound: (touchDetails) {
                       final position = controller.value.position;
@@ -532,7 +529,10 @@ class Main extends HookWidget {
                           '${isServiceRunning.value ? 'running' : 'stopped'} (${counter.value})')),
                   ElevatedButton(
                       onPressed: () async {
-                        final res = await bookServiceClient.createBook(Book(isbn: "0-670-81302-9", title: "白銀の墟　玄の月　第一巻　十二国記 (新潮文庫)", author: Author(firstName: "不由美", lastName: "小野")));
+                        final res = await bookServiceClient.createBook(Book(
+                            isbn: "0-670-81302-9",
+                            title: "白銀の墟　玄の月　第一巻　十二国記 (新潮文庫)",
+                            author: Author(firstName: "不由美", lastName: "小野")));
                         print(res);
                       },
                       child: Text('call grpc')),
@@ -546,9 +546,9 @@ class ButtonColumn extends StatelessWidget {
   final Color color;
   final IconData icon;
   final String label;
-  final Function onPress;
+  final Function() onPress;
 
-  ButtonColumn({this.color, this.icon, this.label, this.onPress});
+  ButtonColumn({required this.color, required this.icon, required this.label, required this.onPress});
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -571,7 +571,7 @@ class ButtonColumn extends StatelessWidget {
 
 class SlidePage<T> extends Page<T> {
   final Widget child;
-  SlidePage({@required this.child, LocalKey key}) : super(key: key);
+  SlidePage({required this.child, LocalKey? key}) : super(key: key);
   @override
   Route<T> createRoute(BuildContext context) {
     return PageRouteBuilder(

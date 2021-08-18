@@ -8,11 +8,11 @@ part of 'author.dart';
 
 Author _$AuthorFromJson(Map<String, dynamic> json) {
   return Author(
-    name: json['name'] as String,
-    id: json['id'] as int,
-    msg: json['msg'] as String,
-    avatar: json['avatar'] as String,
-    typename: json['__typename'] as String,
+    name: json['name'] as String?,
+    id: json['id'] as int?,
+    msg: json['msg'] as String?,
+    avatar: json['avatar'] as String?,
+    typename: json['__typename'] as String?,
   );
 }
 

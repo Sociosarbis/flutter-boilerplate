@@ -8,9 +8,9 @@ part of 'quote.dart';
 
 Quote _$QuoteFromJson(Map<String, dynamic> json) {
   return Quote(
-    from: json['from'] as String,
-    text: json['text'] as String,
-    typename: json['__typename'] as String,
+    from: json['from'] as String?,
+    text: json['text'] as String?,
+    typename: json['__typename'] as String?,
   );
 }
 

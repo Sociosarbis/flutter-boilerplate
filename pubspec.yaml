@@ -18,7 +18,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.7.0 <3.0.0"
+  sdk: ">=2.12.0 <3.0.0"
 
 dependencies:
   flutter:
@@ -34,6 +34,7 @@ dependencies:
   html: ^0.15.0
   flutter_hooks: ^0.18.0
   flutter_baidu_mapapi_map: ^2.0.1
+  flutter_baidu_mapapi_search: ^2.0.1
   geolocator: ^7.3.1
   grpc: ^3.0.0
 
@@ -45,7 +46,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   json_serializable: ^4.1.4
-  build_runner: ^2.0.6
+  build_runner: ^2.1.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

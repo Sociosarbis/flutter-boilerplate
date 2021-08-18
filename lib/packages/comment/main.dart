@@ -81,19 +81,19 @@ class Main extends StatefulWidget {
 
 class MainState extends State<Main> {
   bool showInput = false;
-  List<CommentModel.Comment> model;
+  List<CommentModel.Comment>? model;
   int subjectId = 0;
   int epId = 0;
   String poster = '';
-  CommentModel.Comment replyTo;
-  CommentModel.Comment replyBelongTo;
+  CommentModel.Comment? replyTo;
+  CommentModel.Comment? replyBelongTo;
   ScrollController _controller = ScrollController();
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!Provider.of<UserStore>(context, listen: false).isAuth) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      WidgetsBinding.instance?.addPostFrameCallback((_) {
         final router = Provider.of<MyAppRouterDelegate>(context, listen: false);
         final currentPath = router.currentConfiguration;
         final currentUrl = '${currentPath.uri.path}?${currentPath.uri.query}';
@@ -106,8 +106,8 @@ class MainState extends State<Main> {
           .currentConfiguration
           .uri
           .queryParameters;
-      epId = int.parse(params['id']);
-      subjectId = int.parse(params['subject_id']);
+      epId = int.parse(params['id']!);
+      subjectId = int.parse(params['subject_id']!);
     }
   }
 
@@ -132,13 +132,13 @@ class MainState extends State<Main> {
                       document: gql(GetSubjectPosterReq),
                       variables: {'id': subjectId}),
                   builder: (QueryResult result,
-                      {Refetch refetch, FetchMore fetchMore}) {
+                      {Refetch? refetch, FetchMore? fetchMore}) {
                     if (result.isNotLoading) {
-                      if (result.data.isNotEmpty) {
+                      if (result.data?.isNotEmpty ?? false) {
                         final newPoster =
-                            result.data['subjectDetail']['image'] as String;
+                            result.data!['subjectDetail']['image'] as String;
                         if (newPoster != poster) {
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                          WidgetsBinding.instance?.addPostFrameCallback((_) {
                             setState(() {
                               poster = newPoster;
                             });
@@ -153,8 +153,8 @@ class MainState extends State<Main> {
                       document: gql(GetEpisodeTopicReq),
                       variables: {'id': epId}),
                   builder: (QueryResult result,
-                      {Refetch refetch, FetchMore fetchMore}) {
-                    Widget loading;
+                      {Refetch? refetch, FetchMore? fetchMore}) {
+                    Widget? loading;
                     if (result.isLoading) {
                       model = null;
                       loading = SliverFillRemaining(
@@ -164,7 +164,7 @@ class MainState extends State<Main> {
                                 Theme.of(context).accentColor)),
                       ));
                     } else if (result.isNotLoading && model == null) {
-                      model = (result.data['episodeTopic']['comments']
+                      model = (result.data!['episodeTopic']['comments']
                               as List<dynamic>)
                           .map<CommentModel.Comment>(
                               (item) => CommentModel.Comment.fromJson(item))
@@ -196,17 +196,16 @@ class MainState extends State<Main> {
                                         delegate: SliverChildBuilderDelegate(
                                             (context, index) {
                                         return Comment(
-                                            data: model[index],
+                                            data: model![index],
                                             onReply: (replyTo) {
                                               setState(() {
                                                 this.replyTo = replyTo;
-                                                replyBelongTo = model[index];
+                                                replyBelongTo = model![index];
                                                 setShowInput(true);
                                               });
                                             });
-                                      }, childCount: model.length))
-                                    : loading
-                              ])),
+                                      }, childCount: model!.length))
+                                    : loading!])),
                       CommentInput(
                           show: showInput,
                           replyTo: replyTo,
@@ -227,23 +226,23 @@ class MainState extends State<Main> {
 
   replySomeone(
       /** 如果是回复评论，是自己的id；如果是回复评论的回复，则是评论用户的id */
-      {int subReplyUid,
+      {int subReplyUid = 0,
       /** 讨论页的id */
-      int topicId,
+      int topicId = 0,
       /** 评论或评论回复用户的id */
-      int postUid,
+      int postUid = 0,
       /** 评论的id */
-      int postId,
-      String content}) {}
+      int postId = 0,
+      String content = ''}) {}
 
   replyTopic(String content) {}
 
   confirmReply(String text) {
     if (text.isEmpty) return;
-    var floor = "#${model.length + 1}";
+    var floor = "#${model!.length + 1}";
     if (replyTo != null) {
-      floor = replyTo.floor.replaceAllMapped(new RegExp(r'(\d).*'), (match) {
-        return "${match.group(1)}-${replyBelongTo.replies.length + 1}";
+      floor = replyTo!.floor!.replaceAllMapped(new RegExp(r'(\d).*'), (match) {
+        return "${match.group(1)}-${replyBelongTo!.replies!.length + 1}";
       });
     }
     var now = DateTime.now();
@@ -256,8 +255,8 @@ class MainState extends State<Main> {
         floor: floor,
         id: Random().nextInt(1 << 30),
         text: text,
-        quote: replyTo != null && replyTo.replies == null
-            ? Quote(from: replyTo.author.name, text: replyTo.text)
+        quote: replyTo != null && replyTo?.replies == null
+            ? Quote(from: replyTo!.author?.name, text: replyTo?.text)
             : null,
         time: "${now.year}-${now.month}-${now.day} ${now.hour}:${now.minute}");
     setState(() {
@@ -267,16 +266,16 @@ class MainState extends State<Main> {
         final req = Request(
             operation: Operation(document: gql(GetEpisodeTopicReq)),
             variables: {'id': 969984});
-        final cache = client.readQuery(req);
+        final cache = client.readQuery(req)!;
         (cache['episodeTopic']['comments'] as List<dynamic>).add(json);
         client.writeQuery(req, data: cache);
-        model.add(newComment);
+        model?.add(newComment);
       } else {
-        replyBelongTo.replies.add(newComment);
+        replyBelongTo!.replies?.add(newComment);
         final req = FragmentRequest(
-            idFields: {'__typename': 'Comment', 'id': replyBelongTo.id},
+            idFields: {'__typename': 'Comment', 'id': replyBelongTo!.id},
             fragment: Fragment(document: gql(GetRepliesFrag)));
-        final cache = client.readFragment(req);
+        final cache = client.readFragment(req)!;
         (cache['replies'] as List<dynamic>).add(json);
         client.writeFragment(req, data: cache);
       }
@@ -290,7 +289,7 @@ class Comment extends StatelessWidget {
   final CommentModel.Comment data;
   final bool isReply;
   final void Function(CommentModel.Comment replyTo) onReply;
-  Comment({@required this.data, this.isReply = false, @required this.onReply})
+  Comment({required this.data, this.isReply = false, required this.onReply})
       : super(key: ValueKey(data.id));
   @override
   Widget build(BuildContext context) {
@@ -323,7 +322,7 @@ class Comment extends StatelessWidget {
                       child: ClipRRect(
                           borderRadius: BorderRadius.circular(5),
                           child: Image.network(
-                            data.author.avatar,
+                            data.author?.avatar ?? '',
                             fit: BoxFit.fill,
                           )))),
               Expanded(
@@ -339,7 +338,7 @@ class Comment extends StatelessWidget {
                                     style: TextStyle(color: Color(0xff999999)),
                                     children: <InlineSpan>[
                               TextSpan(
-                                  text: data.author.name,
+                                  text: data.author?.name,
                                   style: TextStyle(
                                       color: Color(0xff0084B4),
                                       fontWeight: FontWeight.bold,
@@ -362,7 +361,7 @@ class Comment extends StatelessWidget {
                                                     color: Color(0xffcccccc))),
                                             TextSpan(text: '回复')
                                           ])))),
-                              TextSpan(text: data.author.msg)
+                              TextSpan(text: data.author?.msg)
                             ]))),
                         RichText(
                             text: TextSpan(
@@ -386,12 +385,12 @@ class Comment extends StatelessWidget {
                                         fontSize: 30,
                                         color: Color(0xffcccccc))))),
                         TextSpan(
-                            text: data.quote.from,
+                            text: data.quote?.from,
                             style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black)),
                         TextSpan(
-                            text: '说: ${data.quote.text}',
+                            text: '说: ${data.quote?.text}',
                             style: TextStyle(color: Color(0xff666666))),
                         WidgetSpan(
                             child: Container(
@@ -413,7 +412,7 @@ class Comment extends StatelessWidget {
               ))
             ])),
         if (data.replies != null)
-          for (var d in data.replies)
+          for (var d in data.replies!)
             Comment(data: d, onReply: onReply, isReply: true)
       ],
     );
@@ -421,10 +420,10 @@ class Comment extends StatelessWidget {
 }
 
 class CommentInput extends StatefulWidget {
-  final bool show;
-  final CommentModel.Comment replyTo;
+  final bool? show;
+  final CommentModel.Comment ?replyTo;
   final void Function(String text) onCommit;
-  CommentInput({this.show, this.replyTo, @required this.onCommit});
+  CommentInput({this.show, this.replyTo, required this.onCommit});
   @override
   CommentInputState createState() => CommentInputState();
 }
@@ -437,14 +436,14 @@ class CommentInputState extends State<CommentInput> {
         left: 0,
         bottom: 0,
         child: TweenAnimationBuilder(
-            duration: Duration(milliseconds: widget.show ? 250 : 200),
-            curve: widget.show ? Curves.easeOutCubic : Curves.easeInCubic,
-            tween: Tween<double>(begin: 192, end: widget.show ? 0 : 192),
+            duration: Duration(milliseconds: widget.show ?? false ? 250 : 200),
+            curve: widget.show ?? false ? Curves.easeOutCubic : Curves.easeInCubic,
+            tween: Tween<double>(begin: 192, end: widget.show ?? false ? 0 : 192),
             builder: (context, value, child) => Container(
                 width: MediaQuery.of(context).size.width,
                 height: 192,
                 transform:
-                    Transform.translate(offset: Offset(0, value)).transform,
+                    Transform.translate(offset: Offset(0, value as double)).transform,
                 decoration: BoxDecoration(
                   color: Colors.white,
                   boxShadow: [
@@ -467,7 +466,7 @@ class CommentInputState extends State<CommentInput> {
                               Text(
                                   widget.replyTo == null
                                       ? '添加新回复'
-                                      : '回复：${widget.replyTo.author.name}',
+                                      : '回复：${widget.replyTo?.author?.name}',
                                   style: TextStyle(color: Color(0xff3399ff))),
                               Container(
                                   margin: EdgeInsets.symmetric(vertical: 3),

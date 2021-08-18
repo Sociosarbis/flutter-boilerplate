@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
 class FloatingRollMenu extends HookWidget {
-  final void Function(String) onSelect;
+  final void Function(String)? onSelect;
   FloatingRollMenu({this.onSelect});
   @override
   Widget build(context) {
@@ -12,7 +12,6 @@ class FloatingRollMenu extends HookWidget {
     final controller = useAnimationController(
         duration: Duration(milliseconds: 250),
         reverseDuration: Duration(milliseconds: 200));
-    useAnimation(controller);
     final move = CurvedAnimation(
             parent: controller, curve: Interval(0.25, 1, curve: Curves.easeIn))
         .value;

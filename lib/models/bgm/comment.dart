@@ -6,15 +6,15 @@ part 'comment.g.dart';
 
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
 class Comment {
-  int id;
-  String floor;
-  String time;
-  String text;
-  Author author;
-  Quote quote;
-  List<Comment> replies;
+  int? id;
+  String? floor;
+  String? time;
+  String? text;
+  Author? author;
+  Quote? quote;
+  List<Comment>? replies;
   @JsonKey(name: '__typename')
-  String typename;
+  String? typename;
   Comment(
       {this.id,
       this.floor,

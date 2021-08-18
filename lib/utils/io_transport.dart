@@ -20,7 +20,7 @@ const _validContentTypePrefix = [
 
 class IOTransportStream implements GrpcTransportStream {
   final StreamedRequest _request;
-  StreamedResponse _response;
+  StreamedResponse? _response;
   String _responseText = '';
   final IOClient _client = IOClient();
   final ErrorHandler _onError;
@@ -35,10 +35,10 @@ class IOTransportStream implements GrpcTransportStream {
   StreamSink<List<int>> get outgoingMessages => _outgoingMessages.sink;
 
   IOTransportStream(this._request,
-      {@required ErrorHandler onError, @required onDone})
+      {required ErrorHandler onError, required onDone})
       : _onError = onError,
         _onDone = onDone {
-    _outgoingMessages.stream.map(frame).map((chunk) => env.isProd ? base64.encode(chunk).codeUnits : chunk)
+    _outgoingMessages.stream.map(frame).map((chunk) => env!.isProd ? base64.encode(chunk).codeUnits : chunk)
       .listen(_request.sink.add, cancelOnError: true, onDone: () {
       _request.sink.close();
     });
@@ -52,9 +52,9 @@ class IOTransportStream implements GrpcTransportStream {
 
       _response = res;
       _onHeadersReceived();
-      _response.stream.listen((value) {
+      _response!.stream.listen((value) {
         _responseText += String.fromCharCodes(value);
-        if (_response.statusCode == 200) {
+        if (_response!.statusCode == 200) {
           final bytes = Uint8List.fromList(value).buffer;
           _incomingProcessor.add(bytes);
         }
@@ -84,15 +84,15 @@ class IOTransportStream implements GrpcTransportStream {
 
   void _onHeadersReceived() {
     // Force a metadata message with headers.
-    final headers = GrpcMetadata(_response.headers);
+    final headers = GrpcMetadata(_response!.headers);
     _incomingMessages.add(headers);
   }
 
   void _onRequestDone() async {
-    final contentType = _response.headers[_contentTypeKey];
-    if (_response.statusCode != 200) {
+    final contentType = _response!.headers[_contentTypeKey];
+    if (_response!.statusCode != 200) {
       _onError(
-          GrpcError.unavailable('XhrConnection status ${_response.statusCode}',
+          GrpcError.unavailable('XhrConnection status ${_response!.statusCode}',
               null, _responseText),
           StackTrace.current);
       return;
@@ -133,7 +133,7 @@ class IOTransportStream implements GrpcTransportStream {
   }
 }
 
-MapEntry<String, String> _getContentTypeHeader(Map<String, String> metadata) {
+MapEntry<String, String>? _getContentTypeHeader(Map<String, String> metadata) {
   for (var entry in metadata.entries) {
     if (entry.key.toLowerCase() == _contentTypeKey.toLowerCase()) {
       return entry;
@@ -160,17 +160,17 @@ class IOClientConnection extends ClientConnection {
   void _initializeRequest(
       StreamedRequest request, Map<String, String> metadata) {
     for (final header in metadata.keys) {
-      request.headers[header] = metadata[header];
+      request.headers[header] = metadata[header]!;
     }
   }
 
   @override
-  GrpcTransportStream makeRequest(String path, Duration timeout,
+  GrpcTransportStream makeRequest(String path, Duration? timeout,
       Map<String, String> metadata, ErrorHandler onError,
-      {CallOptions callOptions}) {
+      {required CallOptions callOptions}) {
     // gRPC-web headers.
     if (_getContentTypeHeader(metadata) == null) {
-      metadata['Content-Type'] = env.isProd ? 'text/plain' : 'application/grpc-web+proto';
+      metadata['Content-Type'] = env!.isProd ? 'text/plain' : 'application/grpc-web+proto';
       metadata['X-User-Agent'] = 'grpc-web-dart/0.1';
       metadata['X-Grpc-Web'] = '1';
     }
