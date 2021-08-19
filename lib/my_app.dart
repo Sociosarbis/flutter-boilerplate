@@ -113,13 +113,13 @@ class MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MultiProvider(
         providers: [
-          ChangeNotifierProvider.value(value: userStore),
-          Provider.value(value: bookServiceClient),
+          ChangeNotifierProvider.value(value: userStore!),
+          Provider.value(value: bookServiceClient!),
           ValueListenableProvider.value(value: geolocatorManager!.position)
         ],
         builder: (context, widget) {
           return GraphQLProvider(
-              client: client,
+              client: client!,
               child: MaterialApp.router(
                 title: 'Welcome To Flutter',
                 theme: ThemeData(accentColor: Colors.red),

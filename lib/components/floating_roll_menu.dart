@@ -12,6 +12,7 @@ class FloatingRollMenu extends HookWidget {
     final controller = useAnimationController(
         duration: Duration(milliseconds: 250),
         reverseDuration: Duration(milliseconds: 200));
+    useAnimation(controller);
     final move = CurvedAnimation(
             parent: controller, curve: Interval(0.25, 1, curve: Curves.easeIn))
         .value;
