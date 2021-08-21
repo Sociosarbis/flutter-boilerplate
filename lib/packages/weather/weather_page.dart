@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:ui';
 import 'package:flutter_boilerplate/utils/hooks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_boilerplate/utils/geolocator_manager.dart';
@@ -7,6 +8,33 @@ import 'package:flutter_baidu_mapapi_search/flutter_baidu_mapapi_search.dart';
 import 'package:flutter_baidu_mapapi_base/flutter_baidu_mapapi_base.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_boilerplate/models/weather.dart';
+import 'package:flutter_boilerplate/utils/date.dart';
+
+class IconFontIcons {
+  static final fontFamily = 'iconfont';
+  static final sunnyDay =
+      IconData(0xe61e, fontFamily: IconFontIcons.fontFamily);
+  static final sunnyNight =
+      IconData(0xe606, fontFamily: IconFontIcons.fontFamily);
+  static final cloudyDay =
+      IconData(0xe639, fontFamily: IconFontIcons.fontFamily);
+  static final cloudyNight =
+      IconData(0xe605, fontFamily: IconFontIcons.fontFamily);
+
+  static IconData? renderIcon(String phenomenon) {
+    final isNight = DateDart.now()
+        .isAfter(DateDart.now().setHour(18).setMinute(0).setSecond(0));
+    switch (phenomenon) {
+      case '晴':
+        return isNight ? IconFontIcons.sunnyNight : IconFontIcons.sunnyDay;
+      case '多云':
+      case '阴':
+        return isNight ? IconFontIcons.cloudyNight : IconFontIcons.cloudyDay;
+      default:
+    }
+    return null;
+  }
+}
 
 class MyClipper extends CustomClipper<Rect> {
   final double ratio;
@@ -28,6 +56,12 @@ class WeatherController {
   List<Weather> data;
   WeatherController({this.visible = false, this.data = const []});
 }
+
+const PHENOMENON_TO_COLOR = <String, Color>{
+  '晴': Colors.orange,
+  '多云': Colors.blueGrey,
+  '阴': Colors.blueGrey
+};
 
 class WeatherPage extends HookWidget {
   @override
@@ -79,6 +113,9 @@ class WeatherPage extends HookWidget {
       };
     }, [mapController.value, position]);
     final weatherData = weather.value.visible ? weather.value.data[0] : null;
+    final icon = weather.value.visible
+        ? IconFontIcons.renderIcon(weather.value.data[0].phenomenon)
+        : null;
     return Scaffold(
         body: ClipOval(
             clipper: MyClipper(ratio: ratio),
@@ -98,15 +135,52 @@ class WeatherPage extends HookWidget {
                 if (weather.value.visible)
                   Center(
                     child: Card(
-                        child: Padding(
-                            padding: EdgeInsets.symmetric(
-                                vertical: 10.0, horizontal: 20.0),
-                            child: Text("天气：${weatherData!.phenomenon}\n" +
-                                "温度：${weatherData.temperature}℃\n" +
-                                "相对湿度：${weatherData.relativeHumidity}%\n" +
-                                "云量：${weatherData.clouds}%\n" +
-                                "风力：${weatherData.windPower}\n" +
-                                "风向：${weatherData.windDirection}"))),
+                        clipBehavior: Clip.hardEdge,
+                        child: SizedBox(
+                            width: 200,
+                            height: 275,
+                            child: Stack(children: [
+                              ImageFiltered(
+                                  imageFilter:
+                                      ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                  child: DecoratedBox(
+                                      decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                              stops: [
+                                            0,
+                                            0.25,
+                                            1
+                                          ],
+                                              colors: [
+                                            PHENOMENON_TO_COLOR[
+                                                weatherData!.phenomenon]!,
+                                            Colors.white,
+                                            PHENOMENON_TO_COLOR[
+                                                weatherData.phenomenon]!
+                                          ])),
+                                      child: SizedBox.expand())),
+                              Center(
+                                  child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (icon != null)
+                                    Icon(icon,
+                                        size: 48,
+                                        color: PHENOMENON_TO_COLOR[
+                                            weatherData.phenomenon]),
+                                  Text(
+                                      "天气：${weatherData.phenomenon}\n" +
+                                          "温度：${weatherData.temperature}℃\n" +
+                                          "相对湿度：${weatherData.relativeHumidity}%\n" +
+                                          "云量：${weatherData.clouds}%\n" +
+                                          "风力：${weatherData.windPower}\n" +
+                                          "风向：${weatherData.windDirection}",
+                                      style: TextStyle(fontSize: 20))
+                                ],
+                              ))
+                            ]))),
                   )
               ],
             )));
