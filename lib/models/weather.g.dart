@@ -8,20 +8,20 @@ part of 'weather.dart';
 
 Weather _$WeatherFromJson(Map<String, dynamic> json) {
   return Weather(
-    relativeHumidity: json['relativeHumidity'] as int,
-    phenomenon: json['phenomenon'] as String,
-    clouds: json['clouds'] as int,
-    windPower: json['windPower'] as String,
-    temperature: json['temperature'] as int,
-    windDirection: json['windDirection'] as String,
+    relativeHumidity: strToInt(json['humidity'] as String),
+    phenomenon: json['text'] as String,
+    clouds: strToInt(json['cloud'] as String),
+    windPower: json['windScale'] as String,
+    temperature: strToInt(json['temp'] as String),
+    windDirection: json['windDir'] as String,
   );
 }
 
 Map<String, dynamic> _$WeatherToJson(Weather instance) => <String, dynamic>{
-      'relativeHumidity': instance.relativeHumidity,
-      'phenomenon': instance.phenomenon,
-      'clouds': instance.clouds,
-      'windPower': instance.windPower,
-      'temperature': instance.temperature,
-      'windDirection': instance.windDirection,
+      'humidity': instance.relativeHumidity,
+      'text': instance.phenomenon,
+      'cloud': instance.clouds,
+      'windScale': instance.windPower,
+      'temp': instance.temperature,
+      'windDir': instance.windDirection,
     };

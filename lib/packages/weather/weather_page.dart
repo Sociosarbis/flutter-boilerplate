@@ -4,11 +4,11 @@ import 'package:flutter_boilerplate/utils/hooks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_boilerplate/utils/geolocator_manager.dart';
 import 'package:flutter_baidu_mapapi_map/flutter_baidu_mapapi_map.dart';
-import 'package:flutter_baidu_mapapi_search/flutter_baidu_mapapi_search.dart';
 import 'package:flutter_baidu_mapapi_base/flutter_baidu_mapapi_base.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_boilerplate/models/weather.dart';
 import 'package:flutter_boilerplate/utils/date.dart';
+import 'package:flutter_boilerplate/services/weather.dart';
 
 class IconFontIcons {
   static final fontFamily = 'iconfont';
@@ -75,8 +75,6 @@ class WeatherPage extends HookWidget {
         CurvedAnimation(parent: controller, curve: Curves.easeInCubic).value;
     final weather = useState(WeatherController());
     usePreviousEffect((keys) {
-      BMFWeatherSearch? weatherSearch;
-      BMFReverseGeoCodeSearch? geoSearch;
       if (keys != null) {
         if (keys[1] == null || keys[0] == null) {
           if (mapController.value != null && position != null) {
@@ -86,31 +84,14 @@ class WeatherPage extends HookWidget {
               ..updateLocationData(
                   BMFUserLocation(location: BMFLocation(coordinate: coord)))
               ..setCenterCoordinate(coord, true, animateDurationMs: 250);
-            geoSearch = BMFReverseGeoCodeSearch()
-              ..onGetReverseGeoCodeSearchResult(callback: (result, code) {
-                if (code == BMFSearchErrorCode.NO_ERROR) {
-                  weatherSearch = BMFWeatherSearch()
-                    ..onGetWeatherSearchResult(callback: (weatherResult, code) {
-                      if (code == BMFSearchErrorCode.NO_ERROR) {
-                        weather.value = WeatherController(visible: true, data: [
-                          Weather.fromJson(
-                              weatherResult.realTimeWeather.toMap())
-                        ]);
-                      }
-                    })
-                    ..weatherSearch(BMFWeatherSearchOption(
-                        districtID: result.addressDetail.adCode));
-                }
-              })
-              ..reverseGeoCodeSearch(
-                  BMFReverseGeoCodeSearchOption(location: coord));
+            WeatherService.now(position).then((data) {
+              weather.value = WeatherController(
+                  visible: true, data: [Weather.fromJson(data)]);
+            });
           }
         }
       }
-      return () {
-        geoSearch?.onGetReverseGeoCodeSearchResult(callback: (res, code) {});
-        weatherSearch?.onGetWeatherSearchResult(callback: (res, code) {});
-      };
+      return () {};
     }, [mapController.value, position]);
     final weatherData = weather.value.visible ? weather.value.data[0] : null;
     final icon = weather.value.visible
