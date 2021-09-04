@@ -1,11 +1,18 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:flutter_boilerplate/utils/convert.dart';
 
 part 'weather.g.dart';
 
-int strToInt(String str) {
-  return int.parse(str);
-} 
+class Range {
+  final int min;
+  final int max;
+  const Range({
+    this.min = -1,
+    this.max = -1
+  });
+}
 
+// 实时天气
 @JsonSerializable()
 class Weather {
   @JsonKey(name: 'humidity', fromJson: strToInt)
@@ -17,7 +24,9 @@ class Weather {
   @JsonKey(name: 'windScale')
   String windPower;
   @JsonKey(name: 'temp', fromJson: strToInt)
-  int temperature;
+  int? temperature;
+  @JsonKey(ignore: true)
+  Range tempRange;
   @JsonKey(name: 'windDir')
   String windDirection;
   Weather(
@@ -25,8 +34,10 @@ class Weather {
       required this.phenomenon,
       required this.clouds,
       required this.windPower,
-      required this.temperature,
-      required this.windDirection});
+      this.temperature,
+      required this.windDirection,
+      this.tempRange = const Range()
+      });
 
   factory Weather.fromJson(Map<String, dynamic> json) => _$WeatherFromJson(json);
   Map<String, dynamic> toJson() => _$WeatherToJson(this);
