@@ -22,12 +22,15 @@ class IconFontIcons {
       IconData(0xe639, fontFamily: IconFontIcons.fontFamily);
   static final cloudyNight =
       IconData(0xe605, fontFamily: IconFontIcons.fontFamily);
+  static final modRain = IconData(0xe620, fontFamily: IconFontIcons.fontFamily);
   // 阵雨
   static final shower = IconData(0xe664, fontFamily: IconFontIcons.fontFamily);
 
-  static IconData? renderIcon(String phenomenon, { bool? night }) {
-    final isNight = night == null ? DateDart.now()
-        .isAfter(DateDart.now().setHour(18).setMinute(0).setSecond(0)) : night;
+  static IconData? renderIcon(String phenomenon, {bool? night}) {
+    final isNight = night == null
+        ? DateDart.now()
+            .isAfter(DateDart.now().setHour(18).setMinute(0).setSecond(0))
+        : night;
     switch (phenomenon) {
       case '晴':
         return isNight ? IconFontIcons.sunnyNight : IconFontIcons.sunnyDay;
@@ -36,6 +39,8 @@ class IconFontIcons {
         return isNight ? IconFontIcons.cloudyNight : IconFontIcons.cloudyDay;
       case '阵雨':
         return IconFontIcons.shower;
+      case '中雨':
+        return IconFontIcons.modRain;
       default:
     }
     return null;
@@ -63,10 +68,11 @@ class WeatherController {
   WeatherController({this.visible = false, this.data = const []});
 }
 
-const PHENOMENON_TO_COLOR = <String, Color>{
+final phenomenonToColor = <String, Color>{
   '晴': Colors.orange,
   '多云': Colors.blueGrey,
   '阵雨': Colors.grey,
+  '中雨': Colors.grey.shade700,
   '阴': Colors.blueGrey
 };
 
@@ -86,56 +92,87 @@ class WeatherCard extends HookWidget {
           tempRange: Range(min: data.tempMin, max: data.tempMax),
           windDirection: showDay.value ? data.windDirDay : data.windDirNight);
     }, [showDay.value]);
-    final icon = IconFontIcons.renderIcon(weather.phenomenon, night: !showDay.value);
+    final icon =
+        IconFontIcons.renderIcon(weather.phenomenon, night: !showDay.value);
     return Card(
         clipBehavior: Clip.hardEdge,
         child: SizedBox(
             width: 200,
             height: 275,
-            child: Stack(children: [
-              Positioned.fill(
-                  left: -20,
-                  right: -20,
-                  top: -20,
-                  bottom: -20,
-                  child: ImageFiltered(
-                      imageFilter: ImageFilter.blur(
-                          sigmaX: 10.0, sigmaY: 10.0, tileMode: TileMode.decal),
-                      child: DecoratedBox(
-                          decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  stops: [
-                                0,
-                                0.25,
-                                1
-                              ],
-                                  colors: [
-                                PHENOMENON_TO_COLOR[weather.phenomenon]!,
-                                Colors.white,
-                                PHENOMENON_TO_COLOR[weather.phenomenon]!
-                              ])),
-                          child: SizedBox.expand()))),
-              Center(
-                  child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (icon != null)
-                    Icon(icon,
-                        size: 48,
-                        color: PHENOMENON_TO_COLOR[weather.phenomenon]),
-                  Text(
-                      "天气：${weather.phenomenon}\n" +
-                          "温度：${weather.tempRange.min} ~ ${weather.tempRange.max}℃\n" +
-                          "相对湿度：${weather.relativeHumidity}%\n" +
-                          "云量：${weather.clouds}%\n" +
-                          "风力：${weather.windPower}\n" +
-                          "风向：${weather.windDirection}",
-                      style: TextStyle(fontSize: 20))
-                ],
-              ))
-            ])));
+            child: Transition(
+                isEnter: !showDay.value,
+                builder: (context, progress) {
+                  final ratio = progress * 0.3;
+                  final fgColor = ColorTween(
+                          begin: phenomenonToColor[weather.phenomenon],
+                          end: Colors.white)
+                      .lerp(ratio);
+                  final bgColor = ColorTween(
+                          begin: phenomenonToColor[weather.phenomenon],
+                          end: Colors.black)
+                      .lerp(ratio);
+                  return Stack(children: [
+                    Positioned.fill(
+                        left: -20,
+                        right: -20,
+                        top: -20,
+                        bottom: -20,
+                        child: ImageFiltered(
+                            imageFilter: ImageFilter.blur(
+                                sigmaX: 10.0,
+                                sigmaY: 10.0,
+                                tileMode: TileMode.decal),
+                            child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                        stops: [
+                                      0,
+                                      0.25,
+                                      1
+                                    ],
+                                        colors: [
+                                      bgColor!,
+                                      ColorTween(
+                                              begin: Colors.white,
+                                              end: Colors.black)
+                                          .lerp(progress)!,
+                                      bgColor
+                                    ])),
+                                child: SizedBox.expand()))),
+                    Center(
+                        child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (icon != null) Icon(icon, size: 48, color: fgColor),
+                        Text(
+                            "天气：${weather.phenomenon}\n" +
+                                "温度：${weather.tempRange.min} ~ ${weather.tempRange.max}℃\n" +
+                                "相对湿度：${weather.relativeHumidity}%\n" +
+                                "云量：${weather.clouds}%\n" +
+                                "风力：${weather.windPower}\n" +
+                                "风向：${weather.windDirection}",
+                            style: TextStyle(
+                                fontSize: 20,
+                                color: ColorTween(
+                                        begin: Colors.black, end: Colors.white)
+                                    .lerp(progress)))
+                      ],
+                    )),
+                    Positioned(
+                        top: 10,
+                        right: 10,
+                        child: Switch(
+                            activeColor: Colors.black,
+                            inactiveThumbColor: Colors.white,
+                            inactiveTrackColor: Colors.grey.shade100,
+                            value: showDay.value,
+                            onChanged: (v) {
+                              showDay.value = v;
+                            }))
+                  ]);
+                })));
   }
 }
 
@@ -151,7 +188,8 @@ class WeatherPage extends HookWidget {
         CurvedAnimation(parent: controller, curve: Curves.easeInCubic).value;
     final weather = useState(WeatherController());
     final index = useState(0);
-    final pageController = useRef(PageController(initialPage: index.value));
+    final pageController = useRef(
+        PageController(initialPage: index.value, viewportFraction: 0.75));
 
     usePreviousEffect((keys) {
       if (keys != null) {
