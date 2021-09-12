@@ -8,6 +8,7 @@ part of 'weather_one_day.dart';
 
 WeatherOneDay _$WeatherOneDayFromJson(Map<String, dynamic> json) {
   return WeatherOneDay(
+    date: strToDateTime(json['fxDate'] as String),
     tempMin: strToInt(json['tempMin'] as String),
     tempMax: strToInt(json['tempMax'] as String),
     textDay: json['textDay'] as String,
@@ -23,6 +24,7 @@ WeatherOneDay _$WeatherOneDayFromJson(Map<String, dynamic> json) {
 
 Map<String, dynamic> _$WeatherOneDayToJson(WeatherOneDay instance) =>
     <String, dynamic>{
+      'fxDate': instance.date.toIso8601String(),
       'tempMin': instance.tempMin,
       'tempMax': instance.tempMax,
       'textDay': instance.textDay,

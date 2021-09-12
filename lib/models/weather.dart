@@ -15,6 +15,8 @@ class Range {
 // 实时天气
 @JsonSerializable()
 class Weather {
+  @JsonKey(name: 'fxTime', fromJson: strToDateTime)
+  DateTime time;
   @JsonKey(name: 'humidity', fromJson: strToInt)
   int relativeHumidity;
   @JsonKey(name: 'text')
@@ -30,7 +32,8 @@ class Weather {
   @JsonKey(name: 'windDir')
   String windDirection;
   Weather(
-      {required this.relativeHumidity,
+      {required this.time,
+      required this.relativeHumidity,
       required this.phenomenon,
       required this.clouds,
       required this.windPower,

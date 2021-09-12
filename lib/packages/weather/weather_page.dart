@@ -64,8 +64,10 @@ class MyClipper extends CustomClipper<Rect> {
 
 class WeatherController {
   bool visible;
-  List<WeatherOneDay> data;
+  List<WeatherOneDay>? data;
+  List<Weather>? timelyData;
   WeatherController({this.visible = false, this.data = const []});
+  WeatherController.timely({this.visible = false, this.timelyData = const []});
 }
 
 final phenomenonToColor = <String, Color>{
@@ -77,21 +79,28 @@ final phenomenonToColor = <String, Color>{
 };
 
 class WeatherCard extends HookWidget {
-  final WeatherOneDay data;
-  WeatherCard({required this.data});
+  final WeatherOneDay? data;
+  final Weather? timelyData;
+  WeatherCard({required this.data}): timelyData = null;
+  WeatherCard.timely({required this.timelyData}): data = null;
 
   @override
   Widget build(context) {
     final showDay = useState(true);
     final weather = useMemoized(() {
-      return Weather(
-          relativeHumidity: data.humidity,
-          phenomenon: showDay.value ? data.textDay : data.textNight,
-          clouds: data.cloud,
-          windPower: showDay.value ? data.windScaleDay : data.windScaleNight,
-          tempRange: Range(min: data.tempMin, max: data.tempMax),
-          windDirection: showDay.value ? data.windDirDay : data.windDirNight);
-    }, [showDay.value]);
+      return data != null
+          ? Weather(
+              time: data!.date,
+              relativeHumidity: data!.humidity,
+              phenomenon: showDay.value ? data!.textDay : data!.textNight,
+              clouds: data!.cloud,
+              windPower:
+                  showDay.value ? data!.windScaleDay : data!.windScaleNight,
+              tempRange: Range(min: data!.tempMin, max: data!.tempMax),
+              windDirection:
+                  showDay.value ? data!.windDirDay : data!.windDirNight)
+          : timelyData;
+    }, [showDay.value, data == null])!;
     final icon =
         IconFontIcons.renderIcon(weather.phenomenon, night: !showDay.value);
     return Card(
@@ -145,22 +154,23 @@ class WeatherCard extends HookWidget {
                         child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        Text(data != null ? "${weather.time.month}月${weather.time.day}日" : "${weather.time.day}日${weather.time.hour}时", style: TextStyle(fontSize: 20)),
                         if (icon != null) Icon(icon, size: 48, color: fgColor),
                         Text(
                             "天气：${weather.phenomenon}\n" +
-                                "温度：${weather.tempRange.min} ~ ${weather.tempRange.max}℃\n" +
+                                "温度：${data != null ? "${weather.tempRange.min} ~ ${weather.tempRange.max}" : weather.temperature}℃\n" +
                                 "相对湿度：${weather.relativeHumidity}%\n" +
                                 "云量：${weather.clouds}%\n" +
                                 "风力：${weather.windPower}\n" +
                                 "风向：${weather.windDirection}",
                             style: TextStyle(
-                                fontSize: 20,
+                                fontSize: 18,
                                 color: ColorTween(
                                         begin: Colors.black, end: Colors.white)
                                     .lerp(progress)))
                       ],
                     )),
-                    Positioned(
+                    if (data != null) Positioned(
                         top: 10,
                         right: 10,
                         child: Switch(
@@ -191,6 +201,7 @@ class WeatherPage extends HookWidget {
     final pageController = useRef(
         PageController(initialPage: index.value, viewportFraction: 0.75));
 
+    final weatherMode = useState(-1);
     usePreviousEffect((keys) {
       if (keys != null) {
         if (keys[1] == null || keys[0] == null) {
@@ -201,16 +212,42 @@ class WeatherPage extends HookWidget {
               ..updateLocationData(
                   BMFUserLocation(location: BMFLocation(coordinate: coord)))
               ..setCenterCoordinate(coord, true, animateDurationMs: 250);
-            WeatherService.forecast(position).then((data) {
-              if (data != null) {
-                weather.value = WeatherController(visible: true, data: data);
-              }
-            });
+            if (weatherMode.value == -1) {
+              weatherMode.value = 0;
+            }
           }
         }
       }
       return () {};
     }, [mapController.value, position]);
+
+    useEffect(() {
+      if (position != null) {
+        var isValid = true;
+        switch (weatherMode.value) {
+          case 1:
+            WeatherService.forecast(position).then((data) {
+              if (data != null && isValid) {
+                if (pageController.value.hasClients) pageController.value.jumpToPage(0);
+                weather.value = WeatherController(visible: true, data: data);
+              }
+            });
+            break;
+          case 0:
+            WeatherService.forecastHourly(position).then((data) {
+              if (data != null && isValid) {
+                if (pageController.value.hasClients) pageController.value.jumpToPage(0);
+                weather.value =
+                    WeatherController.timely(visible: true, timelyData: data);
+              }
+            });
+            break;
+        }
+        return () {
+          isValid = false;
+        };
+      }
+    }, [weatherMode.value]);
     return Scaffold(
         body: ClipOval(
             clipper: MyClipper(ratio: ratio),
@@ -231,7 +268,8 @@ class WeatherPage extends HookWidget {
                   Center(
                       child: PageView.builder(
                           controller: pageController.value,
-                          itemCount: weather.value.data.length,
+                          itemCount: weather.value.data?.length ??
+                              weather.value.timelyData?.length,
                           onPageChanged: (i) {
                             index.value = i;
                           },
@@ -242,11 +280,26 @@ class WeatherPage extends HookWidget {
                                     builder: (context, progress) {
                                       return Transform.scale(
                                           scale: 1 + progress * 0.5,
-                                          child: WeatherCard(
-                                              data: weather.value.data[i]));
+                                          child: weather.value.data != null
+                                              ? WeatherCard(
+                                                  data: weather.value.data![i])
+                                              : WeatherCard.timely(
+                                                  timelyData: weather
+                                                      .value.timelyData![i]));
                                     }));
                           }))
               ],
-            )));
+            )),
+        bottomNavigationBar: weatherMode.value != -1 ? BottomNavigationBar(
+            currentIndex: weatherMode.value,
+            onTap: (i) {
+              weatherMode.value = i;
+            },
+            items: [
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.hourglass_bottom), label: '24小时'),
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.holiday_village), label: '7天')
+            ]) : null);
   }
 }

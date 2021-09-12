@@ -5,6 +5,8 @@ part 'weather_one_day.g.dart';
 
 @JsonSerializable()
 class WeatherOneDay {
+  @JsonKey(name: 'fxDate', fromJson: strToDateTime)
+  DateTime date;
   @JsonKey(fromJson: strToInt)
   int tempMin;
   @JsonKey(fromJson: strToInt)
@@ -20,6 +22,7 @@ class WeatherOneDay {
   @JsonKey(fromJson: strToInt)
   int humidity;
   WeatherOneDay({
+    required this.date,
     required this.tempMin,
     required this.tempMax,
     required this.textDay,

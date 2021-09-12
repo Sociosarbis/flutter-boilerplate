@@ -8,6 +8,7 @@ part of 'weather.dart';
 
 Weather _$WeatherFromJson(Map<String, dynamic> json) {
   return Weather(
+    time: strToDateTime(json['fxTime'] as String),
     relativeHumidity: strToInt(json['humidity'] as String),
     phenomenon: json['text'] as String,
     clouds: strToInt(json['cloud'] as String),
@@ -18,6 +19,7 @@ Weather _$WeatherFromJson(Map<String, dynamic> json) {
 }
 
 Map<String, dynamic> _$WeatherToJson(Weather instance) => <String, dynamic>{
+      'fxTime': instance.time.toIso8601String(),
       'humidity': instance.relativeHumidity,
       'text': instance.phenomenon,
       'cloud': instance.clouds,

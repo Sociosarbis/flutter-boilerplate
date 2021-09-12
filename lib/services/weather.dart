@@ -21,11 +21,21 @@ class WeatherService {
   }
 
   static Future<List<WeatherOneDay>?> forecast(Position pos) async {
-    final url = Uri.parse('$BASE_URL/3d?key=$API_KEY&location=${pos.longitude},${pos.latitude}');
+    final url = Uri.parse('$BASE_URL/7d?key=$API_KEY&location=${pos.longitude},${pos.latitude}');
     final response = await get(url);
     final rawData = jsonDecode(response.body);
     if (rawData['code'] == STATUS_OK) {
       return (rawData['daily'] as List<dynamic>).map((e) => WeatherOneDay.fromJson(e)).toList();
+    }
+    return null;
+  }
+
+  static Future<List<Weather>?> forecastHourly(Position pos) async {
+    final url = Uri.parse('$BASE_URL/24h?key=$API_KEY&location=${pos.longitude},${pos.latitude}');
+    final response = await get(url);
+    final rawData = jsonDecode(response.body);
+    if (rawData['code'] == STATUS_OK) {
+      return (rawData['hourly'] as List<dynamic>).map((e) => Weather.fromJson(e)).toList();
     }
     return null;
   }
