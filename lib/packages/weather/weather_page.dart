@@ -11,6 +11,7 @@ import 'package:flutter_boilerplate/models/weather.dart';
 import 'package:flutter_boilerplate/components/transition.dart';
 import 'package:flutter_boilerplate/utils/date.dart';
 import 'package:flutter_boilerplate/services/weather.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
 
 class IconFontIcons {
   static final fontFamily = 'iconfont';
@@ -64,10 +65,8 @@ class MyClipper extends CustomClipper<Rect> {
 
 class WeatherController {
   bool visible;
-  List<WeatherOneDay>? data;
-  List<Weather>? timelyData;
+  List<dynamic>? data;
   WeatherController({this.visible = false, this.data = const []});
-  WeatherController.timely({this.visible = false, this.timelyData = const []});
 }
 
 final phenomenonToColor = <String, Color>{
@@ -119,28 +118,30 @@ class FreeScrollPhysics extends PageScrollPhysics {
 }
 
 class WeatherCard extends HookWidget {
-  final WeatherOneDay? data;
-  final Weather? timelyData;
-  WeatherCard({required this.data}) : timelyData = null;
-  WeatherCard.timely({required this.timelyData}) : data = null;
+  final dynamic data;
+  WeatherCard({required this.data});
 
   @override
   Widget build(context) {
     final showDay = useState(true);
+    final isOneDay = useMemoized(() {
+      return data is WeatherOneDay;
+    }, [data]);
     final weather = useMemoized(() {
-      return data != null
+      final oneDayData = isOneDay ? data as WeatherOneDay : null;
+      return oneDayData != null
           ? Weather(
-              time: data!.date,
-              relativeHumidity: data!.humidity,
-              phenomenon: showDay.value ? data!.textDay : data!.textNight,
-              clouds: data!.cloud,
+              time: oneDayData.date,
+              relativeHumidity: oneDayData.humidity,
+              phenomenon: showDay.value ?  oneDayData.textDay :  oneDayData.textNight,
+              clouds: oneDayData.cloud,
               windPower:
-                  showDay.value ? data!.windScaleDay : data!.windScaleNight,
-              tempRange: Range(min: data!.tempMin, max: data!.tempMax),
+                  showDay.value ? oneDayData.windScaleDay : oneDayData.windScaleNight,
+              tempRange: Range(min: oneDayData.tempMin, max: oneDayData.tempMax),
               windDirection:
-                  showDay.value ? data!.windDirDay : data!.windDirNight)
-          : timelyData;
-    }, [showDay.value, data == null])!;
+                  showDay.value ? oneDayData.windDirDay : oneDayData.windDirNight)
+          : data as Weather;
+    }, [showDay.value, isOneDay]);
     final icon =
         IconFontIcons.renderIcon(weather.phenomenon, night: !showDay.value);
     return Card(
@@ -198,14 +199,14 @@ class WeatherCard extends HookWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                            data != null
+                            isOneDay
                                 ? "${weather.time.month}月${weather.time.day}日"
                                 : "${weather.time.day}日${weather.time.hour}时",
                             style: TextStyle(fontSize: 20, color: blackWhite)),
                         if (icon != null) Icon(icon, size: 48, color: fgColor),
                         Text(
                             "天气：${weather.phenomenon}\n" +
-                                "温度：${data != null ? "${weather.tempRange.min} ~ ${weather.tempRange.max}" : weather.temperature}℃\n" +
+                                "温度：${isOneDay ? "${weather.tempRange.min} ~ ${weather.tempRange.max}" : weather.temperature}℃\n" +
                                 "相对湿度：${weather.relativeHumidity}%\n" +
                                 "云量：${weather.clouds}%\n" +
                                 "风力：${weather.windPower}\n" +
@@ -215,7 +216,7 @@ class WeatherCard extends HookWidget {
                                 color: blackWhite))
                       ],
                     )),
-                    if (data != null)
+                    if (isOneDay)
                       Positioned(
                           top: 10,
                           right: 10,
@@ -287,7 +288,7 @@ class WeatherPage extends HookWidget {
                 if (pageController.value.hasClients)
                   pageController.value.jumpToPage(0);
                 weather.value =
-                    WeatherController.timely(visible: true, timelyData: data);
+                    WeatherController(visible: true, data: data);
               }
             });
             break;
@@ -320,7 +321,7 @@ class WeatherPage extends HookWidget {
                           pageSnapping: false,
                           controller: pageController.value,
                           itemCount: weather.value.data?.length ??
-                              weather.value.timelyData?.length,
+                              weather.value.data?.length,
                           onPageChanged: (i) {
                             index.value = i;
                           },
@@ -331,12 +332,9 @@ class WeatherPage extends HookWidget {
                                     builder: (context, progress) {
                                       return Transform.scale(
                                           scale: 1 + progress * 0.5,
-                                          child: weather.value.data != null
-                                              ? WeatherCard(
-                                                  data: weather.value.data![i])
-                                              : WeatherCard.timely(
-                                                  timelyData: weather
-                                                      .value.timelyData![i]));
+                                          child:  WeatherCard(
+                                                  data: weather
+                                                      .value.data![i]));
                                     }));
                           }))
               ],
