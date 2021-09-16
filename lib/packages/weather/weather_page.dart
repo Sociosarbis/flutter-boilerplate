@@ -78,11 +78,50 @@ final phenomenonToColor = <String, Color>{
   '阴': Colors.blueGrey
 };
 
+class FreeScrollPhysics extends PageScrollPhysics {
+  const FreeScrollPhysics({ScrollPhysics? parent}) : super(parent: parent);
+  @override
+  FreeScrollPhysics applyTo(ScrollPhysics? ancestor) {
+    return FreeScrollPhysics(parent: buildParent(ancestor));
+  }
+  double _getPage(ScrollMetrics position) {
+    return position.pixels / position.viewportDimension;
+  }
+
+  double _getPixels(ScrollMetrics position, double page) {
+    return page * position.viewportDimension;
+  }
+
+  double _getTargetPixels(
+      ScrollMetrics position, Tolerance tolerance, double velocity) {
+    double page = _getPage(position);
+    if (velocity < -tolerance.velocity || velocity > tolerance.velocity)
+      page += (velocity / tolerance.velocity) * 0.001;
+    return _getPixels(position, page.roundToDouble());
+  }
+
+  @override
+  Simulation? createBallisticSimulation(
+      ScrollMetrics position, double velocity) {
+    // If we're out of range and not headed back in range, defer to the parent
+    // ballistics, which should put us back in range at a page boundary.
+    if ((velocity <= 0.0 && position.pixels <= position.minScrollExtent) ||
+        (velocity >= 0.0 && position.pixels >= position.maxScrollExtent))
+      return super.createBallisticSimulation(position, velocity);
+    final Tolerance tolerance = this.tolerance;
+    final double target = _getTargetPixels(position, tolerance, velocity);
+    if (target != position.pixels)
+      return ScrollSpringSimulation(spring, position.pixels, target, velocity,
+          tolerance: tolerance);
+    return null;
+  }
+}
+
 class WeatherCard extends HookWidget {
   final WeatherOneDay? data;
   final Weather? timelyData;
-  WeatherCard({required this.data}): timelyData = null;
-  WeatherCard.timely({required this.timelyData}): data = null;
+  WeatherCard({required this.data}) : timelyData = null;
+  WeatherCard.timely({required this.timelyData}) : data = null;
 
   @override
   Widget build(context) {
@@ -120,6 +159,9 @@ class WeatherCard extends HookWidget {
                           begin: phenomenonToColor[weather.phenomenon],
                           end: Colors.black)
                       .lerp(ratio);
+                  final blackWhite =
+                      ColorTween(begin: Colors.black, end: Colors.white)
+                          .lerp(progress);
                   return Stack(children: [
                     Positioned.fill(
                         left: -20,
@@ -154,7 +196,11 @@ class WeatherCard extends HookWidget {
                         child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(data != null ? "${weather.time.month}月${weather.time.day}日" : "${weather.time.day}日${weather.time.hour}时", style: TextStyle(fontSize: 20)),
+                        Text(
+                            data != null
+                                ? "${weather.time.month}月${weather.time.day}日"
+                                : "${weather.time.day}日${weather.time.hour}时",
+                            style: TextStyle(fontSize: 20, color: blackWhite)),
                         if (icon != null) Icon(icon, size: 48, color: fgColor),
                         Text(
                             "天气：${weather.phenomenon}\n" +
@@ -165,22 +211,21 @@ class WeatherCard extends HookWidget {
                                 "风向：${weather.windDirection}",
                             style: TextStyle(
                                 fontSize: 18,
-                                color: ColorTween(
-                                        begin: Colors.black, end: Colors.white)
-                                    .lerp(progress)))
+                                color: blackWhite))
                       ],
                     )),
-                    if (data != null) Positioned(
-                        top: 10,
-                        right: 10,
-                        child: Switch(
-                            activeColor: Colors.black,
-                            inactiveThumbColor: Colors.white,
-                            inactiveTrackColor: Colors.grey.shade100,
-                            value: showDay.value,
-                            onChanged: (v) {
-                              showDay.value = v;
-                            }))
+                    if (data != null)
+                      Positioned(
+                          top: 10,
+                          right: 10,
+                          child: Switch(
+                              activeColor: Colors.black,
+                              inactiveThumbColor: Colors.white,
+                              inactiveTrackColor: Colors.grey.shade100,
+                              value: showDay.value,
+                              onChanged: (v) {
+                                showDay.value = v;
+                              }))
                   ]);
                 })));
   }
@@ -228,7 +273,8 @@ class WeatherPage extends HookWidget {
           case 1:
             WeatherService.forecast(position).then((data) {
               if (data != null && isValid) {
-                if (pageController.value.hasClients) pageController.value.jumpToPage(0);
+                if (pageController.value.hasClients)
+                  pageController.value.jumpToPage(0);
                 weather.value = WeatherController(visible: true, data: data);
               }
             });
@@ -236,7 +282,8 @@ class WeatherPage extends HookWidget {
           case 0:
             WeatherService.forecastHourly(position).then((data) {
               if (data != null && isValid) {
-                if (pageController.value.hasClients) pageController.value.jumpToPage(0);
+                if (pageController.value.hasClients)
+                  pageController.value.jumpToPage(0);
                 weather.value =
                     WeatherController.timely(visible: true, timelyData: data);
               }
@@ -267,6 +314,8 @@ class WeatherPage extends HookWidget {
                 if (weather.value.visible)
                   Center(
                       child: PageView.builder(
+                          physics: FreeScrollPhysics(),
+                          pageSnapping: false,
                           controller: pageController.value,
                           itemCount: weather.value.data?.length ??
                               weather.value.timelyData?.length,
@@ -290,16 +339,18 @@ class WeatherPage extends HookWidget {
                           }))
               ],
             )),
-        bottomNavigationBar: weatherMode.value != -1 ? BottomNavigationBar(
-            currentIndex: weatherMode.value,
-            onTap: (i) {
-              weatherMode.value = i;
-            },
-            items: [
-              BottomNavigationBarItem(
-                  icon: Icon(Icons.hourglass_bottom), label: '24小时'),
-              BottomNavigationBarItem(
-                  icon: Icon(Icons.holiday_village), label: '7天')
-            ]) : null);
+        bottomNavigationBar: weatherMode.value != -1
+            ? BottomNavigationBar(
+                currentIndex: weatherMode.value,
+                onTap: (i) {
+                  weatherMode.value = i;
+                },
+                items: [
+                    BottomNavigationBarItem(
+                        icon: Icon(Icons.hourglass_bottom), label: '24小时'),
+                    BottomNavigationBarItem(
+                        icon: Icon(Icons.holiday_village), label: '7天')
+                  ])
+            : null);
   }
 }
