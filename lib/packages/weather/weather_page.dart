@@ -315,7 +315,7 @@ class WeatherPage extends HookWidget {
                           left: 30, top: 0, right: 30, bottom: 0)),
                 ),
                 if (weather.value.visible)
-                  Center(
+                  ...[Container(color: (weatherMode.value == 0 ? Colors.blue : Colors.orange).withOpacity(0.5)), Center(
                       child: PageView.builder(
                           physics: FreeScrollPhysics(viewportFraction: WeatherPage.viewportFraction),
                           pageSnapping: false,
@@ -336,11 +336,12 @@ class WeatherPage extends HookWidget {
                                                   data: weather
                                                       .value.data![i]));
                                     }));
-                          }))
+                          }))]
               ],
             )),
         bottomNavigationBar: weatherMode.value != -1
             ? BottomNavigationBar(
+                selectedItemColor: weatherMode.value == 0 ? null : Colors.orange,
                 currentIndex: weatherMode.value,
                 onTap: (i) {
                   weatherMode.value = i;
