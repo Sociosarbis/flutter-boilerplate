@@ -79,24 +79,25 @@ final phenomenonToColor = <String, Color>{
 };
 
 class FreeScrollPhysics extends PageScrollPhysics {
-  const FreeScrollPhysics({ScrollPhysics? parent}) : super(parent: parent);
+  final double viewportFraction;
+  const FreeScrollPhysics({ScrollPhysics? parent, this.viewportFraction = 1 }) : super(parent: parent);
   @override
   FreeScrollPhysics applyTo(ScrollPhysics? ancestor) {
-    return FreeScrollPhysics(parent: buildParent(ancestor));
+    return FreeScrollPhysics(parent: buildParent(ancestor), viewportFraction: viewportFraction);
   }
   double _getPage(ScrollMetrics position) {
-    return position.pixels / position.viewportDimension;
+    return position.pixels / (position.viewportDimension * 0.75);
   }
 
   double _getPixels(ScrollMetrics position, double page) {
-    return page * position.viewportDimension;
+    return page * (position.viewportDimension * 0.75);
   }
 
   double _getTargetPixels(
       ScrollMetrics position, Tolerance tolerance, double velocity) {
     double page = _getPage(position);
     if (velocity < -tolerance.velocity || velocity > tolerance.velocity)
-      page += (velocity / tolerance.velocity) * 0.001;
+      page += (velocity / tolerance.velocity) * 0.005;
     return _getPixels(position, page.roundToDouble());
   }
 
@@ -232,6 +233,7 @@ class WeatherCard extends HookWidget {
 }
 
 class WeatherPage extends HookWidget {
+  static double viewportFraction = 0.75;
   @override
   Widget build(context) {
     final position = useProviderContext<Position?>(true);
@@ -244,7 +246,7 @@ class WeatherPage extends HookWidget {
     final weather = useState(WeatherController());
     final index = useState(0);
     final pageController = useRef(
-        PageController(initialPage: index.value, viewportFraction: 0.75));
+        PageController(initialPage: index.value, viewportFraction: WeatherPage.viewportFraction));
 
     final weatherMode = useState(-1);
     usePreviousEffect((keys) {
@@ -314,7 +316,7 @@ class WeatherPage extends HookWidget {
                 if (weather.value.visible)
                   Center(
                       child: PageView.builder(
-                          physics: FreeScrollPhysics(),
+                          physics: FreeScrollPhysics(viewportFraction: WeatherPage.viewportFraction),
                           pageSnapping: false,
                           controller: pageController.value,
                           itemCount: weather.value.data?.length ??
