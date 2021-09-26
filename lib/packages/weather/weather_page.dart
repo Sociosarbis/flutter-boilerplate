@@ -13,6 +13,11 @@ import 'package:flutter_boilerplate/utils/date.dart';
 import 'package:flutter_boilerplate/services/weather.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 
+bool isNight(DateDart date) {
+  final lo = date.setHour(18).setMinute(0).setSecond(0);
+  final hi = date.setHour(7).setMinute(0).setSecond(0);
+  return date.isAfter(lo) || date.isBefore(hi);
+}
 class IconFontIcons {
   static final fontFamily = 'iconfont';
   static final sunnyDay =
@@ -28,16 +33,15 @@ class IconFontIcons {
   static final shower = IconData(0xe664, fontFamily: IconFontIcons.fontFamily);
 
   static IconData? renderIcon(String phenomenon, {bool? night}) {
-    final isNight = night == null
-        ? DateDart.now()
-            .isAfter(DateDart.now().setHour(18).setMinute(0).setSecond(0))
+    final _isNight = night == null
+        ? isNight(DateDart.now())
         : night;
     switch (phenomenon) {
       case '晴':
-        return isNight ? IconFontIcons.sunnyNight : IconFontIcons.sunnyDay;
+        return _isNight ? IconFontIcons.sunnyNight : IconFontIcons.sunnyDay;
       case '多云':
       case '阴':
-        return isNight ? IconFontIcons.cloudyNight : IconFontIcons.cloudyDay;
+        return _isNight ? IconFontIcons.cloudyNight : IconFontIcons.cloudyDay;
       case '阵雨':
         return IconFontIcons.shower;
       case '中雨':
@@ -123,10 +127,10 @@ class WeatherCard extends HookWidget {
 
   @override
   Widget build(context) {
-    final showDay = useState(true);
     final isOneDay = useMemoized(() {
       return data is WeatherOneDay;
     }, [data]);
+    final showDay = useState(isOneDay ? true : isNight(DateDart.fromDateTime((data as Weather).time)));
     final weather = useMemoized(() {
       final oneDayData = isOneDay ? data as WeatherOneDay : null;
       return oneDayData != null
