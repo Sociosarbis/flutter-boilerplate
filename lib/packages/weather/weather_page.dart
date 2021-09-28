@@ -18,6 +18,7 @@ bool isNight(DateDart date) {
   final hi = date.setHour(7).setMinute(0).setSecond(0);
   return date.isAfter(lo) || date.isBefore(hi);
 }
+
 class IconFontIcons {
   static final fontFamily = 'iconfont';
   static final sunnyDay =
@@ -33,9 +34,7 @@ class IconFontIcons {
   static final shower = IconData(0xe664, fontFamily: IconFontIcons.fontFamily);
 
   static IconData? renderIcon(String phenomenon, {bool? night}) {
-    final _isNight = night == null
-        ? isNight(DateDart.now())
-        : night;
+    final _isNight = night == null ? isNight(DateDart.now()) : night;
     switch (phenomenon) {
       case '晴':
         return _isNight ? IconFontIcons.sunnyNight : IconFontIcons.sunnyDay;
@@ -83,11 +82,14 @@ final phenomenonToColor = <String, Color>{
 
 class FreeScrollPhysics extends PageScrollPhysics {
   final double viewportFraction;
-  const FreeScrollPhysics({ScrollPhysics? parent, this.viewportFraction = 1 }) : super(parent: parent);
+  const FreeScrollPhysics({ScrollPhysics? parent, this.viewportFraction = 1})
+      : super(parent: parent);
   @override
   FreeScrollPhysics applyTo(ScrollPhysics? ancestor) {
-    return FreeScrollPhysics(parent: buildParent(ancestor), viewportFraction: viewportFraction);
+    return FreeScrollPhysics(
+        parent: buildParent(ancestor), viewportFraction: viewportFraction);
   }
+
   double _getPage(ScrollMetrics position) {
     return position.pixels / (position.viewportDimension * 0.75);
   }
@@ -125,29 +127,66 @@ class WeatherCard extends HookWidget {
   final dynamic data;
   WeatherCard({required this.data});
 
+  Weather selectDayOrNight(WeatherOneDay oneDayData, {required bool isNight}) {
+    return Weather(
+        time: oneDayData.date,
+        relativeHumidity: oneDayData.humidity,
+        phenomenon: !isNight ? oneDayData.textDay : oneDayData.textNight,
+        clouds: oneDayData.cloud,
+        windPower:
+            isNight ? oneDayData.windScaleDay : oneDayData.windScaleNight,
+        tempRange: Range(min: oneDayData.tempMin, max: oneDayData.tempMax),
+        windDirection:
+            isNight ? oneDayData.windDirDay : oneDayData.windDirNight);
+  }
+
+  Widget renderCardContent(Weather weather,
+      {required bool isOneDay, required bool isNight}) {
+    final fgColor = isNight
+        ? ColorTween(
+                begin: phenomenonToColor[weather.phenomenon], end: Colors.white)
+            .lerp(0.3)
+        : phenomenonToColor[weather.phenomenon];
+    final blackWhite = isNight ? Colors.white : Colors.black;
+    final icon = IconFontIcons.renderIcon(weather.phenomenon, night: isNight);
+    return Center(
+        child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+            isOneDay
+                ? "${weather.time.month}月${weather.time.day}日"
+                : "${weather.time.day}日${weather.time.hour}时",
+            style: TextStyle(fontSize: 20, color: blackWhite)),
+        if (icon != null) Icon(icon, size: 48, color: fgColor),
+        Text(
+            "天气：${weather.phenomenon}\n" +
+                "温度：${isOneDay ? "${weather.tempRange.min} ~ ${weather.tempRange.max}" : weather.temperature}℃\n" +
+                "相对湿度：${weather.relativeHumidity}%\n" +
+                "云量：${weather.clouds}%\n" +
+                "风力：${weather.windPower}\n" +
+                "风向：${weather.windDirection}",
+            style: TextStyle(fontSize: 18, color: blackWhite))
+      ],
+    ));
+  }
+
   @override
   Widget build(context) {
     final isOneDay = useMemoized(() {
       return data is WeatherOneDay;
     }, [data]);
-    final showDay = useState(isOneDay ? true : isNight(DateDart.fromDateTime((data as Weather).time)));
+    final showDay = useWatchState(() => isOneDay
+        ? true
+        : !isNight(DateDart.fromDateTime((data as Weather).time)), [isOneDay]);
+
     final weather = useMemoized(() {
       final oneDayData = isOneDay ? data as WeatherOneDay : null;
       return oneDayData != null
-          ? Weather(
-              time: oneDayData.date,
-              relativeHumidity: oneDayData.humidity,
-              phenomenon: showDay.value ?  oneDayData.textDay :  oneDayData.textNight,
-              clouds: oneDayData.cloud,
-              windPower:
-                  showDay.value ? oneDayData.windScaleDay : oneDayData.windScaleNight,
-              tempRange: Range(min: oneDayData.tempMin, max: oneDayData.tempMax),
-              windDirection:
-                  showDay.value ? oneDayData.windDirDay : oneDayData.windDirNight)
+          ? selectDayOrNight(oneDayData, isNight: false)
           : data as Weather;
-    }, [showDay.value, isOneDay]);
-    final icon =
-        IconFontIcons.renderIcon(weather.phenomenon, night: !showDay.value);
+    }, [isOneDay]);
+
     return Card(
         clipBehavior: Clip.hardEdge,
         child: SizedBox(
@@ -157,17 +196,10 @@ class WeatherCard extends HookWidget {
                 isEnter: !showDay.value,
                 builder: (context, progress) {
                   final ratio = progress * 0.3;
-                  final fgColor = ColorTween(
-                          begin: phenomenonToColor[weather.phenomenon],
-                          end: Colors.white)
-                      .lerp(ratio);
                   final bgColor = ColorTween(
                           begin: phenomenonToColor[weather.phenomenon],
                           end: Colors.black)
                       .lerp(ratio);
-                  final blackWhite =
-                      ColorTween(begin: Colors.black, end: Colors.white)
-                          .lerp(progress);
                   return Stack(children: [
                     Positioned.fill(
                         left: -20,
@@ -198,28 +230,36 @@ class WeatherCard extends HookWidget {
                                       bgColor
                                     ])),
                                 child: SizedBox.expand()))),
-                    Center(
-                        child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                            isOneDay
-                                ? "${weather.time.month}月${weather.time.day}日"
-                                : "${weather.time.day}日${weather.time.hour}时",
-                            style: TextStyle(fontSize: 20, color: blackWhite)),
-                        if (icon != null) Icon(icon, size: 48, color: fgColor),
-                        Text(
-                            "天气：${weather.phenomenon}\n" +
-                                "温度：${isOneDay ? "${weather.tempRange.min} ~ ${weather.tempRange.max}" : weather.temperature}℃\n" +
-                                "相对湿度：${weather.relativeHumidity}%\n" +
-                                "云量：${weather.clouds}%\n" +
-                                "风力：${weather.windPower}\n" +
-                                "风向：${weather.windDirection}",
-                            style: TextStyle(
-                                fontSize: 18,
-                                color: blackWhite))
-                      ],
-                    )),
+                    isOneDay
+                        ? AnimatedCrossFade(
+                            layoutBuilder: (Widget topChild, Key topChildKey, Widget bottomChild, Key bottomChildKey) {
+                              return Stack(
+                                clipBehavior: Clip.none,
+                                alignment: Alignment.center,
+                                children: <Widget>[
+                                  Positioned(
+                                    key: bottomChildKey,
+                                    child: bottomChild,
+                                  ),
+                                  Positioned(
+                                    key: topChildKey,
+                                    child: topChild,
+                                  ),
+                                ],
+                              );
+                            },
+                            crossFadeState: showDay.value
+                                ? CrossFadeState.showFirst
+                                : CrossFadeState.showSecond,
+                            firstChild: renderCardContent(weather,
+                                isOneDay: isOneDay, isNight: false),
+                            secondChild: renderCardContent(weather,
+                                isOneDay: isOneDay, isNight: true),
+                            duration: Duration(milliseconds: 250),
+                            reverseDuration: Duration(milliseconds: 200),
+                          )
+                        : renderCardContent(weather,
+                            isOneDay: isOneDay, isNight: !showDay.value),
                     if (isOneDay)
                       Positioned(
                           top: 10,
@@ -250,8 +290,9 @@ class WeatherPage extends HookWidget {
         CurvedAnimation(parent: controller, curve: Curves.easeInCubic).value;
     final weather = useState(WeatherController());
     final index = useState(0);
-    final pageController = useRef(
-        PageController(initialPage: index.value, viewportFraction: WeatherPage.viewportFraction));
+    final pageController = useRef(PageController(
+        initialPage: index.value,
+        viewportFraction: WeatherPage.viewportFraction));
 
     final weatherMode = useState(-1);
     usePreviousEffect((keys) {
@@ -291,8 +332,7 @@ class WeatherPage extends HookWidget {
               if (data != null && isValid) {
                 if (pageController.value.hasClients)
                   pageController.value.jumpToPage(0);
-                weather.value =
-                    WeatherController(visible: true, data: data);
+                weather.value = WeatherController(visible: true, data: data);
               }
             });
             break;
@@ -318,10 +358,15 @@ class WeatherPage extends HookWidget {
                       mapPadding: BMFEdgeInsets(
                           left: 30, top: 0, right: 30, bottom: 0)),
                 ),
-                if (weather.value.visible)
-                  ...[Container(color: (weatherMode.value == 0 ? Colors.blue : Colors.orange).withOpacity(0.5)), Center(
+                if (weather.value.visible) ...[
+                  Container(
+                      color:
+                          (weatherMode.value == 0 ? Colors.blue : Colors.orange)
+                              .withOpacity(0.5)),
+                  Center(
                       child: PageView.builder(
-                          physics: FreeScrollPhysics(viewportFraction: WeatherPage.viewportFraction),
+                          physics: FreeScrollPhysics(
+                              viewportFraction: WeatherPage.viewportFraction),
                           pageSnapping: false,
                           controller: pageController.value,
                           itemCount: weather.value.data?.length ??
@@ -336,16 +381,17 @@ class WeatherPage extends HookWidget {
                                     builder: (context, progress) {
                                       return Transform.scale(
                                           scale: 1 + progress * 0.5,
-                                          child:  WeatherCard(
-                                                  data: weather
-                                                      .value.data![i]));
+                                          child: WeatherCard(
+                                              data: weather.value.data![i]));
                                     }));
-                          }))]
+                          }))
+                ]
               ],
             )),
         bottomNavigationBar: weatherMode.value != -1
             ? BottomNavigationBar(
-                selectedItemColor: weatherMode.value == 0 ? null : Colors.orange,
+                selectedItemColor:
+                    weatherMode.value == 0 ? null : Colors.orange,
                 currentIndex: weatherMode.value,
                 onTap: (i) {
                   weatherMode.value = i;
