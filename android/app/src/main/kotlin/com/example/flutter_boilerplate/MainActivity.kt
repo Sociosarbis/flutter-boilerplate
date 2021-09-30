@@ -1,12 +1,16 @@
 package com.example.flutter_boilerplate
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import io.flutter.embedding.android.FlutterActivity
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.os.Build
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import io.flutter.embedding.engine.FlutterEngine;
@@ -18,7 +22,8 @@ import io.flutter.plugin.common.MethodChannel;
 class MainActivity: FlutterActivity() {
   companion object {
     @JvmStatic var methodChannel: MethodChannel? = null
-    const val NOTIFICATION_ID = "Channel_ID"
+    const val NOTIFICATION_ID = "CLIENT_ID"
+    const val NOTIFICATION_NAME = "COUNTER_OP"
   }
   private val channelName = "notification"
   var notificationManager: NotificationManagerCompat? = null
@@ -26,6 +31,14 @@ class MainActivity: FlutterActivity() {
   protected override fun onCreate(@Nullable savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     notificationManager = NotificationManagerCompat.from(this)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      createChannel()
+    }
+  }
+
+  @RequiresApi(Build.VERSION_CODES.O)
+  private fun createChannel() {
+    notificationManager?.createNotificationChannel(NotificationChannel(NOTIFICATION_ID, NOTIFICATION_NAME, NotificationManager.IMPORTANCE_DEFAULT))
   }
 
   override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {

@@ -520,10 +520,10 @@ class Main extends HookWidget {
                       child: Text('Comment Section')),
                   ElevatedButton(
                       onPressed: () {
-                        /*!isServiceRunning.value
+                        !isServiceRunning.value
                             ? startService()
                             : stopService();
-                        isServiceRunning.value = !isServiceRunning.value;*/
+                        isServiceRunning.value = !isServiceRunning.value;
                       },
                       child: Text(
                           '${isServiceRunning.value ? 'running' : 'stopped'} (${counter.value})')),
