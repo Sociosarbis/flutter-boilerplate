@@ -715,7 +715,14 @@ packages:
       name: pubspec_parse
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.1.0"
+    version: "1.0.0"
+  qlevar_router:
+    dependency: "direct dev"
+    description:
+      name: qlevar_router
+      url: "https://mirrors.tuna.tsinghua.edu.cn/dart-pub"
+    source: hosted
+    version: "1.5.2"
   rxdart:
     dependency: transitive
     description:
