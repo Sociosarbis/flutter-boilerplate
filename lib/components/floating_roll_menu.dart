@@ -53,7 +53,7 @@ class FloatingRollMenu extends HookWidget {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
                           minimumSize: Size.square(15)),
                       onPressed: () {
-                        onSelect?.call('weather');
+                        onSelect?.call('/weather');
                         toggleOpen();
                       },
                     )),
