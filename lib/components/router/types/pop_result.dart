@@ -1,0 +1,4 @@
+enum PopResult {
+  Popped,
+  NotPopped
+}

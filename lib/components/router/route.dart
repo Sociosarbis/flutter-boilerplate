@@ -1,22 +1,46 @@
 import "package:flutter/widgets.dart";
 import './context.dart';
+import './params.dart';
+import './key.dart';
+import './router.dart';
 
-typedef PageBuilder = Page Function();
+typedef PageBuilder = Widget Function();
+typedef PageBuilderWithChildBuilder = Widget Function(AppRouter);
 
 class AppRoute {
   final String path;
   final String? name;
+  final String? initRoute;
   final PageBuilder? builder;
+  final PageBuilderWithChildBuilder? builderChild;
   final List<AppRoute>? children;
 
   const AppRoute(
-      {required this.path, required this.builder, this.name, this.children});
+      {required this.path, required this.builder, this.name, this.children, this.initRoute})
+      : builderChild = null;
+
+  const AppRoute.withChild(
+      {required this.path,
+      required this.builderChild,
+      this.name,
+      this.initRoute,
+      this.children})
+      : builder = null;
+
+  bool get withChildRouter => builderChild != null;
 
   AppRoute copyWith(
       {String? path,
       String? name,
       PageBuilder? builder,
       List<AppRoute>? children}) {
+    if (withChildRouter) {
+      return AppRoute.withChild(
+          path: path ?? this.path,
+          name: name ?? this.name,
+          builderChild: builderChild ?? this.builderChild,
+          children: children ?? this.children);
+    }
     return AppRoute(
         path: path ?? this.path,
         name: name ?? this.name,
@@ -26,45 +50,83 @@ class AppRoute {
 }
 
 class AppRouteInternal {
+  final UniqKey key;
   final AppRoute route;
   final bool isNotFound;
+  // 匹配到本路由的当前路径
+  String? activePath;
+  // 匹配到本路由的当前参数
+  AppParams? params;
+  // 匹配到的子路由
+  AppRouteInternal? child;
   final AppRouteChildren? children;
   final String fullPath;
 
   AppRouteInternal(
-      {required this.route,
+      {required this.key,
+      required this.route,
       required this.fullPath,
       required this.isNotFound,
+      this.activePath,
+      this.params,
       this.children});
 
+  String get name => route.name ?? route.path;
+  bool get hasChild => child != null;
   factory AppRouteInternal.from(AppRoute route, String currentPath) {
+    final key = UniqKey(route.name ?? route.path);
     if (!route.path.startsWith('/')) {
       route = route.copyWith(path: '/${route.path}');
     }
     final fullPath = '$currentPath${route.path}';
     routerContext.treeInfo.namePath[route.name ?? route.path] = fullPath;
     return AppRouteInternal(
+        key: key,
         route: route,
         fullPath: fullPath,
         isNotFound: false,
         children: route.children == null
             ? null
-            : AppRouteChildren.from(route.children!, fullPath));
+            : AppRouteChildren.from(route.children!, key, fullPath));
+  }
+
+  factory AppRouteInternal.notFound(String notFoundPath) {
+    final route = routerContext.settings.notFoundPage;
+    final key = UniqKey(route.name ?? route.path);
+    return AppRouteInternal(
+        key: key,
+        route: route,
+        fullPath: route.path,
+        isNotFound: true,
+        params: AppParams(params: {}),
+        activePath: notFoundPath,
+        children: route.children == null
+            ? null
+            : AppRouteChildren.from(route.children!, key, route.path));
+  }
+  void clean() {
+    child = null;
+    activePath = null;
+    params = null;
   }
 }
 
 class AppRouteChildren {
   final String parentFullPath;
+  final UniqKey parentKey;
   final List<AppRouteInternal> _routes;
 
-  AppRouteChildren(this._routes, this.parentFullPath);
+  List<AppRouteInternal> get routes => _routes;
 
-  factory AppRouteChildren.from(List<AppRoute> routes, String currentPath) {
+  AppRouteChildren(this._routes, this.parentKey, this.parentFullPath);
+
+  factory AppRouteChildren.from(
+      List<AppRoute> routes, UniqKey key, String currentPath) {
     final result = <AppRouteInternal>[];
     for (final route in routes) {
       result.add(AppRouteInternal.from(route, currentPath));
     }
-    return AppRouteChildren(result, currentPath);
+    return AppRouteChildren(result, key, currentPath);
   }
 
   void add(List<AppRoute> routes) {

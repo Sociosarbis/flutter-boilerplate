@@ -8,8 +8,8 @@ import 'package:flutter_boilerplate/models/bgm/quote.dart';
 import 'package:flutter_boilerplate/stores/user.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_boilerplate/my_app.dart' show MyAppRouterDelegate;
 import 'package:flutter_boilerplate/components/click_outside.dart';
+import 'package:flutter_boilerplate/components/router/lib.dart';
 
 const String GetEpisodeTopicReq = """
 query GetEpisodeTopic(\$id: Int!) {
@@ -95,18 +95,11 @@ class MainState extends State<Main> {
     super.didChangeDependencies();
     if (!Provider.of<UserStore>(context, listen: false).isAuth) {
       WidgetsBinding.instance?.addPostFrameCallback((_) {
-        final router = Provider.of<MyAppRouterDelegate>(context, listen: false);
-        final currentPath = router.currentConfiguration;
-        final currentUrl = '${currentPath.uri.path}?${currentPath.uri.query}';
-        router
-          ..popRouteUntil((def) => def.name == '/')
-          ..replaceRoute('/?redirect_from=${Uri.encodeComponent(currentUrl)}');
+        final currentUrl = '${routerContext.currentPath}';
+        routerContext.replace("/bgm/login?redirect_from=${Uri.encodeComponent(currentUrl)}");
       });
     } else {
-      final params = Provider.of<MyAppRouterDelegate>(context)
-          .currentConfiguration
-          .uri
-          .queryParameters;
+      final params = routerContext.params.asStringMap();
       epId = int.parse(params['id']!);
       subjectId = int.parse(params['subject_id']!);
     }
@@ -299,7 +292,7 @@ class Comment extends StatelessWidget {
                 ? EdgeInsets.only(left: 20, top: 10, bottom: 10, right: 10)
                 : EdgeInsets.all(10),
             child:
-                Row(crossAxisAlignment: CrossAxisAlignment.baseline, children: [
+                Row(crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic, children: [
               Container(
                   margin: EdgeInsets.only(right: 3),
                   child: Container(
@@ -330,6 +323,7 @@ class Comment extends StatelessWidget {
                 children: [
                   Row(
                       crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
                       children: [
                         Expanded(
                             child: RichText(

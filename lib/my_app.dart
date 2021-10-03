@@ -3,12 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import './packages/features/animated_container.dart' as AnimatedContainer;
-import './packages/features/physis_animation.dart' as PhysisAnimation;
-import './packages/comment/main.dart' as Comment;
+import 'components/router/lib.dart';
+import 'routes.dart';
 import './packages/features/login.dart' as Login;
-import './packages/weather/weather_page.dart';
-import './packages/bgm/components/login.dart' as BGMLogin;
 import './stores/user.dart';
 import 'package:uni_links/uni_links.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
@@ -99,16 +96,16 @@ class MyAppState extends State<MyApp> {
     if (uri != null) {
       switch (uri.host) {
         case 'episodetopic':
-          _myAppRouterDelegate.pushRoute('/comment?${uri.query}');
+          routerContext.to('/comment?${uri.query}');
           break;
         default:
       }
     }
   }
 
-  MyAppRouteInformationParser _appRouteInformationParser =
-      MyAppRouteInformationParser();
-  MyAppRouterDelegate _myAppRouterDelegate = MyAppRouterDelegate();
+  AppRouterDelegate _appRouterDelegate = AppRouterDelegate(routes);
+  AppRouteInformationParser _appRouteInformationParser =
+      AppRouteInformationParser();
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -125,245 +122,15 @@ class MyAppState extends State<MyApp> {
                 theme: ThemeData(accentColor: Colors.red),
                 debugShowCheckedModeBanner: false,
                 routeInformationParser: _appRouteInformationParser,
-                routerDelegate: _myAppRouterDelegate,
+                routerDelegate: _appRouterDelegate,
               ));
         });
   }
 }
 
-class MyAppRoutePath {
-  Uri uri;
-  MyAppRoutePath({required this.uri});
-
-  bool get isAnimatedContainer {
-    return MyAppRoutePath.testAnimatedContainer(uri);
-  }
-
-  static bool testAnimatedContainer(Uri? uri) {
-    return uri != null &&
-        uri.pathSegments.isNotEmpty &&
-        uri.pathSegments[0] == 'animatedContainer';
-  }
-
-  bool get isPhysisAnimation {
-    return MyAppRoutePath.testPhysisAnimation(uri);
-  }
-
-  static bool testPhysisAnimation(Uri? uri) {
-    return uri != null &&
-        uri.pathSegments.isNotEmpty &&
-        uri.pathSegments[0] == 'physisAnimation';
-  }
-
-  bool get isLogin {
-    return MyAppRoutePath.testLogin(uri);
-  }
-
-  static bool testLogin(Uri? uri) {
-    return uri != null &&
-        uri.pathSegments.isNotEmpty &&
-        uri.pathSegments[0] == 'login';
-  }
-
-  get isComment {
-    return MyAppRoutePath.testComment(uri);
-  }
-
-  static bool testComment(Uri? uri) {
-    return uri != null &&
-        uri.pathSegments.isNotEmpty &&
-        uri.pathSegments[0] == 'comment';
-  }
-
-  static bool testWeather(Uri? uri) {
-    return uri != null &&
-        uri.pathSegments.isNotEmpty &&
-        uri.pathSegments[0] == 'weather';
-  }
-
-  get isWeather {
-    return MyAppRoutePath.testWeather(uri);
-  }
-}
-
-class MyAppRouteInformationParser extends RouteInformationParser<Object> {
-  @override
-  Future<MyAppRoutePath> parseRouteInformation(
-      RouteInformation routeInformation) async {
-    return MyAppRoutePath(uri: Uri.parse(routeInformation.location ?? ''));
-  }
-
-  @override
-  RouteInformation restoreRouteInformation(dynamic path) {
-    if (path.isAnimatedContainer) {
-      return RouteInformation(location: '/animatedContainer');
-    }
-    if (path.isPhysisAnimation) {
-      return RouteInformation(location: '/physisAnimation');
-    }
-    if (path.isLogin) {
-      return RouteInformation(location: '/login');
-    }
-    if (path.isComment) {
-      return RouteInformation(location: '/comment');
-    }
-    return RouteInformation(location: '/');
-  }
-}
-
-class RouteDefinition {
-  bool Function(Uri uri) test;
-  String name;
-  Page<dynamic> Function(BuildContext context) builder;
-  RouteDefinition(
-      {required this.test, required this.name, required this.builder});
-}
-
-class PageManager with ChangeNotifier {
-  List<RouteDefinition> pages;
-  List<RouteDefinition> configs;
-
-  PageManager({required this.pages, required this.configs});
-
-  Uri push<T>(T location) {
-    Uri uri;
-    if (location is Uri) {
-      uri = location;
-    } else {
-      uri = Uri.parse(location as String);
-    }
-    for (var c in configs) {
-      if (c.test(uri)) {
-        pages.add(c);
-        notifyListeners();
-        break;
-      }
-    }
-    return uri;
-  }
-
-  RouteDefinition pop() {
-    final last = pages.removeLast();
-    notifyListeners();
-    return last;
-  }
-
-  void popUntil(bool Function(RouteDefinition) test) {
-    while (pages.isNotEmpty && !test(pages.last)) {
-      pages.removeLast();
-    }
-  }
-
-  Uri replace<T>(T location) {
-    pages.removeLast();
-    return push<T>(location);
-  }
-}
-
-class MyAppBackButtonDispatcher extends BackButtonDispatcher {}
-
-class MyAppRouterDelegate extends RouterDelegate<MyAppRoutePath>
-    with ChangeNotifier, PopNavigatorRouterDelegateMixin<MyAppRoutePath> {
-  final navigatorKey = GlobalKey<NavigatorState>(debugLabel: 'navigator');
-
-  Uri? uri;
-
-  MyAppRouterDelegate() {
-    pageManager.addListener(notifyListeners);
-  }
-
-  PageManager pageManager = PageManager(pages: [
-    RouteDefinition(
-        test: (Uri uri) => true,
-        name: '/',
-        builder: (BuildContext context) =>
-            SlidePage(key: ValueKey('root'), child: Main())),
-  ], configs: [
-    RouteDefinition(
-        test: MyAppRoutePath.testPhysisAnimation,
-        name: '/physisAnimation',
-        builder: (BuildContext context) => SlidePage(
-            key: ValueKey('physisAnimation'), child: PhysisAnimation.Main())),
-    RouteDefinition(
-        test: MyAppRoutePath.testAnimatedContainer,
-        name: '/animatedContainer',
-        builder: (BuildContext context) => SlidePage(
-            key: ValueKey('animatedContainer'),
-            child: AnimatedContainer.Main())),
-    RouteDefinition(
-        test: MyAppRoutePath.testLogin,
-        name: '/login',
-        builder: (BuildContext context) =>
-            SlidePage(key: ValueKey('login'), child: Login.Main())),
-    RouteDefinition(
-        test: MyAppRoutePath.testComment,
-        name: '/comment',
-        builder: (BuildContext context) =>
-            SlidePage(key: ValueKey('comment'), child: Comment.Main())),
-    RouteDefinition(
-        test: MyAppRoutePath.testWeather,
-        name: '/weather',
-        builder: (BuildContext context) =>
-            SlidePage(key: ValueKey('weather'), child: WeatherPage()))
-  ]);
-
-  MyAppRoutePath get currentConfiguration {
-    return MyAppRoutePath(uri: uri!);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ChangeNotifierProvider.value(
-        value: this,
-        child: Navigator(
-          key: navigatorKey,
-          pages: [for (var def in pageManager.pages) def.builder(context)],
-          onPopPage: (route, result) {
-            if (!route.didPop(result)) {
-              return false;
-            }
-
-            pageManager.pop();
-
-            return true;
-          },
-        ));
-  }
-
-  @override
-  Future<void> setNewRoutePath(MyAppRoutePath path) async {
-    uri = path.uri;
-    if (pageManager.pages.isNotEmpty) {
-      final i = pageManager.pages.indexWhere((routeDefinition) {
-        return routeDefinition.test(path.uri);
-      });
-      if (i != -1) {
-        pageManager.pages.add(pageManager.pages.removeAt(i));
-      } else {
-        pageManager.push(path.uri);
-      }
-    }
-  }
-
-  void pushRoute(String location) {
-    uri = Uri.parse(location);
-    pageManager.push(uri);
-  }
-
-  void popRouteUntil(bool Function(RouteDefinition) test) {
-    pageManager.popUntil(test);
-  }
-
-  void replaceRoute(String location) {
-    uri = Uri.parse(location);
-    pageManager.replace(uri);
-  }
-}
-
 void Function(String) useRoutePush() {
-  final router = useProviderContext<MyAppRouterDelegate>(false);
   return (String route) {
-    router.pushRoute(route);
+    routerContext.to(route);
   };
 }
 
@@ -405,6 +172,7 @@ Future<bool> Function() useBackButtonPressed() {
 }
 
 class Main extends HookWidget {
+  Main({ Key? key }): super(key: key);
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -446,7 +214,6 @@ class Main extends HookWidget {
 
     final userStore = useProviderContext<UserStore>(true);
 
-    final router = useProviderContext<MyAppRouterDelegate>(false);
     final bookServiceClient = useProviderContext<BookServiceClient>(false);
 
     Widget buttonSection = Container(
@@ -485,39 +252,12 @@ class Main extends HookWidget {
               child: ListView(
                 controller: controller.value,
                 children: [
-                  Container(
-                    height: userStore.cookie.containsKey('chii_auth') ? 0 : 400,
-                    child: BGMLogin.Main(onLogin: (cookie) {
-                      final uri = router.uri;
-                      if (uri != null) {
-                        if (uri.queryParameters.containsKey('redirect_from')) {
-                          router.pushRoute(Uri.decodeComponent(
-                              uri.queryParameters['redirect_from']!));
-                        }
-                      }
-                    }, onScrollBound: (touchDetails) {
-                      final position = controller.value.position;
-                      if (touchDetails[2] == 1) {
-                        controller.value.animateTo(
-                            (controller.value.offset - touchDetails[1] * 125)
-                                .clamp(position.minScrollExtent,
-                                    position.maxScrollExtent),
-                            duration: Duration(milliseconds: 250),
-                            curve: Curves.easeOutCubic);
-                      } else {
-                        controller.value.jumpTo(
-                            (controller.value.offset - touchDetails[0]).clamp(
-                                position.minScrollExtent,
-                                position.maxScrollExtent));
-                      }
-                    }),
-                  ),
                   buttonSection,
                   ElevatedButton(
                       onPressed: () {
-                        // goToDetails('comment?id=436209&subject_id=104906');
+                        routerContext.to('/bgm/login');
                       },
-                      child: Text('Comment Section')),
+                      child: Text('BGM Login')),
                   ElevatedButton(
                       onPressed: () {
                         !isServiceRunning.value
@@ -548,7 +288,11 @@ class ButtonColumn extends StatelessWidget {
   final String label;
   final Function() onPress;
 
-  ButtonColumn({required this.color, required this.icon, required this.label, required this.onPress});
+  ButtonColumn(
+      {required this.color,
+      required this.icon,
+      required this.label,
+      required this.onPress});
   @override
   Widget build(BuildContext context) {
     return Column(
