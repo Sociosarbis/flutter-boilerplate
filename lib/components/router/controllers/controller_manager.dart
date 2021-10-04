@@ -1,7 +1,7 @@
 import 'package:flutter_boilerplate/components/router/context.dart';
 import 'package:flutter_boilerplate/components/router/key.dart';
 
-import './router_controller.dart';
+import 'router_controller.dart';
 import '../route.dart';
 
 class ControllerManager {
@@ -12,9 +12,10 @@ class ControllerManager {
 
   AppRouterController createController(String name, { List<AppRoute>? routes, AppRouteChildren? cRoutes, String? initPath, AppRouteInternal? initRoute}) {
     if (hasController(name)) {
-      return controllers.firstWhere((element) => element.key.name == name);
+      return withName(name);
     }
-    final routePath = routerContext.treeInfo.namePath[name];      final key = UniqKey(name);
+    final routePath = routerContext.treeInfo.namePath[name];
+    final key = MatchKey(name);
     if (cRoutes == null) {
       cRoutes = AppRouteChildren.from(routes!, key, routePath! == '/' ? '' : routePath);
     }

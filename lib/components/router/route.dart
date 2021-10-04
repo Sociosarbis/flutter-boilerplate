@@ -1,8 +1,9 @@
 import "package:flutter/widgets.dart";
-import './context.dart';
-import './params.dart';
-import './key.dart';
-import './router.dart';
+import 'context.dart';
+import 'params.dart';
+import 'key.dart';
+import 'pages/page.dart';
+import 'router.dart';
 
 typedef PageBuilder = Widget Function();
 typedef PageBuilderWithChildBuilder = Widget Function(AppRouter);
@@ -12,11 +13,12 @@ class AppRoute {
   final String? name;
   final String? initRoute;
   final PageBuilder? builder;
+  final PageSettings? pageSettings;
   final PageBuilderWithChildBuilder? builderChild;
   final List<AppRoute>? children;
 
   const AppRoute(
-      {required this.path, required this.builder, this.name, this.children, this.initRoute})
+      {required this.path, required this.builder, this.name, this.children, this.initRoute, this.pageSettings})
       : builderChild = null;
 
   const AppRoute.withChild(
@@ -24,6 +26,7 @@ class AppRoute {
       required this.builderChild,
       this.name,
       this.initRoute,
+      this.pageSettings,
       this.children})
       : builder = null;
 
@@ -50,7 +53,7 @@ class AppRoute {
 }
 
 class AppRouteInternal {
-  final UniqKey key;
+  final MatchKey key;
   final AppRoute route;
   final bool isNotFound;
   // 匹配到本路由的当前路径
@@ -74,7 +77,7 @@ class AppRouteInternal {
   String get name => route.name ?? route.path;
   bool get hasChild => child != null;
   factory AppRouteInternal.from(AppRoute route, String currentPath) {
-    final key = UniqKey(route.name ?? route.path);
+    final key = MatchKey(route.name ?? route.path);
     if (!route.path.startsWith('/')) {
       route = route.copyWith(path: '/${route.path}');
     }
@@ -92,7 +95,7 @@ class AppRouteInternal {
 
   factory AppRouteInternal.notFound(String notFoundPath) {
     final route = routerContext.settings.notFoundPage;
-    final key = UniqKey(route.name ?? route.path);
+    final key = MatchKey(route.name ?? route.path);
     return AppRouteInternal(
         key: key,
         route: route,
@@ -113,7 +116,7 @@ class AppRouteInternal {
 
 class AppRouteChildren {
   final String parentFullPath;
-  final UniqKey parentKey;
+  final MatchKey parentKey;
   final List<AppRouteInternal> _routes;
 
   List<AppRouteInternal> get routes => _routes;
@@ -121,7 +124,7 @@ class AppRouteChildren {
   AppRouteChildren(this._routes, this.parentKey, this.parentFullPath);
 
   factory AppRouteChildren.from(
-      List<AppRoute> routes, UniqKey key, String currentPath) {
+      List<AppRoute> routes, MatchKey key, String currentPath) {
     final result = <AppRouteInternal>[];
     for (final route in routes) {
       result.add(AppRouteInternal.from(route, currentPath));

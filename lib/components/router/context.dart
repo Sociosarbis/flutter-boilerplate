@@ -12,6 +12,7 @@ import './types/pop_result.dart';
 
 class RouterContext {
   static const rootRouterName = 'Root';
+  static const INIT_PAGE_NAME = 'Init Page';
   final history = AppHistory();
   final settings = _AppRouterSettings();
   final params = AppParams();
@@ -34,7 +35,7 @@ class RouterContext {
 
   bool removeNavigator(String name) => _manager.removeNavigator(name);
 
-  void updateUrlInfo(String url, { Map<String, String>? params, UniqKey? mKey, String? navigator, bool addHistory = false }) {
+  void updateUrlInfo(String url, { Map<String, String>? params, MatchKey? mKey, String? navigator, bool addHistory = false }) {
     rootNavigator.updateUrl(url, mKey: mKey, params: params, navigator: navigator, addHistory: addHistory);
   }
   Future<void> to(String path, { bool ignoreSamePath = true }) async {

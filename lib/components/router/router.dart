@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import './controllers/router_controller.dart';
+import 'controllers/router_controller.dart';
 
 class AppRouter extends StatefulWidget {
   final navKey = GlobalKey<NavigatorState>();

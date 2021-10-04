@@ -38,7 +38,7 @@ class AppHistory {
 
 
 class AppHistoryEntry {
-  final UniqKey key;
+  final MatchKey key;
   final String path;
   final String navigator;
   final bool isSkipped;

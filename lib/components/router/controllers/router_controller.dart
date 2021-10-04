@@ -5,8 +5,8 @@ import 'package:flutter_boilerplate/components/router/pages/page.dart';
 import 'package:flutter_boilerplate/components/router/params.dart';
 import '../route.dart';
 import '../key.dart';
-import './pages_controller.dart';
-import './match_controller.dart';
+import 'pages_controller.dart';
+import 'match_controller.dart';
 import '../types/pop_result.dart';
 import '../history.dart';
 
@@ -15,7 +15,7 @@ abstract class AppNavigator extends ChangeNotifier {
   Future<AppRouteInternal> findPath(String path);
   void updateUrl(String url,
       {Map<String, String>? params,
-      UniqKey? mKey,
+      MatchKey? mKey,
       String? navigator = '',
       bool addHistory = false});
   Future<void> popUntilOrPush(String path);
@@ -25,7 +25,7 @@ abstract class AppNavigator extends ChangeNotifier {
 }
 
 class AppRouterController extends AppNavigator {
-  final UniqKey key;
+  final MatchKey key;
   GlobalKey<NavigatorState>? navKey;
   final AppRouteChildren routes;
   bool isDisposed = false;
@@ -77,14 +77,14 @@ class AppRouterController extends AppNavigator {
   @override
   void updateUrl(String url,
       {Map<String, String>? params,
-      UniqKey? mKey,
+      MatchKey? mKey,
       String? navigator = '',
       bool addHistory = false}) {
     if (key.name != RouterContext.rootRouterName) {
       return;
     }
     routerContext.history.add(AppHistoryEntry(
-        mKey ?? UniqKey('Out Route'),
+        mKey ?? MatchKey('Out Route'),
         url,
         AppParams(params: {})..addAll(params ?? Uri.parse(url).queryParameters),
         navigator ?? 'Out Route',
@@ -102,7 +102,7 @@ class AppRouterController extends AppNavigator {
   Future<void> popUntilOrPushMatch(AppRouteInternal match,
       {bool checkChild = true}) async {
     final index = _pagesController.routes
-        .indexWhere((element) => element.key.key == match.key.key);
+        .indexWhere((element) => element.key.isSame(match.key));
     if (index == -1) {
       await addRouteAsync(match, checkChild: checkChild);
       return;
