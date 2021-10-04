@@ -1,7 +1,9 @@
-import './context.dart';
+import 'context.dart';
 
-class UniqKey {
+class MatchKey {
   int key;
   String name;
-  UniqKey(this.name): key = routerContext.treeInfo.routeIndexer++;
+  MatchKey(this.name): key = routerContext.treeInfo.routeIndexer++;
+  bool isSame(MatchKey other) => other.key == key;
+  bool isIdentical(MatchKey other) => other.name == name;
 }

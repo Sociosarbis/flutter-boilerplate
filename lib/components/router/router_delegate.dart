@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_boilerplate/components/router/context.dart';
 import 'package:flutter_boilerplate/components/router/controllers/router_controller.dart';
 import 'package:flutter_boilerplate/components/router/types/pop_result.dart';
-import './route.dart';
+import 'route.dart';
 
 class AppRouterDelegate extends RouterDelegate<String> with ChangeNotifier {
   final key = GlobalKey<NavigatorState>();

@@ -11,7 +11,6 @@ import 'package:flutter_boilerplate/models/weather.dart';
 import 'package:flutter_boilerplate/components/transition.dart';
 import 'package:flutter_boilerplate/utils/date.dart';
 import 'package:flutter_boilerplate/services/weather.dart';
-import 'package:graphql_flutter/graphql_flutter.dart';
 
 bool isNight(DateDart date) {
   final lo = date.setHour(18).setMinute(0).setSecond(0);
@@ -176,9 +175,11 @@ class WeatherCard extends HookWidget {
     final isOneDay = useMemoized(() {
       return data is WeatherOneDay;
     }, [data]);
-    final showDay = useWatchState(() => isOneDay
-        ? true
-        : !isNight(DateDart.fromDateTime((data as Weather).time)), [isOneDay]);
+    final showDay = useWatchState(
+        () => isOneDay
+            ? true
+            : !isNight(DateDart.fromDateTime((data as Weather).time)),
+        [isOneDay]);
 
     final weather = useMemoized(() {
       final oneDayData = isOneDay ? data as WeatherOneDay : null;
@@ -232,7 +233,8 @@ class WeatherCard extends HookWidget {
                                 child: SizedBox.expand()))),
                     isOneDay
                         ? AnimatedCrossFade(
-                            layoutBuilder: (Widget topChild, Key topChildKey, Widget bottomChild, Key bottomChildKey) {
+                            layoutBuilder: (Widget topChild, Key topChildKey,
+                                Widget bottomChild, Key bottomChildKey) {
                               return Stack(
                                 clipBehavior: Clip.none,
                                 alignment: Alignment.center,
@@ -317,6 +319,7 @@ class WeatherPage extends HookWidget {
     useEffect(() {
       if (position != null) {
         var isValid = true;
+        weather.value.visible = false;
         switch (weatherMode.value) {
           case 1:
             WeatherService.forecast(position).then((data) {
@@ -385,7 +388,12 @@ class WeatherPage extends HookWidget {
                                               data: weather.value.data![i]));
                                     }));
                           }))
-                ]
+                ] else
+                  Center(
+                    child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation(
+                            Theme.of(context).accentColor)),
+                  )
               ],
             )),
         bottomNavigationBar: weatherMode.value != -1

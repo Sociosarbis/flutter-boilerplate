@@ -9,18 +9,16 @@ import '../types/pop_result.dart';
 class PagesController {
   final routes = <AppRouteInternal>[];
   final pages = <AppPageInternal>[
-    AppPage(matchKey:UniqKey('Init Page'), child: routerContext.settings.iniPage)
+    AppPage.defaultSettings(matchKey: MatchKey(RouterContext.INIT_PAGE_NAME), child: routerContext.settings.iniPage)
   ];
 
   bool exist(AppRouteInternal route) =>
-    routes.any((element) => element.key.key ==  route.key.key);
+    routes.any((element) => element.key.isSame(route.key));
 
   Future<void> add(AppRouteInternal route) async {
     routes.add(route);
     pages.add(PageCreator(route).create());
-    if (pages.any((element) => element.matchKey.name == 'Init Page')) {
-      pages.removeWhere((element) => element.matchKey.name == 'Init Page');
-    }
+    pages.removeWhere((element) => element.matchKey.name == RouterContext.INIT_PAGE_NAME);
   }
 
   Future<PopResult> removeLast({ bool allowEmptyPages = false}) async {

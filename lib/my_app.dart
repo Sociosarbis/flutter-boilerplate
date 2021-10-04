@@ -246,10 +246,7 @@ class Main extends HookWidget {
           floatingActionButton: FloatingRollMenu(
             onSelect: goToDetails,
           ),
-          body: Login.Loading(
-              visible: userStore.isLogining,
-              text: '登录中',
-              child: ListView(
+          body: ListView(
                 controller: controller.value,
                 children: [
                   buttonSection,
@@ -277,7 +274,7 @@ class Main extends HookWidget {
                       },
                       child: Text('call grpc')),
                 ],
-              ))),
+              )),
     );
   }
 }
@@ -310,26 +307,5 @@ class ButtonColumn extends StatelessWidget {
                     fontSize: 12, fontWeight: FontWeight.w400, color: color)))
       ],
     );
-  }
-}
-
-class SlidePage<T> extends Page<T> {
-  final Widget child;
-  SlidePage({required this.child, LocalKey? key}) : super(key: key);
-  @override
-  Route<T> createRoute(BuildContext context) {
-    return PageRouteBuilder(
-        settings: this,
-        pageBuilder: (_, __, ___) {
-          return child;
-        },
-        transitionsBuilder: (context, animation, secondaryAnimation, page) {
-          final begin = Offset(1.0, 0.0);
-          final end = Offset.zero;
-          final tween = Tween(begin: begin, end: end)
-              .chain(CurveTween(curve: Curves.ease));
-          final offsetAnimation = animation.drive(tween);
-          return SlideTransition(position: offsetAnimation, child: page);
-        });
   }
 }
