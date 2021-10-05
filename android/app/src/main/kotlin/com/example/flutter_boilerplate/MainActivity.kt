@@ -13,6 +13,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import com.example.flutter_boilerplate.widgets.NativeVideoViewFactory
 import io.flutter.embedding.engine.FlutterEngine;
 import io.flutter.plugin.common.MethodChannel;
 
@@ -46,25 +47,29 @@ class MainActivity: FlutterActivity() {
     methodChannel = MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             channelName)
-
     methodChannel!!.setMethodCallHandler { call, result ->
-      if (call.method == "create") {
-        val builder: NotificationCompat.Builder = NotificationCompat.Builder(
-                this, NOTIFICATION_ID)
-                .setContentTitle("Title")
-                .setContentText("Subtitle")
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setOngoing(false)
-                .addAction(R.mipmap.ic_launcher, "Increase", getIntent(true))
-                .addAction(R.mipmap.ic_launcher, "Decrease", getIntent(false))
+      when(call.method) {
+        "create" -> {
+          val builder: NotificationCompat.Builder = NotificationCompat.Builder(
+                  this, NOTIFICATION_ID)
+                  .setContentTitle("计数器")
+                  .setContentText("加减")
+                  .setSmallIcon(R.mipmap.ic_launcher)
+                  .setOngoing(false)
+                  .addAction(R.mipmap.ic_launcher, "Increase", getIntent(true))
+                  .addAction(R.mipmap.ic_launcher, "Decrease", getIntent(false))
 
-        notificationManager!!.notify(0, builder.build())
-        result.success(null)
-      } else if (call.method == "destroy") {
-        notificationManager!!.cancel(0)
-        result.success(null)
+          notificationManager!!.notify(0, builder.build())
+          result.success(null)
+        }
+        "destroy" -> {
+          notificationManager!!.cancel(0)
+          result.success(null)
+        }
       }
     }
+
+    flutterEngine.platformViewsController.registry.registerViewFactory(NativeVideoViewFactory.VIEW_TYPE, NativeVideoViewFactory(flutterEngine.dartExecutor.binaryMessenger))
   }
 
   private fun getIntent(isIncrease: Boolean): PendingIntent? {

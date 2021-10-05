@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'components/router/lib.dart';
 import 'routes.dart';
-import './packages/features/login.dart' as Login;
+import 'components/video_view.dart';
 import './stores/user.dart';
 import 'package:uni_links/uni_links.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
@@ -172,7 +172,8 @@ Future<bool> Function() useBackButtonPressed() {
 }
 
 class Main extends HookWidget {
-  Main({ Key? key }): super(key: key);
+  final Key videoKey = UniqueKey();
+  Main({Key? key}) : super(key: key);
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -247,34 +248,39 @@ class Main extends HookWidget {
             onSelect: goToDetails,
           ),
           body: ListView(
-                controller: controller.value,
-                children: [
-                  buttonSection,
-                  ElevatedButton(
-                      onPressed: () {
-                        routerContext.to('/bgm/login');
-                      },
-                      child: Text('BGM Login')),
-                  ElevatedButton(
-                      onPressed: () {
-                        !isServiceRunning.value
-                            ? startService()
-                            : stopService();
-                        isServiceRunning.value = !isServiceRunning.value;
-                      },
-                      child: Text(
-                          '${isServiceRunning.value ? 'running' : 'stopped'} (${counter.value})')),
-                  ElevatedButton(
-                      onPressed: () async {
-                        final res = await bookServiceClient.createBook(Book(
-                            isbn: "0-670-81302-9",
-                            title: "白銀の墟　玄の月　第一巻　十二国記 (新潮文庫)",
-                            author: Author(firstName: "不由美", lastName: "小野")));
-                        print(res);
-                      },
-                      child: Text('call grpc')),
-                ],
-              )),
+            controller: controller.value,
+            children: [
+              buttonSection,
+              ElevatedButton(
+                  onPressed: () {
+                    routerContext.to('/bgm/login');
+                  },
+                  child: Text('BGM Login')),
+              ElevatedButton(
+                  onPressed: () {
+                    !isServiceRunning.value ? startService() : stopService();
+                    isServiceRunning.value = !isServiceRunning.value;
+                  },
+                  child: Text(
+                      '${isServiceRunning.value ? 'running' : 'stopped'} (${counter.value})')),
+              ElevatedButton(
+                  onPressed: () async {
+                    final res = await bookServiceClient.createBook(Book(
+                        isbn: "0-670-81302-9",
+                        title: "白銀の墟　玄の月　第一巻　十二国記 (新潮文庫)",
+                        author: Author(firstName: "不由美", lastName: "小野")));
+                    print(res);
+                  },
+                  child: Text('call grpc')),
+              Container(
+                  width: 360,
+                  height: 270,
+                  child: VideoView(
+                      key: videoKey,
+                      url:
+                          'https://vod6.wenshibaowenbei.com/20211004/Bqj0r94L/index.m3u8')),
+            ],
+          )),
     );
   }
 }
