@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'components/router/lib.dart';
 import 'routes.dart';
-import 'components/video_view.dart';
 import './stores/user.dart';
 import 'package:uni_links/uni_links.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
@@ -172,7 +171,6 @@ Future<bool> Function() useBackButtonPressed() {
 }
 
 class Main extends HookWidget {
-  final Key videoKey = UniqueKey();
   Main({Key? key}) : super(key: key);
   // This widget is the root of your application.
   @override
@@ -231,9 +229,9 @@ class Main extends HookWidget {
           onPress: () => goToDetails('physisAnimation')),
       ButtonColumn(
           color: color,
-          icon: Icons.share,
-          label: 'SHARE',
-          onPress: () => goToDetails('login'))
+          icon: Icons.video_label,
+          label: 'VIDEO',
+          onPress: () => goToDetails('/bgm/video'))
     ]));
 
     final controller = useRef<ScrollController>(ScrollController());
@@ -272,13 +270,6 @@ class Main extends HookWidget {
                     print(res);
                   },
                   child: Text('call grpc')),
-              Container(
-                  width: 360,
-                  height: 270,
-                  child: VideoView(
-                      key: videoKey,
-                      url:
-                          'https://vod6.wenshibaowenbei.com/20211004/Bqj0r94L/index.m3u8')),
             ],
           )),
     );
