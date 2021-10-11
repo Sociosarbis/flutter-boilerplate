@@ -6,6 +6,7 @@ import 'packages/features/login.dart' as Login;
 import 'packages/bgm/components/login.dart' as BGMLogin;
 import 'packages/comment/main.dart' as Comment;
 import 'packages/weather/weather_page.dart';
+import 'packages/bgm/video_page.dart';
 import 'my_app.dart';
 
 final slidePageSettings = CustomPageSettings(
@@ -25,17 +26,19 @@ final routes = [
   AppRoute(
       path: '/bgm/login',
       pageSettings: slidePageSettings,
-      builder: () => BGMLogin.Main(
-          onLogin: (cookie) {
-            final params = routerContext.params.asStringMap();
-            if (params.containsKey('redirect_from')) {
-              routerContext
-                  .replace(Uri.decodeComponent(params['redirect_from']!));
-            } else {
-              routerContext.back();
-            }
-          },
-          onScrollBound: (touchDetails) {})),
+      builder: () => SafeArea(
+          child: BGMLogin.Main(
+              onLogin: (cookie) {
+                final params = routerContext.params.asStringMap();
+                if (params.containsKey('redirect_from')) {
+                  routerContext
+                      .replace(Uri.decodeComponent(params['redirect_from']!));
+                } else {
+                  routerContext.back();
+                }
+              },
+              onScrollBound: (touchDetails) {}))),
+  AppRoute(path: '/bgm/video', pageSettings: slidePageSettings, builder: () => VideoPage()),
   AppRoute(
       path: '/physisAnimation',
       pageSettings: slidePageSettings,

@@ -346,56 +346,60 @@ class WeatherPage extends HookWidget {
       }
     }, [weatherMode.value]);
     return Scaffold(
-        body: ClipOval(
-            clipper: MyClipper(ratio: ratio),
-            child: Stack(
-              children: [
-                BMFMapWidget(
-                  onBMFMapCreated: (_controller) {
-                    mapController.value = _controller;
-                    controller.forward(from: 0);
-                  },
-                  mapOptions: BMFMapOptions(
-                      center: BMFCoordinate(39.917215, 116.380341),
-                      zoomLevel: 12,
-                      mapPadding: BMFEdgeInsets(
-                          left: 30, top: 0, right: 30, bottom: 0)),
-                ),
-                if (weather.value.visible) ...[
-                  Container(
-                      color:
-                          (weatherMode.value == 0 ? Colors.blue : Colors.orange)
+        body: SafeArea(
+            child: ClipOval(
+                clipper: MyClipper(ratio: ratio),
+                child: Stack(
+                  children: [
+                    BMFMapWidget(
+                      onBMFMapCreated: (_controller) {
+                        mapController.value = _controller;
+                        controller.forward(from: 0);
+                      },
+                      mapOptions: BMFMapOptions(
+                          center: BMFCoordinate(39.917215, 116.380341),
+                          zoomLevel: 12,
+                          mapPadding: BMFEdgeInsets(
+                              left: 30, top: 0, right: 30, bottom: 0)),
+                    ),
+                    if (weather.value.visible) ...[
+                      Container(
+                          color: (weatherMode.value == 0
+                                  ? Colors.blue
+                                  : Colors.orange)
                               .withOpacity(0.5)),
-                  Center(
-                      child: PageView.builder(
-                          physics: FreeScrollPhysics(
-                              viewportFraction: WeatherPage.viewportFraction),
-                          pageSnapping: false,
-                          controller: pageController.value,
-                          itemCount: weather.value.data?.length ??
-                              weather.value.data?.length,
-                          onPageChanged: (i) {
-                            index.value = i;
-                          },
-                          itemBuilder: (context, i) {
-                            return Center(
-                                child: Transition(
-                                    isEnter: i == index.value,
-                                    builder: (context, progress) {
-                                      return Transform.scale(
-                                          scale: 1 + progress * 0.5,
-                                          child: WeatherCard(
-                                              data: weather.value.data![i]));
-                                    }));
-                          }))
-                ] else
-                  Center(
-                    child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation(
-                            Theme.of(context).accentColor)),
-                  )
-              ],
-            )),
+                      Center(
+                          child: PageView.builder(
+                              physics: FreeScrollPhysics(
+                                  viewportFraction:
+                                      WeatherPage.viewportFraction),
+                              pageSnapping: false,
+                              controller: pageController.value,
+                              itemCount: weather.value.data?.length ??
+                                  weather.value.data?.length,
+                              onPageChanged: (i) {
+                                index.value = i;
+                              },
+                              itemBuilder: (context, i) {
+                                return Center(
+                                    child: Transition(
+                                        isEnter: i == index.value,
+                                        builder: (context, progress) {
+                                          return Transform.scale(
+                                              scale: 1 + progress * 0.5,
+                                              child: WeatherCard(
+                                                  data:
+                                                      weather.value.data![i]));
+                                        }));
+                              }))
+                    ] else
+                      Center(
+                        child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation(
+                                Theme.of(context).accentColor)),
+                      )
+                  ],
+                ))),
         bottomNavigationBar: weatherMode.value != -1
             ? BottomNavigationBar(
                 selectedItemColor:
