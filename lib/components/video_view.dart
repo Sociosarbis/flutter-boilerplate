@@ -4,9 +4,30 @@ import 'package:flutter/widgets.dart';
 import 'platform_view.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
+class ProgressPayload {
+  final int progress;
+  final int duration;
+  const ProgressPayload({
+    this.progress = 0,
+    this.duration = 0,
+  });
+  factory ProgressPayload.fromJson(Map<dynamic, dynamic> data) {
+    return ProgressPayload(
+        progress: data["progress"], duration: data["duration"]);
+  }
+}
+
 class VideoViewController {
   final MethodChannel _ch;
-  VideoViewController(this._ch);
+  final void Function(ProgressPayload)? onProgress;
+  VideoViewController(this._ch, {this.onProgress}) {
+    this._ch.setMethodCallHandler((call) async {
+      switch (call.method) {
+        case 'progress':
+          onProgress?.call(ProgressPayload.fromJson(call.arguments));
+      }
+    });
+  }
   Future<void> setUrl(String? url) {
     return _ch.invokeMethod("setUrl", url);
   }
@@ -62,12 +83,20 @@ class _VideoViewState extends State<VideoView> {
         controller?.dispose();
       };
     }, []);
+    final progress = useState(0.0);
     return Center(
         child: Stack(children: [
       AndroidPlatformView(
           viewType: 'native_video',
           onPlatformViewCreated: (id) {
-            controller = VideoViewController(MethodChannel("native_video_$id"));
+            controller = VideoViewController(MethodChannel("native_video_$id"),
+                onProgress: (payload) {
+              if (payload.duration == 0)
+                progress.value = 0;
+              else
+                progress.value =
+                    payload.progress.toDouble() / payload.duration.toDouble();
+            });
             handleChange();
           }),
       Positioned(
@@ -78,7 +107,7 @@ class _VideoViewState extends State<VideoView> {
           child: LinearProgressIndicator(
               backgroundColor: Color.fromRGBO(255, 255, 255, 0.2),
               color: Color.fromRGBO(255, 0, 0, 1),
-              value: 0.5))
+              value: progress.value))
     ]));
   }
 }
