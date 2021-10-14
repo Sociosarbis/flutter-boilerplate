@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'platform_view.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_boilerplate/components/circle.dart';
 
 class ProgressPayload {
   final int progress;
@@ -43,8 +44,9 @@ class VideoViewController {
 
 class VideoView extends StatefulHookWidget {
   final String? url;
+  final double width;
   final bool autoplay;
-  VideoView({Key? key, this.url, this.autoplay = true}) : super(key: key);
+  VideoView({Key? key, this.url, this.autoplay = true, required this.width}) : super(key: key);
 
   @override
   _VideoViewState createState() => _VideoViewState();
@@ -67,11 +69,11 @@ class _VideoViewState extends State<VideoView> {
   void handleChange() {
     WidgetsBinding.instance?.addPostFrameCallback((timeStamp) {
       if (widget.url != null) {
-        controller?.setUrl(widget.url).then((_) {
+        /* controller?.setUrl(widget.url).then((_) {
           if (widget.autoplay) {
             controller?.play();
           }
-        });
+        }); */
       }
     });
   }
@@ -101,13 +103,35 @@ class _VideoViewState extends State<VideoView> {
           }),
       Positioned(
           bottom: 48,
-          height: 5,
+          height: 20,
           left: 0,
           right: 0,
-          child: LinearProgressIndicator(
-              backgroundColor: Color.fromRGBO(255, 255, 255, 0.2),
-              color: Color.fromRGBO(255, 0, 0, 1),
-              value: progress.value))
+          child: GestureDetector(
+              onHorizontalDragStart: (details) {
+                progress.value = (details.localPosition.dx / widget.width).clamp(0, 1);
+              },
+              onHorizontalDragUpdate: (details) {
+                progress.value = (details.localPosition.dx / widget.width).clamp(0, 1);
+              },
+              child: ColoredBox(
+                  color: Colors.transparent,
+                  child:
+                      Stack(alignment: AlignmentDirectional.center, children: [
+                    Positioned(
+                        height: 3,
+                        left: 0,
+                        right: 0,
+                        child: LinearProgressIndicator(
+                            backgroundColor: Color.fromRGBO(255, 255, 255, 0.2),
+                            color: Color.fromRGBO(255, 0, 0, 1),
+                            value: progress.value)),
+                    Align(
+                        alignment: Alignment(-1 + 2 * progress.value, 0.0),
+                        child: SizedBox(
+                            width: 8,
+                            height: 8,
+                            child: Circle(color: Color.fromRGBO(255, 0, 0, 1))))
+                  ]))))
     ]));
   }
 }
