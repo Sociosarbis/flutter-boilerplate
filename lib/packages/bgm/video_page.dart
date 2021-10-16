@@ -10,12 +10,10 @@ class VideoPage extends HookWidget {
     return Scaffold(
         body: SafeArea(
             child: Container(
-                child: SizedBox(
+                child: VideoView(
                     width: width,
                     height: width * 9 / 16,
-                    child: VideoView(
-                        width: width,
-                        url:
-                            'https://vod6.wenshibaowenbei.com/20211004/Bqj0r94L/index.m3u8')))));
+                    url:
+                        'https://vod6.wenshibaowenbei.com/20211004/Bqj0r94L/index.m3u8'))));
   }
 }

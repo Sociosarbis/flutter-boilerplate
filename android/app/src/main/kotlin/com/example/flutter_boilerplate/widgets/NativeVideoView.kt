@@ -11,6 +11,10 @@ import io.flutter.plugin.common.MethodChannel.*;
 import io.flutter.plugin.platform.PlatformView
 import kotlinx.coroutines.*
 
+enum class MediaStatus {
+    PLAYING,
+    PAUSED
+}
 
 internal class NativeVideoView(context: Context, messenger: BinaryMessenger, id: Int, creationParams: CreationParams) : PlatformView, MethodCallHandler  {
     private val videoView: VideoView = VideoView(context)
@@ -18,6 +22,9 @@ internal class NativeVideoView(context: Context, messenger: BinaryMessenger, id:
     private val methodChannel: MethodChannel = MethodChannel(messenger, methodChannelEventName)
     private var onProgressJob: Job? = null
     private var mUrl: String = ""
+    private var _progress = 0;
+    private var _status = MediaStatus.PAUSED;
+    private var _duration = 0;
     override fun getView(): View {
         return videoView
     }
@@ -26,7 +33,7 @@ internal class NativeVideoView(context: Context, messenger: BinaryMessenger, id:
         cancelProgressPoll()
     }
     override fun onFlutterViewAttached(flutterView: View) {
-        videoView.setOnPreparedListener{ _ ->
+        videoView.setOnPreparedListener { _ ->
             cancelProgressPoll()
             onProgressJob = GlobalScope.launch(Dispatchers.Main) {
                 pollProgress()
@@ -41,11 +48,17 @@ internal class NativeVideoView(context: Context, messenger: BinaryMessenger, id:
         while (true) {
             val duration = videoView.duration
             val progress = videoView.currentPosition
-            methodChannel.invokeMethod("progress", hashMapOf(
-                    "duration" to duration,
-                    "progress" to progress
-            ))
-            if (progress >= duration) break
+            val status = if (videoView.isPlaying) MediaStatus.PLAYING else MediaStatus.PAUSED
+            if (!(duration == _duration && progress == _progress && status == _status )) {
+                _duration = duration
+                _progress = progress
+                _status = status
+                methodChannel.invokeMethod("progress", hashMapOf(
+                        "duration" to duration,
+                        "progress" to progress,
+                        "status" to status.ordinal
+                ))
+            }
             delay(500)
         }
     }
@@ -71,6 +84,13 @@ internal class NativeVideoView(context: Context, messenger: BinaryMessenger, id:
             }
             "pause" -> {
                 videoView.pause()
+            }
+            "seek" -> {
+                if (call.arguments != null) {
+                    if (onProgressJob != null) {
+                        videoView.seekTo(call.arguments as Int? ?: 0);
+                    }
+                }
             }
         }
         result.success(null)
