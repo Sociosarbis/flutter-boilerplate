@@ -12,12 +12,16 @@ class DelayTask {
     _future = Future.delayed(Duration(milliseconds: duration)).then((value) {
       if (curId == id) {
         cb();
+        _future = null;
       }
     });
   }
 
   cancel() {
-    id += 1;
-    _future?.timeout(Duration(milliseconds: 0), onTimeout: () {});
+    if (_future != null) {
+      id += 1;
+      _future!.timeout(Duration(milliseconds: 0), onTimeout: () {});
+      _future = null;
+    }
   }
 }
