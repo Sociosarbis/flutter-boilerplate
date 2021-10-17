@@ -3,12 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:provider/provider.dart';
 import 'platform_view.dart';
-import 'transition.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:flutter_boilerplate/utils/hooks/useLifeStyle.dart';
-import 'package:flutter_boilerplate/utils/DelayTask.dart';
-import 'package:flutter_boilerplate/components/circle.dart';
+import 'fade_out.dart';
+import 'video_view/controls.dart';
 
 class ProgressPayload {
   final int progress;
@@ -55,6 +54,31 @@ class VideoViewController {
 
   void dispose() {
     _ch.setMethodCallHandler(null);
+  }
+}
+
+class VideoContext {
+  final double width;
+  final double height;
+  final double progress;
+  final double duration;
+  final MediaStatus status;
+  final VideoViewController? controller;
+  const VideoContext(
+      {required this.width,
+      required this.height,
+      required this.status,
+      required this.progress,
+      required this.duration,
+      this.controller});
+
+  bool isEqual(VideoContext other) {
+    return progress == other.progress &&
+        width == other.width &&
+        height == other.height &&
+        duration == other.duration &&
+        status == other.status &&
+        controller == other.controller;
   }
 }
 
@@ -110,29 +134,18 @@ class _VideoViewState extends State<VideoView> {
     }, []);
     final progress = useState(0.0);
     final duration = useRef(0.0);
-    final progressNeedTo = useState(0.0);
-    final isDragging = useState(false);
     final showControl = useState(false);
     final status = useState(MediaStatus.PAUSED);
-    final delayTask = useLifeStyle(() {
-      return DelayTask(1000);
-    }, (DelayTask task) {
-      task.cancel();
-    });
+
     return Listener(
         onPointerDown: (_) {
-          delayTask?.cancel();
           showControl.value = true;
         },
         onPointerUp: (_) {
-          delayTask?.run(() {
-            showControl.value = false;
-          });
+          showControl.value = false;
         },
         onPointerCancel: (_) {
-          delayTask?.run(() {
-            showControl.value = false;
-          });
+          showControl.value = false;
         },
         child: SizedBox(
             width: widget.width,
@@ -150,132 +163,27 @@ class _VideoViewState extends State<VideoView> {
                         else
                           progress.value = payload.progress.toDouble() /
                               payload.duration.toDouble();
-                        if (!isDragging.value) {
-                          progressNeedTo.value = progress.value;
-                        }
-                        if (duration.value == 0) {
-                          controller?.seek(
-                              (progressNeedTo.value * payload.duration)
-                                  .toInt());
-                        }
                         status.value = payload.status;
                         duration.value = payload.duration.toDouble();
                       });
                       handleChange();
                     }),
-                Transition(
+                FadeOut(
                     isEnter: showControl.value,
-                    enterDuration: 100,
-                    builder: (_, value) {
-                      return Opacity(
-                          opacity: value,
-                          child: Stack(children: [
-                            IgnorePointer(
-                                ignoring: !showControl.value,
-                                child: Center(
-                                    child: AnimatedCrossFade(
-                                  firstChild: IconButton(
-                                      iconSize: 36,
-                                      icon: Icon(Icons.play_circle,
-                                          color: Colors.white),
-                                      onPressed: () {
-                                        controller?.play();
-                                      }),
-                                  secondChild: IconButton(
-                                      iconSize: 36,
-                                      icon: Icon(Icons.pause_circle,
-                                          color: Colors.white),
-                                      onPressed: () {
-                                        controller?.pause();
-                                      }),
-                                  crossFadeState:
-                                      status.value == MediaStatus.PAUSED
-                                          ? CrossFadeState.showFirst
-                                          : CrossFadeState.showSecond,
-                                  duration: Duration(milliseconds: 500),
-                                  reverseDuration: Duration(milliseconds: 500),
-                                ))),
-                            Positioned(
-                                bottom: 0.237 * widget.height,
-                                height: 20,
-                                left: 0,
-                                right: 0,
-                                child: GestureDetector(
-                                    onHorizontalDragStart: (details) {
-                                      isDragging.value = true;
-                                      progressNeedTo.value =
-                                          (details.localPosition.dx /
-                                                  widget.width)
-                                              .clamp(0, 1);
-                                    },
-                                    onHorizontalDragUpdate: (details) {
-                                      progressNeedTo.value =
-                                          (details.localPosition.dx /
-                                                  widget.width)
-                                              .clamp(0, 1);
-                                    },
-                                    onHorizontalDragCancel: () {
-                                      isDragging.value = false;
-                                      controller?.seek((progressNeedTo.value *
-                                              duration.value)
-                                          .toInt());
-                                    },
-                                    onHorizontalDragEnd: (_) {
-                                      isDragging.value = false;
-                                      controller?.seek((progressNeedTo.value *
-                                              duration.value)
-                                          .toInt());
-                                    },
-                                    child: ColoredBox(
-                                        color: Colors.transparent,
-                                        child: Stack(
-                                            alignment:
-                                                AlignmentDirectional.center,
-                                            children: [
-                                              Positioned(
-                                                  height: 3,
-                                                  left: 0,
-                                                  right: 0,
-                                                  child:
-                                                      LinearProgressIndicator(
-                                                          backgroundColor:
-                                                              Color.fromRGBO(
-                                                                  255,
-                                                                  255,
-                                                                  255,
-                                                                  0.2),
-                                                          color: Color.fromRGBO(
-                                                              255, 0, 0, 1),
-                                                          value:
-                                                              progress.value)),
-                                              Align(
-                                                  alignment: Alignment(
-                                                      -1 +
-                                                          2 *
-                                                              progressNeedTo
-                                                                  .value,
-                                                      0.0),
-                                                  child: Transition(
-                                                      enterDuration: 100,
-                                                      leaveDuration: 100,
-                                                      isEnter: isDragging.value,
-                                                      builder: (_, value) {
-                                                        return Transform.scale(
-                                                            scale:
-                                                                0.5 * value + 1,
-                                                            child: SizedBox(
-                                                                width: 8,
-                                                                height: 8,
-                                                                child: Circle(
-                                                                    color: Color
-                                                                        .fromRGBO(
-                                                                            255,
-                                                                            0,
-                                                                            0,
-                                                                            1))));
-                                                      }))
-                                            ]))))
-                          ]));
+                    isLock: status.value == MediaStatus.PAUSED,
+                    builder: (_, isEnter) {
+                      return Provider.value(
+                          value: VideoContext(
+                              width: widget.width,
+                              height: widget.height,
+                              status: status.value,
+                              progress: progress.value,
+                              duration: duration.value,
+                              controller: controller),
+                          updateShouldNotify:
+                              (VideoContext value, VideoContext oldValue) =>
+                                  !value.isEqual(oldValue),
+                          child: VideoControls(visible: isEnter));
                     })
               ],
             )));

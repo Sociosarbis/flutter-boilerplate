@@ -211,8 +211,6 @@ class Main extends HookWidget {
 
     final goToDetails = useRoutePush();
 
-    final userStore = useProviderContext<UserStore>(true);
-
     final bookServiceClient = useProviderContext<BookServiceClient>(false);
 
     Widget buttonSection = Container(
