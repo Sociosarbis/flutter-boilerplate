@@ -28,11 +28,20 @@ enum MediaStatus { PLAYING, PAUSED, LOADING }
 class VideoViewController {
   final MethodChannel _ch;
   final void Function(ProgressPayload)? onProgress;
-  VideoViewController(this._ch, {this.onProgress}) {
+  final void Function()? onLoadStart;
+  final void Function()? onLoadEnd;
+  VideoViewController(this._ch,
+      {this.onProgress, this.onLoadStart, this.onLoadEnd}) {
     this._ch.setMethodCallHandler((call) async {
       switch (call.method) {
         case 'progress':
           onProgress?.call(ProgressPayload.fromJson(call.arguments));
+          break;
+        case 'loadStart':
+          onLoadStart?.call();
+          break;
+        case 'loadEnd':
+          onLoadEnd?.call();
       }
     });
   }
@@ -135,6 +144,7 @@ class _VideoViewState extends State<VideoView> {
     final progress = useState(0.0);
     final duration = useRef(0.0);
     final showControl = useState(false);
+    final isLoading = useState(true);
     final status = useState(MediaStatus.PAUSED);
 
     return Listener(
@@ -165,9 +175,17 @@ class _VideoViewState extends State<VideoView> {
                               payload.duration.toDouble();
                         status.value = payload.status;
                         duration.value = payload.duration.toDouble();
+                      }, onLoadStart: () {
+                        isLoading.value = true;
+                      }, onLoadEnd: () {
+                        isLoading.value = false;
                       });
                       handleChange();
                     }),
+                if (isLoading.value)
+                  Center(
+                      child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation(Colors.grey))),
                 FadeOut(
                     isEnter: showControl.value,
                     isLock: status.value == MediaStatus.PAUSED,
