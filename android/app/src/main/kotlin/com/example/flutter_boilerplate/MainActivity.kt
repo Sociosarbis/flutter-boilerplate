@@ -54,7 +54,7 @@ class MainActivity: FlutterActivity() {
                   this, NOTIFICATION_ID)
                   .setContentTitle("计数器")
                   .setContentText("加减")
-                  .setSmallIcon(R.mipmap.ic_launcher)
+                  .setSmallIcon(R.mipmap.tv_055)
                   .setOngoing(false)
                   .addAction(R.mipmap.ic_launcher, "Increase", getIntent(true))
                   .addAction(R.mipmap.ic_launcher, "Decrease", getIntent(false))
