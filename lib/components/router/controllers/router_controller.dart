@@ -7,11 +7,13 @@ import '../route.dart';
 import '../key.dart';
 import 'pages_controller.dart';
 import 'match_controller.dart';
+import '../pages/dialog.dart';
 import '../types/pop_result.dart';
 import '../history.dart';
 
 abstract class AppNavigator extends ChangeNotifier {
-  Future<PopResult> removeLast({ bool allowEmptyPages = false, bool notify = true });
+  Future<PopResult> removeLast(
+      {bool allowEmptyPages = false, bool notify = true});
   Future<AppRouteInternal> findPath(String path);
   void updateUrl(String url,
       {Map<String, String>? params,
@@ -21,6 +23,7 @@ abstract class AppNavigator extends ChangeNotifier {
   Future<void> popUntilOrPush(String path);
   Future<void> replaceLast(String path);
   Future<void> push(String path);
+  Future<T?> show<T>(AppOverlay overlay);
   void dispose();
 }
 
@@ -43,8 +46,10 @@ class AppRouterController extends AppNavigator {
   List<AppPageInternal> get pages => List.unmodifiable(_pagesController.pages);
 
   @override
-  Future<PopResult> removeLast({ bool allowEmptyPages = false, bool notify = true }) async {
-    final isPopped = await _pagesController.removeLast(allowEmptyPages: allowEmptyPages);
+  Future<PopResult> removeLast(
+      {bool allowEmptyPages = false, bool notify = true}) async {
+    final isPopped =
+        await _pagesController.removeLast(allowEmptyPages: allowEmptyPages);
     if (notify && isPopped == PopResult.Popped) {
       update(withParams: true);
     }
@@ -155,6 +160,14 @@ class AppRouterController extends AppNavigator {
     routerContext.history.add(AppHistoryEntry(
         route.key, route.activePath!, route.params!, key.name, route.hasChild));
     await _pagesController.add(route);
+  }
+
+  @override
+  Future<T?> show<T>(AppOverlay overlay) async {
+    if (navKey?.currentState != null && navKey?.currentContext != null) {
+      return overlay.show(
+          state: navKey!.currentState!, context: navKey!.currentContext!);
+    }
   }
 
   @override
