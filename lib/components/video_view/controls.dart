@@ -27,26 +27,28 @@ class VideoControls extends HookWidget {
     return Stack(children: [
       IgnorePointer(
           ignoring: !visible,
-          child: Center(
+          child: Container(
+              color: Color.fromRGBO(0, 0, 0, 0.5),
+              alignment: Alignment.center,
               child: AnimatedCrossFade(
-            firstChild: IconButton(
-                iconSize: 50,
-                icon: Icon(Icons.play_circle, color: Colors.white),
-                onPressed: () {
-                  videoContext.controller?.play();
-                }),
-            secondChild: IconButton(
-                iconSize: 50,
-                icon: Icon(Icons.pause_circle, color: Colors.white),
-                onPressed: () {
-                  videoContext.controller?.pause();
-                }),
-            crossFadeState: videoContext.status == MediaStatus.PAUSED
-                ? CrossFadeState.showFirst
-                : CrossFadeState.showSecond,
-            duration: Duration(milliseconds: 500),
-            reverseDuration: Duration(milliseconds: 500),
-          ))),
+                firstChild: IconButton(
+                    iconSize: 50,
+                    icon: Icon(Icons.play_circle, color: Colors.white),
+                    onPressed: () {
+                      videoContext.controller?.play();
+                    }),
+                secondChild: IconButton(
+                    iconSize: 50,
+                    icon: Icon(Icons.pause_circle, color: Colors.white),
+                    onPressed: () {
+                      videoContext.controller?.pause();
+                    }),
+                crossFadeState: videoContext.status == MediaStatus.PAUSED
+                    ? CrossFadeState.showFirst
+                    : CrossFadeState.showSecond,
+                duration: Duration(milliseconds: 500),
+                reverseDuration: Duration(milliseconds: 500),
+              ))),
       Positioned(
           bottom: 0.237 * videoContext.height,
           height: 20,
