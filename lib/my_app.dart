@@ -234,42 +234,40 @@ class Main extends HookWidget {
 
     final controller = useRef<ScrollController>(ScrollController());
 
-    return WillPopScope(
-      onWillPop: handleBackButtonPressed,
-      child: Scaffold(
-          appBar: AppBar(
-            title: Text('Welcome to Flutter'),
-          ),
-          floatingActionButton: FloatingRollMenu(
-            onSelect: goToDetails,
-          ),
-          body: ListView(
-            controller: controller.value,
-            children: [
-              buttonSection,
-              ElevatedButton(
-                  onPressed: () {
-                    routerContext.to('/bgm/login');
-                  },
-                  child: Text('BGM Login')),
-              ElevatedButton(
-                  onPressed: () {
-                    !isServiceRunning.value ? startService() : stopService();
-                    isServiceRunning.value = !isServiceRunning.value;
-                  },
-                  child: Text(
-                      '${isServiceRunning.value ? 'running' : 'stopped'} (${counter.value})')),
-              ElevatedButton(
-                  onPressed: () async {
-                    final res = await bookServiceClient.createBook(Book(
-                        isbn: "0-670-81302-9",
-                        title: "白銀の墟　玄の月　第一巻　十二国記 (新潮文庫)",
-                        author: Author(firstName: "不由美", lastName: "小野")));
-                    print(res);
-                  },
-                  child: Text('call grpc')),
-            ],
-          )),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Welcome to Flutter'),
+      ),
+      floatingActionButton: FloatingRollMenu(
+        onSelect: goToDetails,
+      ),
+      body: ListView(
+        controller: controller.value,
+        children: [
+          buttonSection,
+          ElevatedButton(
+              onPressed: () {
+                routerContext.to('/bgm/login');
+              },
+              child: Text('BGM Login')),
+          ElevatedButton(
+              onPressed: () {
+                !isServiceRunning.value ? startService() : stopService();
+                isServiceRunning.value = !isServiceRunning.value;
+              },
+              child: Text(
+                  '${isServiceRunning.value ? 'running' : 'stopped'} (${counter.value})')),
+          ElevatedButton(
+              onPressed: () async {
+                final res = await bookServiceClient.createBook(Book(
+                    isbn: "0-670-81302-9",
+                    title: "白銀の墟　玄の月　第一巻　十二国記 (新潮文庫)",
+                    author: Author(firstName: "不由美", lastName: "小野")));
+                print(res);
+              },
+              child: Text('call grpc')),
+        ],
+      ),
     );
   }
 }

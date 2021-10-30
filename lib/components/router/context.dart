@@ -125,6 +125,7 @@ class RouterContext {
       final controller = navigatorOf(lastNavi);
       final popResult = await controller.removeLast();
       if (popResult != PopResult.NotPopped) {
+        if (popResult != PopResult.Popped) return PopResult.NotAllowedToPop;
         if (lastNavi != rootRouterName) {
           (rootNavigator as AppRouterController).update(withParams: false);
         }

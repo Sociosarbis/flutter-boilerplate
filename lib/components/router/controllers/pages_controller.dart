@@ -5,6 +5,7 @@ import '../pages/page.dart';
 import '../pages/page_creator.dart';
 import '../context.dart';
 import '../types/pop_result.dart';
+import 'middleware_controller.dart';
 
 class PagesController {
   final routes = <AppRouteInternal>[];
@@ -27,6 +28,8 @@ class PagesController {
     }
 
     final route = routes.last;
+    final middleware = MiddlewareController(route);
+    if (!await middleware.runCanPop()) return PopResult.NotAllowedToPop;
     if (allowEmptyPages == false && routes.length == 1) {
       return PopResult.NotPopped;
     }
