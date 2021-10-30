@@ -3,6 +3,7 @@ import 'context.dart';
 import 'params.dart';
 import 'key.dart';
 import 'pages/page.dart';
+import 'middleware.dart';
 import 'router.dart';
 
 typedef PageBuilder = Widget Function();
@@ -14,23 +15,33 @@ class AppRoute {
   final String? initRoute;
   final PageBuilder? builder;
   final PageSettings? pageSettings;
+  final List<RouteMiddleware>? middlewares;
   final PageBuilderWithChildBuilder? builderChild;
   final List<AppRoute>? children;
 
   const AppRoute(
-      {required this.path, required this.builder, this.name, this.children, this.initRoute, this.pageSettings})
+      {required this.path,
+      required this.builder,
+      this.name,
+      this.children,
+      this.initRoute,
+      this.pageSettings,
+      this.middlewares})
       : builderChild = null;
 
   const AppRoute.withChild(
       {required this.path,
       required this.builderChild,
       this.name,
+      this.middlewares,
       this.initRoute,
       this.pageSettings,
       this.children})
       : builder = null;
 
   bool get withChildRouter => builderChild != null;
+
+  bool get hasMiddlewares => (middlewares?.length ?? 0) != 0;
 
   AppRoute copyWith(
       {String? path,

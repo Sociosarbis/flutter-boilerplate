@@ -1,4 +1,5 @@
-import 'package:flutter/widgets.dart';
+import 'dart:async';
+import 'package:flutter/material.dart';
 import 'components/router/lib.dart';
 import 'packages/features/physis_animation.dart' as PhysisAnimation;
 import 'packages/features/animated_container.dart' as AnimatedContainer;
@@ -22,7 +23,35 @@ final slidePageSettings = CustomPageSettings(
     });
 
 final routes = [
-  AppRoute(path: '/', builder: () => Main()),
+  AppRoute(path: '/', builder: () => Main(), middlewares: [
+    RouteMiddlewareBuilder(canPopFunc: () {
+      final completer = Completer<bool>();
+      routerContext.show(AppDialog(
+        builder: (pop) {
+          return AlertDialog(
+                title: Text('提示'),
+                content: Text('确认退出？'),
+                actions: [
+                  TextButton(
+                    child: Text('取消'),
+                    onPressed: () {
+                      pop();
+                      completer.complete(false);
+                    },
+                  ),
+                  TextButton(
+                    child: Text('确认'),
+                    onPressed: () {
+                      pop();
+                      completer.complete(true);
+                    },
+                  )
+                ]);
+        }
+      ));
+      return completer.future;
+    })
+  ]),
   AppRoute(
       path: '/bgm/login',
       pageSettings: slidePageSettings,
@@ -38,7 +67,10 @@ final routes = [
                 }
               },
               onScrollBound: (touchDetails) {}))),
-  AppRoute(path: '/bgm/video', pageSettings: slidePageSettings, builder: () => VideoPage()),
+  AppRoute(
+      path: '/bgm/video',
+      pageSettings: slidePageSettings,
+      builder: () => VideoPage()),
   AppRoute(
       path: '/physisAnimation',
       pageSettings: slidePageSettings,

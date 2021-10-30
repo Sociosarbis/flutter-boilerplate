@@ -1,4 +1,5 @@
 enum PopResult {
   Popped,
-  NotPopped
+  NotPopped,
+  NotAllowedToPop
 }
