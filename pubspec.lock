@@ -667,6 +667,13 @@ packages:
       url: "https://mirrors.tuna.tsinghua.edu.cn/dart-pub"
     source: hosted
     version: "1.5.2"
+  rust_sdk:
+    dependency: "direct main"
+    description:
+      path: "packages/rust_sdk"
+      relative: true
+    source: path
+    version: "0.0.1"
   rxdart:
     dependency: transitive
     description:
