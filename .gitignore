@@ -30,6 +30,10 @@
 .pub-cache/
 .pub/
 /build/
+.cxx
+*.so
+.project
+.settings
 
 # Web related
 lib/generated_plugin_registrant.dart
@@ -41,3 +45,7 @@ app.*.symbols
 app.*.map.json
 
 lib/data
+
+# rust-project
+target
+.cargo
