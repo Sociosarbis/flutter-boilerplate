@@ -21,7 +21,7 @@ class RustSdk {
     final port = RustStreamReceiver.shared.port;
     ffi.store_dart_post_cobject(NativeApi.postCObject);
     print(port);
-    ffi.set_stream_port(port);
     ffi.init_sdk(sdkDir.path.toNativeUtf8());
+    ffi.set_stream_port(port);
   }
 }
