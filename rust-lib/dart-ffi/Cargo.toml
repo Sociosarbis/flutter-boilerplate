@@ -10,3 +10,5 @@ crate-type = ["cdylib"]
 
 [dependencies]
 allo-isolate = {version = "^0.1", features = ["catch-unwind",]}
+tokio = { version = "1", features = ["rt", "rt-multi-thread", "net", "time"] }
+lazy_static = {version = "1.4.0"}

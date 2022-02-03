@@ -42,6 +42,7 @@ class _MyAppState extends State<MyApp> {
     setState(() {
       _platformVersion = platformVersion;
     });
+    RustSdk().init(Directory.current);
   }
 
   @override
