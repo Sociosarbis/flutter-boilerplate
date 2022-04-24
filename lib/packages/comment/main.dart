@@ -9,6 +9,7 @@ import 'package:flutter_boilerplate/stores/user.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_boilerplate/my_app.dart' show MyAppRouterDelegate;
+import 'package:flutter_boilerplate/components/click_outside.dart';
 
 const String GetEpisodeTopicReq = """
 query GetEpisodeTopic(\$id: Int!) {
@@ -114,105 +115,103 @@ class MainState extends State<Main> {
   @override
   Widget build(BuildContext context) {
     return Provider.of<UserStore>(context).isAuth
-        ? GestureDetector(
-            onTap: () {
-              FocusScope.of(context).unfocus();
-              setState(() {
-                setShowInput(!showInput);
-                if (showInput) {
-                  replyTo = null;
-                  replyBelongTo = null;
-                }
-              });
-            },
+        ? ClickOutsideListener(
             child: Scaffold(
                 body: Stack(children: [
-              Query(
-                  options: QueryOptions(
-                      document: gql(GetSubjectPosterReq),
-                      variables: {'id': subjectId}),
-                  builder: (QueryResult result,
-                      {Refetch? refetch, FetchMore? fetchMore}) {
-                    if (result.isNotLoading) {
-                      if (result.data?.isNotEmpty ?? false) {
-                        final newPoster =
-                            result.data!['subjectDetail']['image'] as String;
-                        if (newPoster != poster) {
-                          WidgetsBinding.instance?.addPostFrameCallback((_) {
-                            setState(() {
-                              poster = newPoster;
-                            });
+            Query(
+                options: QueryOptions(
+                    document: gql(GetSubjectPosterReq),
+                    variables: {'id': subjectId}),
+                builder: (QueryResult result,
+                    {Refetch? refetch, FetchMore? fetchMore}) {
+                  if (result.isNotLoading) {
+                    if (result.data?.isNotEmpty ?? false) {
+                      final newPoster =
+                          result.data!['subjectDetail']['image'] as String;
+                      if (newPoster != poster) {
+                        WidgetsBinding.instance?.addPostFrameCallback((_) {
+                          setState(() {
+                            poster = newPoster;
                           });
-                        }
+                        });
                       }
                     }
-                    return SizedBox.shrink();
-                  }),
-              Query(
-                  options: QueryOptions(
-                      document: gql(GetEpisodeTopicReq),
-                      variables: {'id': epId}),
-                  builder: (QueryResult result,
-                      {Refetch? refetch, FetchMore? fetchMore}) {
-                    Widget? loading;
-                    if (result.isLoading) {
-                      model = null;
-                      loading = SliverFillRemaining(
-                          child: Center(
-                        child: CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation(
-                                Theme.of(context).accentColor)),
-                      ));
-                    } else if (result.isNotLoading && model == null) {
-                      model = (result.data!['episodeTopic']['comments']
-                              as List<dynamic>)
-                          .map<CommentModel.Comment>(
-                              (item) => CommentModel.Comment.fromJson(item))
-                          .toList();
-                    }
-                    return Stack(children: [
-                      Padding(
-                          padding: EdgeInsets.only(bottom: showInput ? 192 : 0),
-                          child: CustomScrollView(
-                              controller: _controller,
-                              slivers: [
-                                SliverAppBar(
-                                  floating: true,
-                                  pinned: true,
-                                  flexibleSpace: FlexibleSpaceBar(
-                                      title: Text('Comment'),
-                                      background: poster.isNotEmpty
-                                          ? Image.network(poster,
-                                              fit: BoxFit.cover,
-                                              color:
-                                                  Colors.black.withOpacity(0.5),
-                                              colorBlendMode:
-                                                  BlendMode.hardLight)
-                                          : SizedBox.shrink()),
-                                  expandedHeight: 250,
-                                ),
-                                model != null
-                                    ? SliverList(
-                                        delegate: SliverChildBuilderDelegate(
-                                            (context, index) {
-                                        return Comment(
-                                            data: model![index],
-                                            onReply: (replyTo) {
-                                              setState(() {
-                                                this.replyTo = replyTo;
-                                                replyBelongTo = model![index];
-                                                setShowInput(true);
-                                              });
-                                            });
-                                      }, childCount: model!.length))
-                                    : loading!])),
-                      CommentInput(
-                          show: showInput,
-                          replyTo: replyTo,
-                          onCommit: confirmReply)
-                    ]);
-                  })
-            ])))
+                  }
+                  return SizedBox.shrink();
+                }),
+            Query(
+                options: QueryOptions(
+                    document: gql(GetEpisodeTopicReq), variables: {'id': epId}),
+                builder: (QueryResult result,
+                    {Refetch? refetch, FetchMore? fetchMore}) {
+                  Widget? loading;
+                  if (result.isLoading) {
+                    model = null;
+                    loading = SliverFillRemaining(
+                        child: Center(
+                      child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation(
+                              Theme.of(context).accentColor)),
+                    ));
+                  } else if (result.isNotLoading && model == null) {
+                    model = (result.data!['episodeTopic']['comments']
+                            as List<dynamic>)
+                        .map<CommentModel.Comment>(
+                            (item) => CommentModel.Comment.fromJson(item))
+                        .toList();
+                  }
+                  return Stack(children: [
+                    Padding(
+                        padding: EdgeInsets.only(bottom: showInput ? 192 : 0),
+                        child:
+                            CustomScrollView(controller: _controller, slivers: [
+                          SliverAppBar(
+                            floating: true,
+                            pinned: true,
+                            flexibleSpace: FlexibleSpaceBar(
+                                title: Text('Comment'),
+                                background: poster.isNotEmpty
+                                    ? Image.network(poster,
+                                        fit: BoxFit.cover,
+                                        color: Colors.black.withOpacity(0.5),
+                                        colorBlendMode: BlendMode.hardLight)
+                                    : SizedBox.shrink()),
+                            expandedHeight: 250,
+                          ),
+                          model != null
+                              ? SliverList(
+                                  delegate: SliverChildBuilderDelegate(
+                                      (context, index) {
+                                  return Comment(
+                                      data: model![index],
+                                      onReply: (replyTo) {
+                                        setState(() {
+                                          this.replyTo = replyTo;
+                                          replyBelongTo = model![index];
+                                          setShowInput(true);
+                                        });
+                                      });
+                                }, childCount: model!.length))
+                              : loading!
+                        ])),
+                    ClickOutside(
+                        child: CommentInput(
+                            show: showInput,
+                            replyTo: replyTo,
+                            onCommit: confirmReply),
+                        onClickOutside: () {
+                          setState(() {
+                            FocusScope.of(context).unfocus();
+                            setShowInput(!showInput);
+                            if (showInput) {
+                              replyTo = null;
+                              replyBelongTo = null;
+                            }
+                          });
+                        })
+                  ]);
+                })
+          ])))
         : SizedBox.shrink();
   }
 
@@ -421,7 +420,7 @@ class Comment extends StatelessWidget {
 
 class CommentInput extends StatefulWidget {
   final bool? show;
-  final CommentModel.Comment ?replyTo;
+  final CommentModel.Comment? replyTo;
   final void Function(String text) onCommit;
   CommentInput({this.show, this.replyTo, required this.onCommit});
   @override
@@ -437,13 +436,16 @@ class CommentInputState extends State<CommentInput> {
         bottom: 0,
         child: TweenAnimationBuilder(
             duration: Duration(milliseconds: widget.show ?? false ? 250 : 200),
-            curve: widget.show ?? false ? Curves.easeOutCubic : Curves.easeInCubic,
-            tween: Tween<double>(begin: 192, end: widget.show ?? false ? 0 : 192),
+            curve:
+                widget.show ?? false ? Curves.easeOutCubic : Curves.easeInCubic,
+            tween:
+                Tween<double>(begin: 192, end: widget.show ?? false ? 0 : 192),
             builder: (context, value, child) => Container(
                 width: MediaQuery.of(context).size.width,
                 height: 192,
                 transform:
-                    Transform.translate(offset: Offset(0, value as double)).transform,
+                    Transform.translate(offset: Offset(0, value as double))
+                        .transform,
                 decoration: BoxDecoration(
                   color: Colors.white,
                   boxShadow: [
@@ -493,9 +495,7 @@ class CommentInputState extends State<CommentInput> {
                                       elevation: 0,
                                       padding: EdgeInsets.all(0),
                                       primary: Color(0xff319abf),
-                                      textStyle : TextStyle(
-                                        color: Colors.white
-                                      ),
+                                      textStyle: TextStyle(color: Colors.white),
                                     ),
                                     child: Text(
                                         widget.replyTo == null ? '加上去' : '写好了'),
