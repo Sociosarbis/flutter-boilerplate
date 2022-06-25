@@ -6,21 +6,20 @@ part of 'weather_one_day.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-WeatherOneDay _$WeatherOneDayFromJson(Map<String, dynamic> json) {
-  return WeatherOneDay(
-    date: strToDateTime(json['fxDate'] as String),
-    tempMin: strToInt(json['tempMin'] as String),
-    tempMax: strToInt(json['tempMax'] as String),
-    textDay: json['textDay'] as String,
-    textNight: json['textNight'] as String,
-    humidity: strToInt(json['humidity'] as String),
-    windScaleDay: json['windScaleDay'] as String,
-    windScaleNight: json['windScaleNight'] as String,
-    windDirDay: json['windDirDay'] as String,
-    windDirNight: json['windDirNight'] as String,
-    cloud: strToInt(json['cloud'] as String),
-  );
-}
+WeatherOneDay _$WeatherOneDayFromJson(Map<String, dynamic> json) =>
+    WeatherOneDay(
+      date: strToDateTime(json['fxDate'] as String),
+      tempMin: strToInt(json['tempMin'] as String),
+      tempMax: strToInt(json['tempMax'] as String),
+      textDay: json['textDay'] as String,
+      textNight: json['textNight'] as String,
+      humidity: strToInt(json['humidity'] as String),
+      windScaleDay: json['windScaleDay'] as String,
+      windScaleNight: json['windScaleNight'] as String,
+      windDirDay: json['windDirDay'] as String,
+      windDirNight: json['windDirNight'] as String,
+      cloud: strToInt(json['cloud'] as String),
+    );
 
 Map<String, dynamic> _$WeatherOneDayToJson(WeatherOneDay instance) =>
     <String, dynamic>{

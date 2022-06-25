@@ -6,24 +6,22 @@ part of 'comment.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-Comment _$CommentFromJson(Map<String, dynamic> json) {
-  return Comment(
-    id: json['id'] as int?,
-    floor: json['floor'] as String?,
-    time: json['time'] as String?,
-    text: json['text'] as String?,
-    author: json['author'] == null
-        ? null
-        : Author.fromJson(json['author'] as Map<String, dynamic>),
-    quote: json['quote'] == null
-        ? null
-        : Quote.fromJson(json['quote'] as Map<String, dynamic>),
-    replies: (json['replies'] as List<dynamic>?)
-        ?.map((e) => Comment.fromJson(e as Map<String, dynamic>))
-        .toList(),
-    typename: json['__typename'] as String?,
-  );
-}
+Comment _$CommentFromJson(Map<String, dynamic> json) => Comment(
+      id: json['id'] as int?,
+      floor: json['floor'] as String?,
+      time: json['time'] as String?,
+      text: json['text'] as String?,
+      author: json['author'] == null
+          ? null
+          : Author.fromJson(json['author'] as Map<String, dynamic>),
+      quote: json['quote'] == null
+          ? null
+          : Quote.fromJson(json['quote'] as Map<String, dynamic>),
+      replies: (json['replies'] as List<dynamic>?)
+          ?.map((e) => Comment.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      typename: json['__typename'] as String?,
+    );
 
 Map<String, dynamic> _$CommentToJson(Comment instance) {
   final val = <String, dynamic>{};

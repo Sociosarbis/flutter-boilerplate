@@ -6,13 +6,11 @@ part of 'quote.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-Quote _$QuoteFromJson(Map<String, dynamic> json) {
-  return Quote(
-    from: json['from'] as String?,
-    text: json['text'] as String?,
-    typename: json['__typename'] as String?,
-  );
-}
+Quote _$QuoteFromJson(Map<String, dynamic> json) => Quote(
+      from: json['from'] as String?,
+      text: json['text'] as String?,
+      typename: json['__typename'] as String?,
+    );
 
 Map<String, dynamic> _$QuoteToJson(Quote instance) {
   final val = <String, dynamic>{};
