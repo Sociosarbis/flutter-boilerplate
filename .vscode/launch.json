@@ -8,15 +8,13 @@
             "name": "flutter_boilerplate (dev)",
             "request": "launch",
             "type": "dart",
-            "program": "lib/main_dev.dart",
-            "args": ["--no-sound-null-safety"]
+            "program": "lib/main_dev.dart"
         },
         {
             "name": "flutter_boilerplate (prod)",
             "request": "launch",
             "type": "dart",
-            "program": "lib/main.dart",
-            "args": ["--no-sound-null-safety"]
+            "program": "lib/main.dart"
         }
     ]
 }

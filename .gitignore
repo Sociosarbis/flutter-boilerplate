@@ -49,3 +49,5 @@ lib/data
 # rust-project
 target
 .cargo
+
+app.config.json

@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/rendering.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_boilerplate/models/config/app.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:uni_links/uni_links.dart';
 import 'package:http/http.dart';
-import 'package:flutter_boilerplate/data/data.dart' as config;
 
 const clientId = 'c519d84eb02f944b8541';
 const redirectURI = 'flutterboilerplate://login';
@@ -111,17 +111,21 @@ class SubState extends State<Sub> {
     setState(() {
       isRequesting = true;
     });
-    if (await canLaunch(url)) {
+    if (await canLaunchUrl(Uri.parse(url))) {
       sub = uriLinkStream.listen((uri) async {
         if (uri!.hasQuery) {
+          final appConfig = Provider.of<AppConfig?>(context);
+          if (appConfig == null) {
+            return;
+          }
           final code = uri.queryParameters['code'] ?? '';
           final res = await post(Uri.dataFromString('https://github.com/login/oauth/access_token'),
               headers: {
                 'Accept': 'application/json'
               },
               body: {
-                'client_id': clientId,
-                'client_secret': config.data['client_secret'],
+                'client_id': appConfig.githubClientId,
+                'client_secret': appConfig.githubCientSecret,
                 'code': code
               });
           widget.onAuth(jsonDecode(res.body)['access_token']);
@@ -177,7 +181,7 @@ class Loading extends StatelessWidget {
               Center(
                   child: Column(mainAxisSize: MainAxisSize.min, children: [
                 CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation(theme.accentColor)),
+                    valueColor: AlwaysStoppedAnimation(theme.colorScheme.secondary)),
                 Container(
                     margin: EdgeInsets.only(top: 20),
                     padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),

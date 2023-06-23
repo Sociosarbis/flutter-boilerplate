@@ -4,9 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_boilerplate/stores/user.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_boilerplate/utils/hooks.dart';
-import '../../../stores/user.dart';
 import 'package:webview_cookie_manager/webview_cookie_manager.dart';
 
 const String url = 'https://bgm.tv/login';
@@ -60,56 +60,59 @@ const String listenScrollToBoundJS = """
 class Main extends HookWidget {
   final void Function(Map<String, String> cookies) onLogin;
   final void Function(List<double> touchDetails)? onScrollBound;
-  Main({required this.onLogin, this.onScrollBound});
+  const Main({Key? key, required this.onLogin, this.onScrollBound})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final controller = useRef<WebViewController?>(null);
+    final controller = useState<WebViewController?>(null);
     final userStore = useProviderContext<UserStore>(false);
-    return WebView(
-      initialUrl: url,
-      userAgent: userAgent,
-      javascriptMode: JavascriptMode.unrestricted,
-      javascriptChannels: Set()
-        ..add(JavascriptChannel(
-            name: 'flutterBridge',
-            onMessageReceived: (data) {
-              try {
-                List<double> touchDetails =
-                    (jsonDecode(data.message) as List).map((item) {
-                  return item is double ? item : (item as int).toDouble();
-                }).toList();
-                onScrollBound?.call((touchDetails));
-              } catch (e) {
-                print(e);
-              }
-            })),
-      debuggingEnabled: true,
-      onWebViewCreated: (_controller) {
-        controller.value = _controller;
-        userStore.isLogining = true;
-      },
-      onPageStarted: (_) async {
-        await controller.value?.evaluateJavascript(listenScrollToBoundJS);
-      },
-      onPageFinished: (_) {
-        userStore.isLogining = false;
-      },
-      navigationDelegate: (request) async {
-        userStore.isLogining = true;
-        final cookies = (await WebviewCookieManager().getCookies(url))
-            .fold<Map<String, String>>(Map<String, String>(), (acc, item) {
-          acc[item.name] = item.value;
-          return acc;
-        });
-        userStore.isLogining = false;
-        userStore.setCookie(cookies);
-        onLogin(cookies);
-        return NavigationDecision.prevent;
-      },
-      gestureRecognizers: Set()
-            ..add(Factory<VerticalDragGestureRecognizer>(
-                () => VerticalDragGestureRecognizer()))
-    );
+    useEffect(() {
+      controller
+          .value = WebViewController(onPermissionRequest: (request) async {
+        return request.grant();
+      })
+        ..setJavaScriptMode(JavaScriptMode.unrestricted)
+        ..addJavaScriptChannel('flutterBridge', onMessageReceived: (data) {
+          try {
+            List<double> touchDetails =
+                (jsonDecode(data.message) as List).map((item) {
+              return item is double ? item : (item as int).toDouble();
+            }).toList();
+            onScrollBound?.call((touchDetails));
+          } catch (e) {
+            print(e);
+          }
+        })
+        ..setNavigationDelegate(NavigationDelegate(onPageStarted: (_) async {
+          await controller.value?.runJavaScript(listenScrollToBoundJS);
+        }, onPageFinished: (_) {
+          userStore.isLogining = false;
+        }, onNavigationRequest: (request) async {
+          userStore.isLogining = true;
+          final cookies = (await WebviewCookieManager().getCookies(url))
+              .fold<Map<String, String>>({}, (acc, item) {
+            acc[item.name] = item.value;
+            return acc;
+          });
+          userStore.isLogining = false;
+          userStore.setCookie(cookies);
+          onLogin(cookies);
+          return NavigationDecision.prevent;
+        }))
+        ..setUserAgent(userAgent)
+        ..loadRequest(Uri.parse(url));
+      if (controller.value!.platform is AndroidWebViewController) {
+        AndroidWebViewController.enableDebugging(true);
+      }
+      userStore.isLogining = true;
+      return;
+    }, []);
+    return controller.value != null
+        ? WebViewWidget(controller: controller.value!, gestureRecognizers: {
+            Factory<VerticalDragGestureRecognizer>(
+                () => VerticalDragGestureRecognizer())
+          })
+        : const SizedBox.shrink();
   }
 }

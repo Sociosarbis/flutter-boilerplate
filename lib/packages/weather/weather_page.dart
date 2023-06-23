@@ -19,18 +19,18 @@ bool isNight(DateDart date) {
 }
 
 class IconFontIcons {
-  static final fontFamily = 'iconfont';
-  static final sunnyDay =
+  static const fontFamily = 'iconfont';
+  static const sunnyDay =
       IconData(0xe61e, fontFamily: IconFontIcons.fontFamily);
-  static final sunnyNight =
+  static const sunnyNight =
       IconData(0xe606, fontFamily: IconFontIcons.fontFamily);
-  static final cloudyDay =
+  static const cloudyDay =
       IconData(0xe639, fontFamily: IconFontIcons.fontFamily);
-  static final cloudyNight =
+  static const cloudyNight =
       IconData(0xe605, fontFamily: IconFontIcons.fontFamily);
-  static final modRain = IconData(0xe620, fontFamily: IconFontIcons.fontFamily);
+  static const modRain = IconData(0xe620, fontFamily: IconFontIcons.fontFamily);
   // 阵雨
-  static final shower = IconData(0xe664, fontFamily: IconFontIcons.fontFamily);
+  static const shower = IconData(0xe664, fontFamily: IconFontIcons.fontFamily);
 
   static IconData? renderIcon(String phenomenon, {bool? night}) {
     final _isNight = night == null ? isNight(DateDart.now()) : night;
@@ -230,7 +230,7 @@ class WeatherCard extends HookWidget {
                                           .lerp(progress)!,
                                       bgColor
                                     ])),
-                                child: SizedBox.expand()))),
+                                child: const SizedBox.expand()))),
                     isOneDay
                         ? AnimatedCrossFade(
                             layoutBuilder: (Widget topChild, Key topChildKey,
@@ -257,8 +257,8 @@ class WeatherCard extends HookWidget {
                                 isOneDay: isOneDay, isNight: false),
                             secondChild: renderCardContent(weather,
                                 isOneDay: isOneDay, isNight: true),
-                            duration: Duration(milliseconds: 250),
-                            reverseDuration: Duration(milliseconds: 200),
+                            duration: const Duration(milliseconds: 250),
+                            reverseDuration: const Duration(milliseconds: 200),
                           )
                         : renderCardContent(weather,
                             isOneDay: isOneDay, isNight: !showDay.value),
@@ -286,7 +286,7 @@ class WeatherPage extends HookWidget {
     final position = useProviderContext<Position?>(true);
     final mapController = useRef<BMFMapController?>(null);
     final controller =
-        useAnimationController(duration: Duration(milliseconds: 1000));
+        useAnimationController(duration: const Duration(milliseconds: 1000));
     useAnimation(controller);
     final ratio =
         CurvedAnimation(parent: controller, curve: Curves.easeInCubic).value;
@@ -396,7 +396,7 @@ class WeatherPage extends HookWidget {
                       Center(
                         child: CircularProgressIndicator(
                             valueColor: AlwaysStoppedAnimation(
-                                Theme.of(context).accentColor)),
+                                Theme.of(context).colorScheme.secondary)),
                       )
                   ],
                 ))),
@@ -409,9 +409,9 @@ class WeatherPage extends HookWidget {
                   weatherMode.value = i;
                 },
                 items: [
-                    BottomNavigationBarItem(
+                    const BottomNavigationBarItem(
                         icon: Icon(Icons.hourglass_bottom), label: '24小时'),
-                    BottomNavigationBarItem(
+                    const BottomNavigationBarItem(
                         icon: Icon(Icons.holiday_village), label: '7天')
                   ])
             : null);

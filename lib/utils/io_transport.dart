@@ -205,6 +205,11 @@ class IOClientConnection extends ClientConnection {
   void _removeStream(IOTransportStream stream) {
     _requests.remove(stream);
   }
+  
+  @override
+  set onStateChanged(cb) {
+    // TODO: implement onStateChanged
+  }
 }
 
 class GrpcIOClientChannel extends ClientChannelBase {

@@ -2,6 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_boilerplate/assets.dart';
+import 'package:flutter_boilerplate/models/config/app.dart';
+import 'package:flutter_boilerplate/utils/snapshot_painters.dart';
+import 'package:flutter_boilerplate/utils/ticking_builder.dart';
 import 'package:provider/provider.dart';
 import 'components/router/lib.dart';
 import 'routes.dart';
@@ -26,11 +30,13 @@ class _FavoriteWidgetState extends State<FavoriteWidget> {
   Widget build(BuildContext context) {
     return Row(mainAxisSize: MainAxisSize.min, children: [
       Container(
-          padding: EdgeInsets.all(0),
+          padding: const EdgeInsets.all(0),
           child: IconButton(
-            padding: EdgeInsets.all(0),
+            padding: const EdgeInsets.all(0),
             alignment: Alignment.centerRight,
-            icon: (_isFavorited ? Icon(Icons.star) : Icon(Icons.star_border)),
+            icon: (_isFavorited
+                ? const Icon(Icons.star)
+                : const Icon(Icons.star_border)),
             color: Colors.red[500],
             onPressed: _toggleFavorite,
           )),
@@ -66,6 +72,7 @@ class MyAppState extends State<MyApp> {
   GeolocatorManager? geolocatorManager;
   BookServiceClient? bookServiceClient;
   StreamSubscription<Uri?>? sub;
+
   @override
   void initState() {
     userStore = UserStore();
@@ -102,23 +109,36 @@ class MyAppState extends State<MyApp> {
     }
   }
 
-  AppRouterDelegate _appRouterDelegate = AppRouterDelegate(routes);
-  AppRouteInformationParser _appRouteInformationParser =
-      AppRouteInformationParser();
+  final _appRouterDelegate = AppRouterDelegate(routes);
+  final _appRouteInformationParser = const AppRouteInformationParser();
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
         providers: [
+          FutureProvider<AppConfig?>(
+            create: (context) async {
+              return AppConfig.init();
+            },
+            initialData: null,
+          ),
+          FutureProvider<FragmentPrograms?>(
+              create: (context) async {
+                return loadFragmentPrograms();
+              },
+              initialData: null),
           ChangeNotifierProvider.value(value: userStore!),
           Provider.value(value: bookServiceClient!),
           ValueListenableProvider.value(value: geolocatorManager!.position)
         ],
         builder: (context, widget) {
+          final theme = ThemeData();
           return GraphQLProvider(
               client: client!,
               child: MaterialApp.router(
                 title: 'Welcome To Flutter',
-                theme: ThemeData(accentColor: Colors.red),
+                theme: ThemeData(
+                    colorScheme:
+                        theme.colorScheme.copyWith(secondary: Colors.red)),
                 debugShowCheckedModeBanner: false,
                 routeInformationParser: _appRouteInformationParser,
                 routerDelegate: _appRouterDelegate,
@@ -144,18 +164,18 @@ Future<bool> Function() useBackButtonPressed() {
         context: context,
         builder: (context) {
           return AlertDialog(
-              title: Text('提示'),
-              content: Text('确认退出？'),
+              title: const Text('提示'),
+              content: const Text('确认退出？'),
               actions: [
                 TextButton(
-                  child: Text('取消'),
+                  child: const Text('取消'),
                   onPressed: () {
                     completer.complete(false);
                     Navigator.pop(context, false);
                   },
                 ),
                 TextButton(
-                  child: Text('确认'),
+                  child: const Text('确认'),
                   onPressed: () {
                     completer.complete(true);
                     Navigator.pop(context, true);
@@ -171,12 +191,14 @@ Future<bool> Function() useBackButtonPressed() {
 }
 
 class Main extends HookWidget {
-  Main({Key? key}) : super(key: key);
+  const Main({Key? key}) : super(key: key);
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     Color color = Theme.of(context).primaryColor;
     final channel = useRef<MethodChannel?>(null);
+    final snapshotController =
+        useRef(SnapshotController(allowSnapshotting: true));
     final counter = useState(0);
     final isServiceRunning = useState(false);
     final startService = useCallback(() async {
@@ -196,7 +218,7 @@ class Main extends HookWidget {
     }, [channel]);
 
     useEffect(() {
-      channel.value = MethodChannel('notification');
+      channel.value = const MethodChannel('notification');
       channel.value?.setMethodCallHandler((call) async {
         if (call.method == 'increase') {
           counter.value++;
@@ -213,8 +235,8 @@ class Main extends HookWidget {
 
     final bookServiceClient = useProviderContext<BookServiceClient>(false);
 
-    Widget buttonSection = Container(
-        child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+    Widget buttonSection =
+        Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
       ButtonColumn(
           color: color,
           icon: Icons.call,
@@ -230,45 +252,68 @@ class Main extends HookWidget {
           icon: Icons.video_label,
           label: 'VIDEO',
           onPress: () => goToDetails('/bgm/video'))
-    ]));
+    ]);
 
     final controller = useRef<ScrollController>(ScrollController());
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Welcome to Flutter'),
-      ),
-      floatingActionButton: FloatingRollMenu(
-        onSelect: goToDetails,
-      ),
-      body: ListView(
-        controller: controller.value,
-        children: [
-          buttonSection,
-          ElevatedButton(
-              onPressed: () {
-                routerContext.to('/bgm/login');
-              },
-              child: Text('BGM Login')),
-          ElevatedButton(
-              onPressed: () {
-                !isServiceRunning.value ? startService() : stopService();
-                isServiceRunning.value = !isServiceRunning.value;
-              },
-              child: Text(
-                  '${isServiceRunning.value ? 'running' : 'stopped'} (${counter.value})')),
-          ElevatedButton(
-              onPressed: () async {
+    return WillPopScope(
+        onWillPop: handleBackButtonPressed,
+        child: Scaffold(
+          appBar: AppBar(
+            title: Consumer<FragmentPrograms?>(
+                builder: (context, programs, chlid) {
+              const textWidget = Text('Welcome to Flutter');
+              return programs == null
+                  ? textWidget
+                  : TickingBuilder(builder: (context, time) {
+                      return SnapshotWidget(
+                          controller: snapshotController.value,
+                          painter: GlitchSnapshotPainter(
+                              time: time, program: programs.ui),
+                          child: textWidget);
+                    });
+            }),
+          ),
+          floatingActionButton: FloatingRollMenu(
+            onSelect: goToDetails,
+          ),
+          body: ListView(
+            controller: controller.value,
+            children: [
+              buttonSection,
+              ElevatedButton(
+                  onPressed: () {
+                    routerContext.to('/bgm/login');
+                  },
+                  child: const Text('BGM Login')),
+              ElevatedButton(
+                  onPressed: () {
+                    !isServiceRunning.value ? startService() : stopService();
+                    isServiceRunning.value = !isServiceRunning.value;
+                  },
+                  child: Text(
+                      '${isServiceRunning.value ? 'running' : 'stopped'} (${counter.value})')),
+              ElevatedButton(onPressed: () async {
                 final res = await bookServiceClient.createBook(Book(
                     isbn: "0-670-81302-9",
                     title: "白銀の墟　玄の月　第一巻　十二国記 (新潮文庫)",
                     author: Author(firstName: "不由美", lastName: "小野")));
                 print(res);
-              },
-              child: Text('call grpc')),
-        ],
-      ),
-    );
+              }, child: Consumer<FragmentPrograms?>(
+                  builder: (context, programs, chlid) {
+                const textWidget = Text('call grpc');
+                return programs == null
+                    ? textWidget
+                    : TickingBuilder(builder: (context, time) {
+                        return SnapshotWidget(
+                            controller: snapshotController.value,
+                            painter: GlitchSnapshotPainter(
+                                time: time, program: programs.ui),
+                            child: textWidget);
+                      });
+              })),
+            ],
+          ),
+        ));
   }
 }
 

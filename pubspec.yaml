@@ -18,7 +18,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.12.0 <3.0.0"
+  sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
   flutter:
@@ -29,12 +29,12 @@ dependencies:
   url_launcher: ^6.0.9
   uni_links: ^0.5.1
   http: ^0.13.3
-  webview_flutter: ^2.0.10
+  webview_flutter: ^4.2.2
   webview_cookie_manager: ^2.0.1
   html: ^0.15.0
   flutter_hooks: ^0.18.0
-  flutter_baidu_mapapi_map: ^2.0.1
-  flutter_baidu_mapapi_search: ^2.0.1
+  flutter_baidu_mapapi_map: ^3.3.2
+  flutter_baidu_mapapi_search: ^3.3.2
   freezed_annotation: ^2.0.3
   geolocator: ^7.3.1
   grpc: ^3.0.0
@@ -66,6 +66,9 @@ flutter:
   uses-material-design: true
   assets:
     - images/
+    - app.config.json
+  shaders:
+    - shaders/ui_glitch.frag
   fonts:
     - family: iconfont
       fonts:

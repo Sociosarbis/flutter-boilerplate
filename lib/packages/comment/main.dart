@@ -144,7 +144,7 @@ class MainState extends State<Main> {
                         child: Center(
                       child: CircularProgressIndicator(
                           valueColor: AlwaysStoppedAnimation(
-                              Theme.of(context).accentColor)),
+                              Theme.of(context).colorScheme.secondary)),
                     ));
                   } else if (result.isNotLoading && model == null) {
                     model = (result.data!['episodeTopic']['comments']
