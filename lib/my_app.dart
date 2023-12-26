@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_boilerplate/assets.dart';
+import 'package:flutter_boilerplate/components/anime_image_view.dart';
 import 'package:flutter_boilerplate/models/config/app.dart';
 import 'package:flutter_boilerplate/utils/snapshot_painters.dart';
 import 'package:flutter_boilerplate/utils/ticking_builder.dart';
@@ -311,6 +312,14 @@ class Main extends HookWidget {
                             child: textWidget);
                       });
               })),
+              const Center(
+                  child: SizedBox(
+                      height: 200,
+                      child: AnimeImageView(
+                        "https://lain.bgm.tv/r/400/pic/cover/l/13/c5/400602_ZI8Y9.jpg",
+                        attention: 20155,
+                        title: "葬送のフリーレン",
+                      )))
             ],
           ),
         ));
