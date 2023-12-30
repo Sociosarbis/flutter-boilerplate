@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_boilerplate/assets.dart';
 import 'package:flutter_boilerplate/components/anime_image_view.dart';
 import 'package:flutter_boilerplate/models/config/app.dart';
+import 'package:flutter_boilerplate/theme/bgm.dart';
 import 'package:flutter_boilerplate/utils/snapshot_painters.dart';
 import 'package:flutter_boilerplate/utils/ticking_builder.dart';
 import 'package:provider/provider.dart';
@@ -139,7 +140,8 @@ class MyAppState extends State<MyApp> {
                 title: 'Welcome To Flutter',
                 theme: ThemeData(
                     colorScheme:
-                        theme.colorScheme.copyWith(secondary: Colors.red)),
+                        theme.colorScheme.copyWith(secondary: Colors.red),
+                    extensions: const [BgmThemeExtension()]),
                 debugShowCheckedModeBanner: false,
                 routeInformationParser: _appRouteInformationParser,
                 routerDelegate: _appRouterDelegate,
@@ -318,6 +320,7 @@ class Main extends HookWidget {
                       child: AnimeImageView(
                         "https://lain.bgm.tv/r/400/pic/cover/l/13/c5/400602_ZI8Y9.jpg",
                         attention: 20155,
+                        width: 120,
                         title: "葬送のフリーレン",
                       )))
             ],
