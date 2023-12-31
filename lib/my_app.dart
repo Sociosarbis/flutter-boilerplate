@@ -4,8 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_boilerplate/assets.dart';
 import 'package:flutter_boilerplate/components/anime_image_view.dart';
+import 'package:flutter_boilerplate/models/bgm/subject.dart';
 import 'package:flutter_boilerplate/models/config/app.dart';
+import 'package:flutter_boilerplate/services/bgm.dart';
 import 'package:flutter_boilerplate/theme/bgm.dart';
+import 'package:flutter_boilerplate/utils/android_stretch_scroll_behavior.dart';
 import 'package:flutter_boilerplate/utils/snapshot_painters.dart';
 import 'package:flutter_boilerplate/utils/ticking_builder.dart';
 import 'package:provider/provider.dart';
@@ -130,6 +133,7 @@ class MyAppState extends State<MyApp> {
               initialData: null),
           ChangeNotifierProvider.value(value: userStore!),
           Provider.value(value: bookServiceClient!),
+          Provider(create: (_) => const BgmService()),
           ValueListenableProvider.value(value: geolocatorManager!.position)
         ],
         builder: (context, widget) {
@@ -257,6 +261,18 @@ class Main extends HookWidget {
           onPress: () => goToDetails('/bgm/video'))
     ]);
 
+    final bgmService = Provider.of<BgmService>(context);
+    final weekday = DateTime.now().weekday - 1;
+    final _getCalendar = useMemoized(() {
+      return bgmService.getCalendar();
+    }, [weekday]);
+
+    useEffect(() {
+      return () {
+        _getCalendar.cancel();
+      };
+    }, []);
+
     final controller = useRef<ScrollController>(ScrollController());
     return WillPopScope(
         onWillPop: handleBackButtonPressed,
@@ -314,15 +330,33 @@ class Main extends HookWidget {
                             child: textWidget);
                       });
               })),
-              const Center(
-                  child: SizedBox(
-                      height: 200,
-                      child: AnimeImageView(
-                        "https://lain.bgm.tv/r/400/pic/cover/l/13/c5/400602_ZI8Y9.jpg",
-                        attention: 20155,
-                        width: 120,
-                        title: "葬送のフリーレン",
-                      )))
+              SizedBox(
+                  height: 200,
+                  child: FutureBuilder(
+                      future: _getCalendar,
+                      builder: (_, snapshot) {
+                        if (!snapshot.hasData ||
+                            weekday >= snapshot.data!.length) {
+                          return const SizedBox.shrink();
+                        }
+                        final items = snapshot.data![weekday].items;
+                        return ScrollConfiguration(
+                            behavior: AndroidStretchScrollBehavior(),
+                            child: ListView.separated(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 8),
+                              scrollDirection: Axis.horizontal,
+                              itemCount: 10,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(width: 8),
+                              itemBuilder: (_, i) => AnimeImageView(
+                                items[i].images?.tryGet(ImageSize.large) ?? "",
+                                attention: items[i].collection?.getFollow() ?? 0,
+                                width: 120,
+                                title: items[i].name,
+                              ),
+                            ));
+                      }))
             ],
           ),
         ));
