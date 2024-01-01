@@ -346,12 +346,14 @@ class Main extends HookWidget {
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 8),
                               scrollDirection: Axis.horizontal,
-                              itemCount: 10,
+                              itemCount: items.length,
+                              cacheExtent: (120 * items.length).toDouble(),
                               separatorBuilder: (_, __) =>
                                   const SizedBox(width: 8),
                               itemBuilder: (_, i) => AnimeImageView(
                                 items[i].images?.tryGet(ImageSize.large) ?? "",
-                                attention: items[i].collection?.getFollow() ?? 0,
+                                attention:
+                                    items[i].collection?.getFollow() ?? 0,
                                 width: 120,
                                 title: items[i].name,
                               ),
