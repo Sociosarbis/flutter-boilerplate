@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_boilerplate/models/bgm/res.dart';
+import 'package:flutter_boilerplate/utils/cache_disk_utils/cache_disk_utils.dart';
 
 final client = Dio(BaseOptions(
   baseUrl: "https://api.bgm.tv",
@@ -52,14 +53,20 @@ class CancellableFuture<T> implements Future<T> {
 class BgmService {
   const BgmService();
 
+  static const calendarCacheKey = "bgm_calendar";
+
   CancellableFuture<List<GetCalendarItem>> getCalendar() {
     return CancellableFuture<List<GetCalendarItem>>.fromFutureBuilder(
         (cancelToken) async {
       final res = await client.get("/calendar", cancelToken: cancelToken);
       if (res.data is List) {
-        return (res.data as List)
+        final ret = (res.data as List)
             .map((e) => GetCalendarItem.fromJson(e))
-            .toList();
+            .toList(growable: false);
+        CacheDiskUtils.getInstance().then((value) {
+          return value.put(calendarCacheKey, ret);
+        });
+        return ret;
       }
       return [];
     });

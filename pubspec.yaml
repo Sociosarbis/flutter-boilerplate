@@ -42,6 +42,7 @@ dependencies:
   grpc: ^3.0.0
   rust_sdk:
     path: ./packages/rust_sdk
+  synchronized: ^3.1.0+1
   path_provider: ^2.1.1
 
   # The following adds the Cupertino Icons font to your application.

@@ -4,11 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_boilerplate/assets.dart';
 import 'package:flutter_boilerplate/components/anime_image_view.dart';
+import 'package:flutter_boilerplate/components/future_cache_builder.dart';
+import 'package:flutter_boilerplate/models/bgm/res.dart';
 import 'package:flutter_boilerplate/models/bgm/subject.dart';
 import 'package:flutter_boilerplate/models/config/app.dart';
 import 'package:flutter_boilerplate/services/bgm.dart';
 import 'package:flutter_boilerplate/theme/bgm.dart';
 import 'package:flutter_boilerplate/utils/android_stretch_scroll_behavior.dart';
+import 'package:flutter_boilerplate/utils/cache_disk_utils/cache_disk_utils.dart';
 import 'package:flutter_boilerplate/utils/snapshot_painters.dart';
 import 'package:flutter_boilerplate/utils/ticking_builder.dart';
 import 'package:provider/provider.dart';
@@ -263,15 +266,6 @@ class Main extends HookWidget {
 
     final bgmService = Provider.of<BgmService>(context);
     final weekday = DateTime.now().weekday - 1;
-    final _getCalendar = useMemoized(() {
-      return bgmService.getCalendar();
-    }, [weekday]);
-
-    useEffect(() {
-      return () {
-        _getCalendar.cancel();
-      };
-    }, []);
 
     final controller = useRef<ScrollController>(ScrollController());
     return WillPopScope(
@@ -332,14 +326,28 @@ class Main extends HookWidget {
               })),
               SizedBox(
                   height: 200,
-                  child: FutureBuilder(
-                      future: _getCalendar,
-                      builder: (_, snapshot) {
-                        if (!snapshot.hasData ||
-                            weekday >= snapshot.data!.length) {
+                  child: FutureCacheBuilder(
+                      futureBuilder: () {
+                        return bgmService.getCalendar();
+                      },
+                      cacheBuilder: () {
+                        return CacheDiskUtils.getInstance()
+                            .then((value) =>
+                                value.getJSONArray(BgmService.calendarCacheKey))
+                            .then((value) => value
+                                ?.map((item) => GetCalendarItem.fromJson(item))
+                                .toList());
+                      },
+                      deps: [weekday],
+                      builder: (_, snapshot, cacheSnapshot) {
+                        final hasData = snapshot.hasData ||
+                            (cacheSnapshot.hasData &&
+                                cacheSnapshot.data != null);
+                        final data = snapshot.data ?? cacheSnapshot.data;
+                        if (!hasData || weekday >= data!.length) {
                           return const SizedBox.shrink();
                         }
-                        final items = snapshot.data![weekday].items;
+                        final items = data[weekday].items;
                         return ScrollConfiguration(
                             behavior: AndroidStretchScrollBehavior(),
                             child: ListView.separated(
