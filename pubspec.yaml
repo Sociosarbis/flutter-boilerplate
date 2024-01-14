@@ -34,6 +34,7 @@ dependencies:
   webview_flutter: ^4.2.2
   webview_cookie_manager: ^2.0.1
   html: ^0.15.0
+  flutter_animate: ^4.4.0
   flutter_hooks: ^0.18.0
   flutter_baidu_mapapi_map: ^3.3.2
   flutter_baidu_mapapi_search: ^3.3.2

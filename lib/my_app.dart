@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_boilerplate/assets.dart';
 import 'package:flutter_boilerplate/components/anime_image_view.dart';
+import 'package:flutter_boilerplate/components/automatic_keep_alive_client.dart';
 import 'package:flutter_boilerplate/components/future_cache_builder.dart';
 import 'package:flutter_boilerplate/models/bgm/res.dart';
 import 'package:flutter_boilerplate/models/bgm/subject.dart';
@@ -29,6 +30,7 @@ import 'package:flutter_boilerplate/components/floating_roll_menu.dart';
 
 import 'package:flutter_boilerplate/protos/book/book.pbgrpc.dart';
 import 'env.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 class _FavoriteWidgetState extends State<FavoriteWidget> {
   bool _isFavorited = true;
@@ -355,16 +357,28 @@ class Main extends HookWidget {
                                   const EdgeInsets.symmetric(horizontal: 8),
                               scrollDirection: Axis.horizontal,
                               itemCount: items.length,
-                              cacheExtent: (120 * items.length).toDouble(),
+                              cacheExtent: 0,
                               separatorBuilder: (_, __) =>
                                   const SizedBox(width: 8),
-                              itemBuilder: (_, i) => AnimeImageView(
-                                items[i].images?.tryGet(ImageSize.large) ?? "",
-                                attention:
-                                    items[i].collection?.getFollow() ?? 0,
-                                width: 120,
-                                title: items[i].name,
-                              ),
+                              itemBuilder: (_, i) {
+                                return AutomaticKeepAliveClient(
+                                    keepAlive: true,
+                                    child: AnimeImageView(
+                                      items[i]
+                                              .images
+                                              ?.tryGet(ImageSize.large) ??
+                                          "",
+                                      attention:
+                                          items[i].collection?.getFollow() ?? 0,
+                                      width: 120,
+                                      title: items[i].name,
+                                    ).animate().scaleXY(
+                                        begin: 0.5,
+                                        end: 1,
+                                        duration:
+                                            const Duration(milliseconds: 300),
+                                        curve: Curves.easeOut));
+                              },
                             ));
                       }))
             ],
