@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_boilerplate/assets.dart';
 import 'package:flutter_boilerplate/components/anime_image_view.dart';
 import 'package:flutter_boilerplate/components/automatic_keep_alive_client.dart';
+import 'package:flutter_boilerplate/components/custom_map.dart';
 import 'package:flutter_boilerplate/components/future_cache_builder.dart';
 import 'package:flutter_boilerplate/models/bgm/res.dart';
 import 'package:flutter_boilerplate/models/bgm/subject.dart';
@@ -380,7 +381,8 @@ class Main extends HookWidget {
                                         curve: Curves.easeOut));
                               },
                             ));
-                      }))
+                      })),
+              const SizedBox(height: 500, child: CustomMap())
             ],
           ),
         ));
