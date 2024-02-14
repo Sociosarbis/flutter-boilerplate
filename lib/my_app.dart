@@ -5,8 +5,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_boilerplate/assets.dart';
 import 'package:flutter_boilerplate/components/anime_image_view.dart';
 import 'package:flutter_boilerplate/components/automatic_keep_alive_client.dart';
-import 'package:flutter_boilerplate/components/custom_map.dart';
 import 'package:flutter_boilerplate/components/future_cache_builder.dart';
+import 'package:flutter_boilerplate/components/load_more.dart';
+import 'package:flutter_boilerplate/components/swipe_to_refresh.dart';
 import 'package:flutter_boilerplate/models/bgm/res.dart';
 import 'package:flutter_boilerplate/models/bgm/subject.dart';
 import 'package:flutter_boilerplate/models/config/app.dart';
@@ -292,7 +293,13 @@ class Main extends HookWidget {
           floatingActionButton: FloatingRollMenu(
             onSelect: goToDetails,
           ),
-          body: ListView(
+          body: SwipeToRefresh(
+              initRefresh: false,
+              onRefresh: () async {
+                return Future.delayed(const Duration(seconds: 3));
+              },
+              child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
             controller: controller.value,
             children: [
               buttonSection,
@@ -382,9 +389,9 @@ class Main extends HookWidget {
                               },
                             ));
                       })),
-              const SizedBox(height: 500, child: CustomMap())
+            const LoadMore()
             ],
-          ),
+          )),
         ));
   }
 }

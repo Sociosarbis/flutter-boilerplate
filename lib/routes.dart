@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_boilerplate/packages/map/map_page.dart';
 import 'components/router/lib.dart';
 import 'packages/features/physis_animation.dart' as PhysisAnimation;
 import 'packages/features/animated_container.dart' as AnimatedContainer;
@@ -91,4 +92,5 @@ final routes = [
       path: '/weather',
       pageSettings: slidePageSettings,
       builder: () => WeatherPage()),
+  AppRoute(path: "/map", pageSettings: slidePageSettings, builder: () => const MapPage())
 ];
