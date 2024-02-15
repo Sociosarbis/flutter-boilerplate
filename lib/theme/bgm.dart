@@ -6,6 +6,7 @@ class BgmThemeExtension extends ThemeExtension<BgmThemeExtension> {
   final Color selectableItemBackground;
   final Color mdThemeLightSurface;
   final Color mdThemeLightPrimary;
+  final Color darkerGrey;
 
   const BgmThemeExtension(
       {this.shapeOverMask = const LinearGradient(
@@ -15,7 +16,8 @@ class BgmThemeExtension extends ThemeExtension<BgmThemeExtension> {
       this.imageCornerSmall = const BorderRadius.all(Radius.circular(4)),
       this.selectableItemBackground = const Color(0x0e010103),
       this.mdThemeLightSurface = const Color(0xffFFFBFF),
-      this.mdThemeLightPrimary = const Color(0xffA23760)});
+      this.mdThemeLightPrimary = const Color(0xffA23760),
+      this.darkerGrey = const Color(0xffaaaaaa)});
 
   Color get colorSurface {
     return mdThemeLightSurface;

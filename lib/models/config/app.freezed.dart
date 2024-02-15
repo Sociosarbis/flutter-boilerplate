@@ -24,6 +24,8 @@ mixin _$AppConfig {
   String get githubClientId => throw _privateConstructorUsedError;
   @JsonKey(name: "github_client_secret")
   String get githubCientSecret => throw _privateConstructorUsedError;
+  @JsonKey(name: "bgm_personal_access_token")
+  String get bgmPersonalAccessToken => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -37,8 +39,12 @@ abstract class $AppConfigCopyWith<$Res> {
       _$AppConfigCopyWithImpl<$Res, AppConfig>;
   @useResult
   $Res call(
-      {@JsonKey(name: "github_client_id") String githubClientId,
-      @JsonKey(name: "github_client_secret") String githubCientSecret});
+      {@JsonKey(name: "github_client_id")
+          String githubClientId,
+      @JsonKey(name: "github_client_secret")
+          String githubCientSecret,
+      @JsonKey(name: "bgm_personal_access_token")
+          String bgmPersonalAccessToken});
 }
 
 /// @nodoc
@@ -56,6 +62,7 @@ class _$AppConfigCopyWithImpl<$Res, $Val extends AppConfig>
   $Res call({
     Object? githubClientId = null,
     Object? githubCientSecret = null,
+    Object? bgmPersonalAccessToken = null,
   }) {
     return _then(_value.copyWith(
       githubClientId: null == githubClientId
@@ -65,6 +72,10 @@ class _$AppConfigCopyWithImpl<$Res, $Val extends AppConfig>
       githubCientSecret: null == githubCientSecret
           ? _value.githubCientSecret
           : githubCientSecret // ignore: cast_nullable_to_non_nullable
+              as String,
+      bgmPersonalAccessToken: null == bgmPersonalAccessToken
+          ? _value.bgmPersonalAccessToken
+          : bgmPersonalAccessToken // ignore: cast_nullable_to_non_nullable
               as String,
     ) as $Val);
   }
@@ -78,8 +89,12 @@ abstract class _$$_AppConfigCopyWith<$Res> implements $AppConfigCopyWith<$Res> {
   @override
   @useResult
   $Res call(
-      {@JsonKey(name: "github_client_id") String githubClientId,
-      @JsonKey(name: "github_client_secret") String githubCientSecret});
+      {@JsonKey(name: "github_client_id")
+          String githubClientId,
+      @JsonKey(name: "github_client_secret")
+          String githubCientSecret,
+      @JsonKey(name: "bgm_personal_access_token")
+          String bgmPersonalAccessToken});
 }
 
 /// @nodoc
@@ -95,6 +110,7 @@ class __$$_AppConfigCopyWithImpl<$Res>
   $Res call({
     Object? githubClientId = null,
     Object? githubCientSecret = null,
+    Object? bgmPersonalAccessToken = null,
   }) {
     return _then(_$_AppConfig(
       githubClientId: null == githubClientId
@@ -105,6 +121,10 @@ class __$$_AppConfigCopyWithImpl<$Res>
           ? _value.githubCientSecret
           : githubCientSecret // ignore: cast_nullable_to_non_nullable
               as String,
+      bgmPersonalAccessToken: null == bgmPersonalAccessToken
+          ? _value.bgmPersonalAccessToken
+          : bgmPersonalAccessToken // ignore: cast_nullable_to_non_nullable
+              as String,
     ));
   }
 }
@@ -113,8 +133,12 @@ class __$$_AppConfigCopyWithImpl<$Res>
 @JsonSerializable()
 class _$_AppConfig implements _AppConfig {
   const _$_AppConfig(
-      {@JsonKey(name: "github_client_id") required this.githubClientId,
-      @JsonKey(name: "github_client_secret") required this.githubCientSecret});
+      {@JsonKey(name: "github_client_id")
+          required this.githubClientId,
+      @JsonKey(name: "github_client_secret")
+          required this.githubCientSecret,
+      @JsonKey(name: "bgm_personal_access_token")
+          required this.bgmPersonalAccessToken});
 
   factory _$_AppConfig.fromJson(Map<String, dynamic> json) =>
       _$$_AppConfigFromJson(json);
@@ -125,10 +149,13 @@ class _$_AppConfig implements _AppConfig {
   @override
   @JsonKey(name: "github_client_secret")
   final String githubCientSecret;
+  @override
+  @JsonKey(name: "bgm_personal_access_token")
+  final String bgmPersonalAccessToken;
 
   @override
   String toString() {
-    return 'AppConfig(githubClientId: $githubClientId, githubCientSecret: $githubCientSecret)';
+    return 'AppConfig(githubClientId: $githubClientId, githubCientSecret: $githubCientSecret, bgmPersonalAccessToken: $bgmPersonalAccessToken)';
   }
 
   @override
@@ -139,13 +166,15 @@ class _$_AppConfig implements _AppConfig {
             (identical(other.githubClientId, githubClientId) ||
                 other.githubClientId == githubClientId) &&
             (identical(other.githubCientSecret, githubCientSecret) ||
-                other.githubCientSecret == githubCientSecret));
+                other.githubCientSecret == githubCientSecret) &&
+            (identical(other.bgmPersonalAccessToken, bgmPersonalAccessToken) ||
+                other.bgmPersonalAccessToken == bgmPersonalAccessToken));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, githubClientId, githubCientSecret);
+  int get hashCode => Object.hash(
+      runtimeType, githubClientId, githubCientSecret, bgmPersonalAccessToken);
 
   @JsonKey(ignore: true)
   @override
@@ -166,7 +195,9 @@ abstract class _AppConfig implements AppConfig {
       {@JsonKey(name: "github_client_id")
           required final String githubClientId,
       @JsonKey(name: "github_client_secret")
-          required final String githubCientSecret}) = _$_AppConfig;
+          required final String githubCientSecret,
+      @JsonKey(name: "bgm_personal_access_token")
+          required final String bgmPersonalAccessToken}) = _$_AppConfig;
 
   factory _AppConfig.fromJson(Map<String, dynamic> json) =
       _$_AppConfig.fromJson;
@@ -177,6 +208,9 @@ abstract class _AppConfig implements AppConfig {
   @override
   @JsonKey(name: "github_client_secret")
   String get githubCientSecret;
+  @override
+  @JsonKey(name: "bgm_personal_access_token")
+  String get bgmPersonalAccessToken;
   @override
   @JsonKey(ignore: true)
   _$$_AppConfigCopyWith<_$_AppConfig> get copyWith =>

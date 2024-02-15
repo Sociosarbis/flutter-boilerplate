@@ -2,11 +2,8 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_boilerplate/models/bgm/res.dart';
+import 'package:flutter_boilerplate/models/bgm/subject.dart';
 import 'package:flutter_boilerplate/utils/cache_disk_utils/cache_disk_utils.dart';
-
-final client = Dio(BaseOptions(
-  baseUrl: "https://api.bgm.tv",
-));
 
 class CancellableFuture<T> implements Future<T> {
   final Future<T> _fut;
@@ -51,7 +48,18 @@ class CancellableFuture<T> implements Future<T> {
 }
 
 class BgmService {
-  const BgmService();
+  late final Dio client;
+  BgmService({required String personalAccessToken}) {
+    client = Dio(BaseOptions(
+      baseUrl: "https://api.bgm.tv",
+    ))
+      ..interceptors.add(InterceptorsWrapper(
+        onRequest: (options, handler) {
+          options.headers["Authorization"] = "Bearer $personalAccessToken";
+          handler.next(options);
+        },
+      ));
+  }
 
   static const calendarCacheKey = "bgm_calendar";
 
@@ -69,6 +77,29 @@ class BgmService {
         return ret;
       }
       return [];
+    });
+  }
+
+  CancellableFuture<PagedResponse<Subject>> searchSubjects(
+      {required int offset,
+      required int limit,
+      String? sort,
+      List<int>? types}) {
+    return CancellableFuture<PagedResponse<Subject>>.fromFutureBuilder(
+        (cancelToken) async {
+      final res = await client.post("/v0/search/subjects",
+          data: {
+            "nsfw": true,
+            "sort": sort,
+            "filter": {
+              "type": types,
+              "rank": [">0"]
+            }
+          },
+          queryParameters: {"offset": offset, "limit": limit},
+          cancelToken: cancelToken);
+      return PagedResponse<Subject>.fromJson(
+          res.data, (p0) => Subject.fromJson(p0 as Map<String, dynamic>));
     });
   }
 }

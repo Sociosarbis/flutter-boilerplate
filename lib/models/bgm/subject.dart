@@ -1,6 +1,7 @@
-import 'package:json_annotation/json_annotation.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'subject.g.dart';
+part 'subject.freezed.dart';
 
 enum ImageSize { large, medium, common, small, grid }
 
@@ -90,4 +91,31 @@ class LegacySubjectSmall {
       _$LegacySubjectSmallFromJson(json);
 
   Map<String, dynamic> toJson() => _$LegacySubjectSmallToJson(this);
+}
+
+@freezed
+class Subject with _$Subject {
+  const factory Subject(
+      {required int id,
+      required int type,
+      required String name,
+      required String date,
+      @JsonKey(name: "name_cn") required String nameCN,
+      required int rank,
+      required double score}) = _Subject;
+
+  factory Subject.fromJson(Map<String, dynamic> json) =>
+      _$SubjectFromJson(json);
+}
+
+@Freezed(genericArgumentFactories: true)
+class PagedResponse<T> with _$PagedResponse<T> {
+  const factory PagedResponse(
+      {required int total,
+      required int limit,
+      required int offset,
+      required List<T> data}) = _PagedResponse;
+
+  factory PagedResponse.fromJson(Map<String, dynamic> json, T Function(Object?) fromJsonT) =>
+      _$PagedResponseFromJson(json, fromJsonT);
 }

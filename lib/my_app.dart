@@ -11,6 +11,7 @@ import 'package:flutter_boilerplate/components/swipe_to_refresh.dart';
 import 'package:flutter_boilerplate/models/bgm/res.dart';
 import 'package:flutter_boilerplate/models/bgm/subject.dart';
 import 'package:flutter_boilerplate/models/config/app.dart';
+import 'package:flutter_boilerplate/models/paged_data.dart';
 import 'package:flutter_boilerplate/services/bgm.dart';
 import 'package:flutter_boilerplate/theme/bgm.dart';
 import 'package:flutter_boilerplate/utils/android_stretch_scroll_behavior.dart';
@@ -127,7 +128,7 @@ class MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MultiProvider(
         providers: [
-          FutureProvider<AppConfig?>(
+          FutureProvider(
             create: (context) async {
               return AppConfig.init();
             },
@@ -140,23 +141,30 @@ class MyAppState extends State<MyApp> {
               initialData: null),
           ChangeNotifierProvider.value(value: userStore!),
           Provider.value(value: bookServiceClient!),
-          Provider(create: (_) => const BgmService()),
           ValueListenableProvider.value(value: geolocatorManager!.position)
         ],
         builder: (context, widget) {
           final theme = ThemeData();
-          return GraphQLProvider(
-              client: client!,
-              child: MaterialApp.router(
-                title: 'Welcome To Flutter',
-                theme: ThemeData(
-                    colorScheme:
-                        theme.colorScheme.copyWith(secondary: Colors.red),
-                    extensions: const [BgmThemeExtension()]),
-                debugShowCheckedModeBanner: false,
-                routeInformationParser: _appRouteInformationParser,
-                routerDelegate: _appRouterDelegate,
-              ));
+          return ProxyProvider<AppConfig?, BgmService?>(
+              update: (context, _, __) {
+                final config = context.watch<AppConfig?>();
+                return config == null
+                    ? null
+                    : BgmService(
+                        personalAccessToken: config.bgmPersonalAccessToken);
+              },
+              child: GraphQLProvider(
+                  client: client!,
+                  child: MaterialApp.router(
+                    title: 'Welcome To Flutter',
+                    theme: ThemeData(
+                        colorScheme:
+                            theme.colorScheme.copyWith(secondary: Colors.red),
+                        extensions: const [BgmThemeExtension()]),
+                    debugShowCheckedModeBanner: false,
+                    routeInformationParser: _appRouteInformationParser,
+                    routerDelegate: _appRouterDelegate,
+                  )));
         });
   }
 }
@@ -202,6 +210,11 @@ Future<bool> Function() useBackButtonPressed() {
     });
     return await completer.future;
   }, [context]);
+}
+
+ValueNotifier<PagedData<T>> usePagedData<T>({required int pageSize}) {
+  final data = useState(PagedData(pageSize: pageSize, data: <T>[]));
+  return data;
 }
 
 class Main extends HookWidget {
@@ -268,9 +281,9 @@ class Main extends HookWidget {
           onPress: () => goToDetails('/bgm/video'))
     ]);
 
-    final bgmService = Provider.of<BgmService>(context);
+    final bgmService = Provider.of<BgmService?>(context);
     final weekday = DateTime.now().weekday - 1;
-
+    final subjectList = usePagedData<Subject>(pageSize: 20);
     final controller = useRef<ScrollController>(ScrollController());
     return WillPopScope(
         onWillPop: handleBackButtonPressed,
@@ -293,105 +306,127 @@ class Main extends HookWidget {
           floatingActionButton: FloatingRollMenu(
             onSelect: goToDetails,
           ),
-          body: SwipeToRefresh(
-              initRefresh: false,
-              onRefresh: () async {
-                return Future.delayed(const Duration(seconds: 3));
-              },
-              child: ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            controller: controller.value,
-            children: [
-              buttonSection,
-              ElevatedButton(
-                  onPressed: () {
-                    routerContext.to('/bgm/login');
+          body: bgmService != null
+              ? SwipeToRefresh(
+                  initRefresh: false,
+                  onRefresh: () async {
+                    return Future.delayed(const Duration(seconds: 3));
                   },
-                  child: const Text('BGM Login')),
-              ElevatedButton(
-                  onPressed: () {
-                    !isServiceRunning.value ? startService() : stopService();
-                    isServiceRunning.value = !isServiceRunning.value;
-                  },
-                  child: Text(
-                      '${isServiceRunning.value ? 'running' : 'stopped'} (${counter.value})')),
-              ElevatedButton(onPressed: () async {
-                final res = await bookServiceClient.createBook(Book(
-                    isbn: "0-670-81302-9",
-                    title: "白銀の墟　玄の月　第一巻　十二国記 (新潮文庫)",
-                    author: Author(firstName: "不由美", lastName: "小野")));
-                print(res);
-              }, child: Consumer<FragmentPrograms?>(
-                  builder: (context, programs, chlid) {
-                const textWidget = Text('call grpc');
-                return programs == null
-                    ? textWidget
-                    : TickingBuilder(builder: (context, time) {
-                        return SnapshotWidget(
-                            controller: snapshotController.value,
-                            painter: GlitchSnapshotPainter(
-                                time: time, program: programs.ui),
-                            child: textWidget);
-                      });
-              })),
-              SizedBox(
-                  height: 200,
-                  child: FutureCacheBuilder(
-                      futureBuilder: () {
-                        return bgmService.getCalendar();
+                  child: LoadMore(
+                      onLoad: () async {
+                        final res = await bgmService.searchSubjects(
+                            offset: (subjectList.value.getNextPage() - 1) * 20,
+                            limit: 20,
+                            types: [2],
+                            sort: "rank");
+                        subjectList.value = subjectList.value.addPage(res.data);
+                        return subjectList.value.data.length >= res.total;
                       },
-                      cacheBuilder: () {
-                        return CacheDiskUtils.getInstance()
-                            .then((value) =>
-                                value.getJSONArray(BgmService.calendarCacheKey))
-                            .then((value) => value
-                                ?.map((item) => GetCalendarItem.fromJson(item))
-                                .toList());
-                      },
-                      deps: [weekday],
-                      builder: (_, snapshot, cacheSnapshot) {
-                        final hasData = snapshot.hasData ||
-                            (cacheSnapshot.hasData &&
-                                cacheSnapshot.data != null);
-                        final data = snapshot.data ?? cacheSnapshot.data;
-                        if (!hasData || weekday >= data!.length) {
-                          return const SizedBox.shrink();
-                        }
-                        final items = data[weekday].items;
-                        return ScrollConfiguration(
-                            behavior: AndroidStretchScrollBehavior(),
-                            child: ListView.separated(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 8),
-                              scrollDirection: Axis.horizontal,
-                              itemCount: items.length,
-                              cacheExtent: 0,
-                              separatorBuilder: (_, __) =>
-                                  const SizedBox(width: 8),
-                              itemBuilder: (_, i) {
-                                return AutomaticKeepAliveClient(
-                                    keepAlive: true,
-                                    child: AnimeImageView(
-                                      items[i]
-                                              .images
-                                              ?.tryGet(ImageSize.large) ??
-                                          "",
-                                      attention:
-                                          items[i].collection?.getFollow() ?? 0,
-                                      width: 120,
-                                      title: items[i].name,
-                                    ).animate().scaleXY(
-                                        begin: 0.5,
-                                        end: 1,
-                                        duration:
-                                            const Duration(milliseconds: 300),
-                                        curve: Curves.easeOut));
+                      child: ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        controller: controller.value,
+                        children: [
+                          buttonSection,
+                          ElevatedButton(
+                              onPressed: () {
+                                routerContext.to('/bgm/login');
                               },
-                            ));
-                      })),
-            const LoadMore()
-            ],
-          )),
+                              child: const Text('BGM Login')),
+                          ElevatedButton(
+                              onPressed: () {
+                                !isServiceRunning.value
+                                    ? startService()
+                                    : stopService();
+                                isServiceRunning.value =
+                                    !isServiceRunning.value;
+                              },
+                              child: Text(
+                                  '${isServiceRunning.value ? 'running' : 'stopped'} (${counter.value})')),
+                          ElevatedButton(onPressed: () async {
+                            final res = await bookServiceClient.createBook(Book(
+                                isbn: "0-670-81302-9",
+                                title: "白銀の墟　玄の月　第一巻　十二国記 (新潮文庫)",
+                                author:
+                                    Author(firstName: "不由美", lastName: "小野")));
+                            print(res);
+                          }, child: Consumer<FragmentPrograms?>(
+                              builder: (context, programs, chlid) {
+                            const textWidget = Text('call grpc');
+                            return programs == null
+                                ? textWidget
+                                : TickingBuilder(builder: (context, time) {
+                                    return SnapshotWidget(
+                                        controller: snapshotController.value,
+                                        painter: GlitchSnapshotPainter(
+                                            time: time, program: programs.ui),
+                                        child: textWidget);
+                                  });
+                          })),
+                          SizedBox(
+                              height: 200,
+                              child: FutureCacheBuilder(
+                                  futureBuilder: () {
+                                    return bgmService.getCalendar();
+                                  },
+                                  cacheBuilder: () {
+                                    return CacheDiskUtils.getInstance()
+                                        .then((value) => value.getJSONArray(
+                                            BgmService.calendarCacheKey))
+                                        .then((value) => value
+                                            ?.map((item) =>
+                                                GetCalendarItem.fromJson(item))
+                                            .toList());
+                                  },
+                                  deps: [weekday],
+                                  builder: (_, snapshot, cacheSnapshot) {
+                                    final hasData = snapshot.hasData ||
+                                        (cacheSnapshot.hasData &&
+                                            cacheSnapshot.data != null);
+                                    final data =
+                                        snapshot.data ?? cacheSnapshot.data;
+                                    if (!hasData || weekday >= data!.length) {
+                                      return const SizedBox.shrink();
+                                    }
+                                    final items = data[weekday].items;
+                                    return ScrollConfiguration(
+                                        behavior:
+                                            AndroidStretchScrollBehavior(),
+                                        child: ListView.separated(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8),
+                                          scrollDirection: Axis.horizontal,
+                                          itemCount: items.length,
+                                          cacheExtent: 0,
+                                          separatorBuilder: (_, __) =>
+                                              const SizedBox(width: 8),
+                                          itemBuilder: (_, i) {
+                                            return AutomaticKeepAliveClient(
+                                                keepAlive: true,
+                                                child: AnimeImageView(
+                                                  items[i].images?.tryGet(
+                                                          ImageSize.large) ??
+                                                      "",
+                                                  attention: items[i]
+                                                          .collection
+                                                          ?.getFollow() ??
+                                                      0,
+                                                  width: 120,
+                                                  title: items[i].name,
+                                                ).animate().scaleXY(
+                                                    begin: 0.5,
+                                                    end: 1,
+                                                    duration: const Duration(
+                                                        milliseconds: 300),
+                                                    curve: Curves.easeOut));
+                                          },
+                                        ));
+                                  })),
+                          const SizedBox(
+                            height: 500,
+                          ),
+                        ],
+                      )))
+              : null,
         ));
   }
 }
