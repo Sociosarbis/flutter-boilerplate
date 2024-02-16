@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:flutter_boilerplate/models/bgm/paged_response.dart';
 import 'package:flutter_boilerplate/models/bgm/res.dart';
 import 'package:flutter_boilerplate/models/bgm/subject.dart';
 import 'package:flutter_boilerplate/utils/cache_disk_utils/cache_disk_utils.dart';

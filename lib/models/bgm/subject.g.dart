@@ -94,6 +94,7 @@ _$_Subject _$$_SubjectFromJson(Map<String, dynamic> json) => _$_Subject(
       type: json['type'] as int,
       name: json['name'] as String,
       date: json['date'] as String,
+      image: json['image'] as String,
       nameCN: json['name_cn'] as String,
       rank: json['rank'] as int,
       score: (json['score'] as num).toDouble(),
@@ -105,29 +106,8 @@ Map<String, dynamic> _$$_SubjectToJson(_$_Subject instance) =>
       'type': instance.type,
       'name': instance.name,
       'date': instance.date,
+      'image': instance.image,
       'name_cn': instance.nameCN,
       'rank': instance.rank,
       'score': instance.score,
-    };
-
-_$_PagedResponse<T> _$$_PagedResponseFromJson<T>(
-  Map<String, dynamic> json,
-  T Function(Object? json) fromJsonT,
-) =>
-    _$_PagedResponse<T>(
-      total: json['total'] as int,
-      limit: json['limit'] as int,
-      offset: json['offset'] as int,
-      data: (json['data'] as List<dynamic>).map(fromJsonT).toList(),
-    );
-
-Map<String, dynamic> _$$_PagedResponseToJson<T>(
-  _$_PagedResponse<T> instance,
-  Object? Function(T value) toJsonT,
-) =>
-    <String, dynamic>{
-      'total': instance.total,
-      'limit': instance.limit,
-      'offset': instance.offset,
-      'data': instance.data.map(toJsonT).toList(),
     };

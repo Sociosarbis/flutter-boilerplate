@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 class BgmThemeExtension extends ThemeExtension<BgmThemeExtension> {
   final BorderRadius imageCornerSmall;
+  final Radius uiLayoutRadius;
   final LinearGradient shapeOverMask;
   final Color selectableItemBackground;
   final Color mdThemeLightSurface;
@@ -14,6 +15,7 @@ class BgmThemeExtension extends ThemeExtension<BgmThemeExtension> {
           end: Alignment.topCenter,
           colors: [Color.fromARGB(204, 0, 0, 0), Color.fromARGB(51, 0, 0, 0)]),
       this.imageCornerSmall = const BorderRadius.all(Radius.circular(4)),
+      this.uiLayoutRadius = const Radius.circular(6),
       this.selectableItemBackground = const Color(0x0e010103),
       this.mdThemeLightSurface = const Color(0xffFFFBFF),
       this.mdThemeLightPrimary = const Color(0xffA23760),

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_boilerplate/assets.dart';
 import 'package:flutter_boilerplate/components/anime_image_view.dart';
+import 'package:flutter_boilerplate/components/auto_height_sliver_grid.dart';
 import 'package:flutter_boilerplate/components/automatic_keep_alive_client.dart';
 import 'package:flutter_boilerplate/components/future_cache_builder.dart';
 import 'package:flutter_boilerplate/components/load_more.dart';
@@ -283,7 +284,7 @@ class Main extends HookWidget {
 
     final bgmService = Provider.of<BgmService?>(context);
     final weekday = DateTime.now().weekday - 1;
-    final subjectList = usePagedData<Subject>(pageSize: 20);
+    final subjectList = usePagedData<Subject>(pageSize: 21);
     final controller = useRef<ScrollController>(ScrollController());
     return WillPopScope(
         onWillPop: handleBackButtonPressed,
@@ -315,115 +316,169 @@ class Main extends HookWidget {
                   child: LoadMore(
                       onLoad: () async {
                         final res = await bgmService.searchSubjects(
-                            offset: (subjectList.value.getNextPage() - 1) * 20,
-                            limit: 20,
+                            offset: (subjectList.value.getNextPage() - 1) *
+                                subjectList.value.pageSize,
+                            limit: subjectList.value.pageSize,
                             types: [2],
                             sort: "rank");
                         subjectList.value = subjectList.value.addPage(res.data);
                         return subjectList.value.data.length >= res.total;
                       },
-                      child: ListView(
+                      child: CustomScrollView(
                         physics: const AlwaysScrollableScrollPhysics(),
                         controller: controller.value,
-                        children: [
-                          buttonSection,
-                          ElevatedButton(
-                              onPressed: () {
-                                routerContext.to('/bgm/login');
-                              },
-                              child: const Text('BGM Login')),
-                          ElevatedButton(
-                              onPressed: () {
-                                !isServiceRunning.value
-                                    ? startService()
-                                    : stopService();
-                                isServiceRunning.value =
-                                    !isServiceRunning.value;
-                              },
-                              child: Text(
-                                  '${isServiceRunning.value ? 'running' : 'stopped'} (${counter.value})')),
-                          ElevatedButton(onPressed: () async {
-                            final res = await bookServiceClient.createBook(Book(
-                                isbn: "0-670-81302-9",
-                                title: "白銀の墟　玄の月　第一巻　十二国記 (新潮文庫)",
-                                author:
-                                    Author(firstName: "不由美", lastName: "小野")));
-                            print(res);
-                          }, child: Consumer<FragmentPrograms?>(
-                              builder: (context, programs, chlid) {
-                            const textWidget = Text('call grpc');
-                            return programs == null
-                                ? textWidget
-                                : TickingBuilder(builder: (context, time) {
-                                    return SnapshotWidget(
-                                        controller: snapshotController.value,
-                                        painter: GlitchSnapshotPainter(
-                                            time: time, program: programs.ui),
-                                        child: textWidget);
-                                  });
-                          })),
-                          SizedBox(
-                              height: 200,
-                              child: FutureCacheBuilder(
-                                  futureBuilder: () {
-                                    return bgmService.getCalendar();
+                        slivers: [
+                          SliverToBoxAdapter(
+                              child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              buttonSection,
+                              ElevatedButton(
+                                  onPressed: () {
+                                    routerContext.to('/bgm/login');
                                   },
-                                  cacheBuilder: () {
-                                    return CacheDiskUtils.getInstance()
-                                        .then((value) => value.getJSONArray(
-                                            BgmService.calendarCacheKey))
-                                        .then((value) => value
-                                            ?.map((item) =>
-                                                GetCalendarItem.fromJson(item))
-                                            .toList());
+                                  child: const Text('BGM Login')),
+                              ElevatedButton(
+                                  onPressed: () {
+                                    !isServiceRunning.value
+                                        ? startService()
+                                        : stopService();
+                                    isServiceRunning.value =
+                                        !isServiceRunning.value;
                                   },
-                                  deps: [weekday],
-                                  builder: (_, snapshot, cacheSnapshot) {
-                                    final hasData = snapshot.hasData ||
-                                        (cacheSnapshot.hasData &&
-                                            cacheSnapshot.data != null);
-                                    final data =
-                                        snapshot.data ?? cacheSnapshot.data;
-                                    if (!hasData || weekday >= data!.length) {
-                                      return const SizedBox.shrink();
-                                    }
-                                    final items = data[weekday].items;
-                                    return ScrollConfiguration(
-                                        behavior:
-                                            AndroidStretchScrollBehavior(),
-                                        child: ListView.separated(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 8),
-                                          scrollDirection: Axis.horizontal,
-                                          itemCount: items.length,
-                                          cacheExtent: 0,
-                                          separatorBuilder: (_, __) =>
-                                              const SizedBox(width: 8),
-                                          itemBuilder: (_, i) {
-                                            return AutomaticKeepAliveClient(
-                                                keepAlive: true,
-                                                child: AnimeImageView(
-                                                  items[i].images?.tryGet(
-                                                          ImageSize.large) ??
-                                                      "",
-                                                  attention: items[i]
-                                                          .collection
-                                                          ?.getFollow() ??
-                                                      0,
-                                                  width: 120,
-                                                  title: items[i].name,
-                                                ).animate().scaleXY(
-                                                    begin: 0.5,
-                                                    end: 1,
-                                                    duration: const Duration(
-                                                        milliseconds: 300),
-                                                    curve: Curves.easeOut));
-                                          },
-                                        ));
-                                  })),
-                          const SizedBox(
-                            height: 500,
-                          ),
+                                  child: Text(
+                                      '${isServiceRunning.value ? 'running' : 'stopped'} (${counter.value})')),
+                              ElevatedButton(onPressed: () async {
+                                final res = await bookServiceClient.createBook(
+                                    Book(
+                                        isbn: "0-670-81302-9",
+                                        title: "白銀の墟　玄の月　第一巻　十二国記 (新潮文庫)",
+                                        author: Author(
+                                            firstName: "不由美", lastName: "小野")));
+                                print(res);
+                              }, child: Consumer<FragmentPrograms?>(
+                                  builder: (context, programs, chlid) {
+                                const textWidget = Text('call grpc');
+                                return programs == null
+                                    ? textWidget
+                                    : TickingBuilder(builder: (context, time) {
+                                        return SnapshotWidget(
+                                            controller:
+                                                snapshotController.value,
+                                            painter: GlitchSnapshotPainter(
+                                                time: time,
+                                                program: programs.ui),
+                                            child: textWidget);
+                                      });
+                              })),
+                              SizedBox(
+                                  height: 200,
+                                  child: FutureCacheBuilder(
+                                      futureBuilder: () {
+                                        return bgmService.getCalendar();
+                                      },
+                                      cacheBuilder: () {
+                                        return CacheDiskUtils.getInstance()
+                                            .then((value) => value.getJSONArray(
+                                                BgmService.calendarCacheKey))
+                                            .then((value) => value
+                                                ?.map((item) =>
+                                                    GetCalendarItem.fromJson(
+                                                        item))
+                                                .toList());
+                                      },
+                                      deps: [weekday],
+                                      builder: (_, snapshot, cacheSnapshot) {
+                                        final hasData = snapshot.hasData ||
+                                            (cacheSnapshot.hasData &&
+                                                cacheSnapshot.data != null);
+                                        final data =
+                                            snapshot.data ?? cacheSnapshot.data;
+                                        if (!hasData ||
+                                            weekday >= data!.length) {
+                                          return const SizedBox.shrink();
+                                        }
+                                        final items = data[weekday].items;
+                                        return ScrollConfiguration(
+                                            behavior:
+                                                AndroidStretchScrollBehavior(),
+                                            child: ListView.separated(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 8),
+                                              scrollDirection: Axis.horizontal,
+                                              itemCount: items.length,
+                                              cacheExtent: 0,
+                                              separatorBuilder: (_, __) =>
+                                                  const SizedBox(width: 8),
+                                              itemBuilder: (_, i) {
+                                                return AutomaticKeepAliveClient(
+                                                    keepAlive: true,
+                                                    child: HomeCardItem(
+                                                      items[i].images?.tryGet(
+                                                              ImageSize
+                                                                  .large) ??
+                                                          "",
+                                                      attention: items[i]
+                                                              .collection
+                                                              ?.getFollow() ??
+                                                          0,
+                                                      width: 120,
+                                                      title: items[i].name,
+                                                    ).animate().scaleXY(
+                                                        begin: 0.5,
+                                                        end: 1,
+                                                        duration:
+                                                            const Duration(
+                                                                milliseconds:
+                                                                    300),
+                                                        curve: Curves.easeOut));
+                                              },
+                                            ));
+                                      }))
+                            ],
+                          )),
+                          AutoHeightSliverGrid(
+                            crossAxisSpacing: 0,
+                            crossAxisCount: 3,
+                            mainAxisSpacing: 0,
+                            builder: (context, index) {
+                              final item = subjectList.value.data[index];
+                              final dateItems = item.date.split("-");
+                              return MediaPageItem(
+                                item.image,
+                                date: dateItems.length >= 2
+                                    ? "${dateItems[0]}年${dateItems[1]}月"
+                                    : "",
+                                title: item.name,
+                                score: item.score,
+                                rank: item.rank,
+                              );
+                            },
+                            itemCount: subjectList.value.data.length,
+                          )
+                          // AutoHeightGridView(
+                          //   shrinkWrap: true,
+                          //   crossAxisCount: 3,
+                          //   crossAxisSpacing: 0,
+                          //   mainAxisSpacing: 0,
+                          //   padding: EdgeInsets.zero,
+                          //   builder: (context, index) {
+                          //     final item = subjectList.value.data[index];
+                          //     final dateItems = item.date.split("-");
+                          //     return MediaPageItem(
+                          //       item.image,
+                          //       date: dateItems.length >= 2
+                          //           ? "${dateItems[0]}年${dateItems[1]}月"
+                          //           : "",
+                          //       title: item.name,
+                          //       score: item.score,
+                          //       rank: item.rank,
+                          //     );
+                          //   },
+                          //   itemCount: subjectList.value.data.length,
+                          //   physics: const NeverScrollableScrollPhysics(),
+                          // ),
                         ],
                       )))
               : null,

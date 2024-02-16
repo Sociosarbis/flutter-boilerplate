@@ -24,6 +24,7 @@ mixin _$Subject {
   int get type => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
   String get date => throw _privateConstructorUsedError;
+  String get image => throw _privateConstructorUsedError;
   @JsonKey(name: "name_cn")
   String get nameCN => throw _privateConstructorUsedError;
   int get rank => throw _privateConstructorUsedError;
@@ -44,6 +45,7 @@ abstract class $SubjectCopyWith<$Res> {
       int type,
       String name,
       String date,
+      String image,
       @JsonKey(name: "name_cn") String nameCN,
       int rank,
       double score});
@@ -66,6 +68,7 @@ class _$SubjectCopyWithImpl<$Res, $Val extends Subject>
     Object? type = null,
     Object? name = null,
     Object? date = null,
+    Object? image = null,
     Object? nameCN = null,
     Object? rank = null,
     Object? score = null,
@@ -86,6 +89,10 @@ class _$SubjectCopyWithImpl<$Res, $Val extends Subject>
       date: null == date
           ? _value.date
           : date // ignore: cast_nullable_to_non_nullable
+              as String,
+      image: null == image
+          ? _value.image
+          : image // ignore: cast_nullable_to_non_nullable
               as String,
       nameCN: null == nameCN
           ? _value.nameCN
@@ -115,6 +122,7 @@ abstract class _$$_SubjectCopyWith<$Res> implements $SubjectCopyWith<$Res> {
       int type,
       String name,
       String date,
+      String image,
       @JsonKey(name: "name_cn") String nameCN,
       int rank,
       double score});
@@ -134,6 +142,7 @@ class __$$_SubjectCopyWithImpl<$Res>
     Object? type = null,
     Object? name = null,
     Object? date = null,
+    Object? image = null,
     Object? nameCN = null,
     Object? rank = null,
     Object? score = null,
@@ -154,6 +163,10 @@ class __$$_SubjectCopyWithImpl<$Res>
       date: null == date
           ? _value.date
           : date // ignore: cast_nullable_to_non_nullable
+              as String,
+      image: null == image
+          ? _value.image
+          : image // ignore: cast_nullable_to_non_nullable
               as String,
       nameCN: null == nameCN
           ? _value.nameCN
@@ -179,6 +192,7 @@ class _$_Subject implements _Subject {
       required this.type,
       required this.name,
       required this.date,
+      required this.image,
       @JsonKey(name: "name_cn") required this.nameCN,
       required this.rank,
       required this.score});
@@ -195,6 +209,8 @@ class _$_Subject implements _Subject {
   @override
   final String date;
   @override
+  final String image;
+  @override
   @JsonKey(name: "name_cn")
   final String nameCN;
   @override
@@ -204,7 +220,7 @@ class _$_Subject implements _Subject {
 
   @override
   String toString() {
-    return 'Subject(id: $id, type: $type, name: $name, date: $date, nameCN: $nameCN, rank: $rank, score: $score)';
+    return 'Subject(id: $id, type: $type, name: $name, date: $date, image: $image, nameCN: $nameCN, rank: $rank, score: $score)';
   }
 
   @override
@@ -216,6 +232,7 @@ class _$_Subject implements _Subject {
             (identical(other.type, type) || other.type == type) &&
             (identical(other.name, name) || other.name == name) &&
             (identical(other.date, date) || other.date == date) &&
+            (identical(other.image, image) || other.image == image) &&
             (identical(other.nameCN, nameCN) || other.nameCN == nameCN) &&
             (identical(other.rank, rank) || other.rank == rank) &&
             (identical(other.score, score) || other.score == score));
@@ -223,8 +240,8 @@ class _$_Subject implements _Subject {
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, id, type, name, date, nameCN, rank, score);
+  int get hashCode => Object.hash(
+      runtimeType, id, type, name, date, image, nameCN, rank, score);
 
   @JsonKey(ignore: true)
   @override
@@ -246,6 +263,7 @@ abstract class _Subject implements Subject {
       required final int type,
       required final String name,
       required final String date,
+      required final String image,
       @JsonKey(name: "name_cn") required final String nameCN,
       required final int rank,
       required final double score}) = _$_Subject;
@@ -261,6 +279,8 @@ abstract class _Subject implements Subject {
   @override
   String get date;
   @override
+  String get image;
+  @override
   @JsonKey(name: "name_cn")
   String get nameCN;
   @override
@@ -270,206 +290,5 @@ abstract class _Subject implements Subject {
   @override
   @JsonKey(ignore: true)
   _$$_SubjectCopyWith<_$_Subject> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-PagedResponse<T> _$PagedResponseFromJson<T>(
-    Map<String, dynamic> json, T Function(Object?) fromJsonT) {
-  return _PagedResponse<T>.fromJson(json, fromJsonT);
-}
-
-/// @nodoc
-mixin _$PagedResponse<T> {
-  int get total => throw _privateConstructorUsedError;
-  int get limit => throw _privateConstructorUsedError;
-  int get offset => throw _privateConstructorUsedError;
-  List<T> get data => throw _privateConstructorUsedError;
-
-  Map<String, dynamic> toJson(Object? Function(T) toJsonT) =>
-      throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
-  $PagedResponseCopyWith<T, PagedResponse<T>> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $PagedResponseCopyWith<T, $Res> {
-  factory $PagedResponseCopyWith(
-          PagedResponse<T> value, $Res Function(PagedResponse<T>) then) =
-      _$PagedResponseCopyWithImpl<T, $Res, PagedResponse<T>>;
-  @useResult
-  $Res call({int total, int limit, int offset, List<T> data});
-}
-
-/// @nodoc
-class _$PagedResponseCopyWithImpl<T, $Res, $Val extends PagedResponse<T>>
-    implements $PagedResponseCopyWith<T, $Res> {
-  _$PagedResponseCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? total = null,
-    Object? limit = null,
-    Object? offset = null,
-    Object? data = null,
-  }) {
-    return _then(_value.copyWith(
-      total: null == total
-          ? _value.total
-          : total // ignore: cast_nullable_to_non_nullable
-              as int,
-      limit: null == limit
-          ? _value.limit
-          : limit // ignore: cast_nullable_to_non_nullable
-              as int,
-      offset: null == offset
-          ? _value.offset
-          : offset // ignore: cast_nullable_to_non_nullable
-              as int,
-      data: null == data
-          ? _value.data
-          : data // ignore: cast_nullable_to_non_nullable
-              as List<T>,
-    ) as $Val);
-  }
-}
-
-/// @nodoc
-abstract class _$$_PagedResponseCopyWith<T, $Res>
-    implements $PagedResponseCopyWith<T, $Res> {
-  factory _$$_PagedResponseCopyWith(
-          _$_PagedResponse<T> value, $Res Function(_$_PagedResponse<T>) then) =
-      __$$_PagedResponseCopyWithImpl<T, $Res>;
-  @override
-  @useResult
-  $Res call({int total, int limit, int offset, List<T> data});
-}
-
-/// @nodoc
-class __$$_PagedResponseCopyWithImpl<T, $Res>
-    extends _$PagedResponseCopyWithImpl<T, $Res, _$_PagedResponse<T>>
-    implements _$$_PagedResponseCopyWith<T, $Res> {
-  __$$_PagedResponseCopyWithImpl(
-      _$_PagedResponse<T> _value, $Res Function(_$_PagedResponse<T>) _then)
-      : super(_value, _then);
-
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? total = null,
-    Object? limit = null,
-    Object? offset = null,
-    Object? data = null,
-  }) {
-    return _then(_$_PagedResponse<T>(
-      total: null == total
-          ? _value.total
-          : total // ignore: cast_nullable_to_non_nullable
-              as int,
-      limit: null == limit
-          ? _value.limit
-          : limit // ignore: cast_nullable_to_non_nullable
-              as int,
-      offset: null == offset
-          ? _value.offset
-          : offset // ignore: cast_nullable_to_non_nullable
-              as int,
-      data: null == data
-          ? _value._data
-          : data // ignore: cast_nullable_to_non_nullable
-              as List<T>,
-    ));
-  }
-}
-
-/// @nodoc
-@JsonSerializable(genericArgumentFactories: true)
-class _$_PagedResponse<T> implements _PagedResponse<T> {
-  const _$_PagedResponse(
-      {required this.total,
-      required this.limit,
-      required this.offset,
-      required final List<T> data})
-      : _data = data;
-
-  factory _$_PagedResponse.fromJson(
-          Map<String, dynamic> json, T Function(Object?) fromJsonT) =>
-      _$$_PagedResponseFromJson(json, fromJsonT);
-
-  @override
-  final int total;
-  @override
-  final int limit;
-  @override
-  final int offset;
-  final List<T> _data;
-  @override
-  List<T> get data {
-    if (_data is EqualUnmodifiableListView) return _data;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_data);
-  }
-
-  @override
-  String toString() {
-    return 'PagedResponse<$T>(total: $total, limit: $limit, offset: $offset, data: $data)';
-  }
-
-  @override
-  bool operator ==(dynamic other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$_PagedResponse<T> &&
-            (identical(other.total, total) || other.total == total) &&
-            (identical(other.limit, limit) || other.limit == limit) &&
-            (identical(other.offset, offset) || other.offset == offset) &&
-            const DeepCollectionEquality().equals(other._data, _data));
-  }
-
-  @JsonKey(ignore: true)
-  @override
-  int get hashCode => Object.hash(runtimeType, total, limit, offset,
-      const DeepCollectionEquality().hash(_data));
-
-  @JsonKey(ignore: true)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$_PagedResponseCopyWith<T, _$_PagedResponse<T>> get copyWith =>
-      __$$_PagedResponseCopyWithImpl<T, _$_PagedResponse<T>>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson(Object? Function(T) toJsonT) {
-    return _$$_PagedResponseToJson<T>(this, toJsonT);
-  }
-}
-
-abstract class _PagedResponse<T> implements PagedResponse<T> {
-  const factory _PagedResponse(
-      {required final int total,
-      required final int limit,
-      required final int offset,
-      required final List<T> data}) = _$_PagedResponse<T>;
-
-  factory _PagedResponse.fromJson(
-          Map<String, dynamic> json, T Function(Object?) fromJsonT) =
-      _$_PagedResponse<T>.fromJson;
-
-  @override
-  int get total;
-  @override
-  int get limit;
-  @override
-  int get offset;
-  @override
-  List<T> get data;
-  @override
-  @JsonKey(ignore: true)
-  _$$_PagedResponseCopyWith<T, _$_PagedResponse<T>> get copyWith =>
       throw _privateConstructorUsedError;
 }

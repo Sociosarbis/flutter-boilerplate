@@ -209,10 +209,29 @@ class LoadMoreState extends State<LoadMore> {
     return false;
   }
 
+  Widget? _buildCustomScrollView() {
+    final listView = widget.child;
+    if (listView is! CustomScrollView) {
+      return null;
+    }
+    return CustomScrollView(
+      physics: listView.physics,
+      controller: listView.controller,
+      slivers: [
+        ...listView.slivers,
+        SliverToBoxAdapter(
+          child: _buildLoadMoreView(),
+        )
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return NotificationListener<ScrollNotification>(
         onNotification: _handleScrollNotification,
-        child: _buildListView() ?? const SizedBox.shrink());
+        child: _buildListView() ??
+            _buildCustomScrollView() ??
+            const SizedBox.shrink());
   }
 }
