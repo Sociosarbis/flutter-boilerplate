@@ -219,6 +219,7 @@ class LoadMoreState extends State<LoadMore> {
     }
     return CustomScrollView(
       physics: listView.physics,
+      cacheExtent: listView.cacheExtent,
       controller: listView.controller,
       slivers: [
         ...listView.slivers,

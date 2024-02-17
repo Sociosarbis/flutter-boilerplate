@@ -78,82 +78,87 @@ class MediaPageItem extends StatelessWidget {
     final colors = theme.colorScheme;
     return Padding(
         padding: const EdgeInsets.all(8),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          LayoutBuilder(builder: (context, constraints) {
-            return SizedBox(
-                width: constraints.maxWidth,
-                height: constraints.maxWidth * 4 / 3,
-                child: AnimeImageView(
-                  src,
-                  child: Stack(
-                    children: [
-                      Container(
-                        alignment: Alignment.bottomLeft,
-                        padding: const EdgeInsets.only(
-                            left: 6, right: 24, bottom: 6),
-                        child: Text(
-                          date,
-                          style: textTheme.labelMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: colors.onPrimary),
-                        ),
+        child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              LayoutBuilder(builder: (context, constraints) {
+                return SizedBox(
+                    width: constraints.maxWidth,
+                    height: constraints.maxWidth * 4 / 3,
+                    child: AnimeImageView(
+                      src,
+                      child: Stack(
+                        children: [
+                          Container(
+                            alignment: Alignment.bottomLeft,
+                            padding: const EdgeInsets.only(
+                                left: 6, right: 24, bottom: 6),
+                            child: Text(
+                              date,
+                              style: textTheme.labelMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: colors.onPrimary),
+                            ),
+                          ),
+                          Positioned(
+                              top: 6,
+                              child: Opacity(
+                                  opacity: 0.9,
+                                  child: Container(
+                                    clipBehavior: Clip.hardEdge,
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 6, vertical: 4),
+                                    decoration: BoxDecoration(
+                                        color: theme.bgm.primary,
+                                        borderRadius: BorderRadius.only(
+                                            topRight: theme.bgm.uiLayoutRadius,
+                                            bottomRight:
+                                                theme.bgm.uiLayoutRadius)),
+                                    child: Text(
+                                      "No.$rank",
+                                      style: textTheme.labelSmall
+                                          ?.copyWith(color: colors.onPrimary),
+                                    ),
+                                  ))),
+                          Positioned(
+                              top: 6,
+                              right: 6,
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  const Icon(
+                                    Icons.star_rounded,
+                                    size: 16,
+                                    color: Color(0xffFFC107),
+                                  ),
+                                  const SizedBox(
+                                    width: 4,
+                                  ),
+                                  Text(
+                                    "$score",
+                                    style: textTheme.labelSmall?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: colors.onPrimary),
+                                  )
+                                ],
+                              ))
+                        ],
                       ),
-                      Positioned(
-                          top: 6,
-                          child: Opacity(
-                              opacity: 0.9,
-                              child: Container(
-                                clipBehavior: Clip.hardEdge,
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 6, vertical: 4),
-                                decoration: BoxDecoration(
-                                    color: theme.bgm.primary,
-                                    borderRadius: BorderRadius.only(
-                                        topRight: theme.bgm.uiLayoutRadius,
-                                        bottomRight: theme.bgm.uiLayoutRadius)),
-                                child: Text(
-                                  "No.$rank",
-                                  style: textTheme.labelSmall
-                                      ?.copyWith(color: colors.onPrimary),
-                                ),
-                              ))),
-                      Positioned(
-                          top: 6,
-                          right: 6,
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              const Icon(
-                                Icons.star_rounded,
-                                size: 16,
-                                color: Color(0xffFFC107),
-                              ),
-                              const SizedBox(
-                                width: 4,
-                              ),
-                              Text(
-                                "$score",
-                                style: textTheme.labelSmall?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: colors.onPrimary),
-                              )
-                            ],
-                          ))
-                    ],
-                  ),
-                ));
-          }),
-          Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: Text(
-              title,
-              softWrap: true,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: textTheme.bodySmall?.copyWith(color: colors.onSurface),
-            ),
-          )
-        ]));
+                    ));
+              }),
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  title,
+                  softWrap: true,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: textTheme.bodySmall?.copyWith(
+                      color: colors.onSurface, fontWeight: FontWeight.bold),
+                ),
+              )
+            ]));
   }
 }
 

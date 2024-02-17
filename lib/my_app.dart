@@ -324,6 +324,7 @@ class Main extends HookWidget {
                         return subjectList.value.data.length >= res.total;
                       },
                       child: CustomScrollView(
+                        cacheExtent: 0,
                         physics: const AlwaysScrollableScrollPhysics(),
                         controller: controller.value,
                         slivers: [
@@ -442,7 +443,7 @@ class Main extends HookWidget {
                                   child: MediaPageItem(
                                     item.image,
                                     date: dateItems.length >= 2
-                                        ? "${dateItems[0]}年${dateItems[1]}月"
+                                        ? "${int.parse(dateItems[0])}年${int.parse(dateItems[1])}月"
                                         : "",
                                     title: item.name,
                                     score: item.score,

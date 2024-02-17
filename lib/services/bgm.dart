@@ -51,15 +51,11 @@ class CancellableFuture<T> implements Future<T> {
 class BgmService {
   late final Dio client;
   BgmService({required String personalAccessToken}) {
-    client = Dio(BaseOptions(
-      baseUrl: "https://api.bgm.tv",
-    ))
-      ..interceptors.add(InterceptorsWrapper(
-        onRequest: (options, handler) {
-          options.headers["Authorization"] = "Bearer $personalAccessToken";
-          handler.next(options);
-        },
-      ));
+    client = Dio(BaseOptions(baseUrl: "https://api.bgm.tv", headers: {
+      "Authorization": "Bearer $personalAccessToken",
+      "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0"
+    }));
   }
 
   static const calendarCacheKey = "bgm_calendar";
