@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_boilerplate/theme/bgm.dart';
 
 class HomeCardItem extends StatelessWidget {
@@ -182,16 +183,24 @@ class AnimeImageView extends StatelessWidget {
           ],
         ));
     return Material(
-        clipBehavior: Clip.hardEdge,
-        borderRadius: theme.bgm.imageCornerSmall,
-        child: src != null
-            ? Ink.image(
-                image: CachedNetworkImageProvider(src!),
-                width: double.infinity,
-                height: double.infinity,
-                fit: BoxFit.cover,
-                child: mask)
-            : Ink(
-                width: double.infinity, height: double.infinity, child: mask));
+            clipBehavior: Clip.hardEdge,
+            borderRadius: theme.bgm.imageCornerSmall,
+            child: src != null
+                ? Ink.image(
+                    image: CachedNetworkImageProvider(src!),
+                    width: double.infinity,
+                    height: double.infinity,
+                    fit: BoxFit.cover,
+                    child: mask)
+                : Ink(
+                    width: double.infinity,
+                    height: double.infinity,
+                    child: mask))
+        .animate()
+        .scaleXY(
+            begin: 0.5,
+            end: 1,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut);
   }
 }

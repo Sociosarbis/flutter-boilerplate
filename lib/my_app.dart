@@ -34,7 +34,6 @@ import 'package:flutter_boilerplate/components/floating_roll_menu.dart';
 
 import 'package:flutter_boilerplate/protos/book/book.pbgrpc.dart';
 import 'env.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 
 class _FavoriteWidgetState extends State<FavoriteWidget> {
   bool _isFavorited = true;
@@ -425,14 +424,7 @@ class Main extends HookWidget {
                                                           0,
                                                       width: 120,
                                                       title: items[i].name,
-                                                    ).animate().scaleXY(
-                                                        begin: 0.5,
-                                                        end: 1,
-                                                        duration:
-                                                            const Duration(
-                                                                milliseconds:
-                                                                    300),
-                                                        curve: Curves.easeOut));
+                                                    ));
                                               },
                                             ));
                                       }))
@@ -445,40 +437,20 @@ class Main extends HookWidget {
                             builder: (context, index) {
                               final item = subjectList.value.data[index];
                               final dateItems = item.date.split("-");
-                              return MediaPageItem(
-                                item.image,
-                                date: dateItems.length >= 2
-                                    ? "${dateItems[0]}年${dateItems[1]}月"
-                                    : "",
-                                title: item.name,
-                                score: item.score,
-                                rank: item.rank,
-                              );
+                              return AutomaticKeepAliveClient(
+                                  keepAlive: true,
+                                  child: MediaPageItem(
+                                    item.image,
+                                    date: dateItems.length >= 2
+                                        ? "${dateItems[0]}年${dateItems[1]}月"
+                                        : "",
+                                    title: item.name,
+                                    score: item.score,
+                                    rank: item.rank,
+                                  ));
                             },
                             itemCount: subjectList.value.data.length,
                           )
-                          // AutoHeightGridView(
-                          //   shrinkWrap: true,
-                          //   crossAxisCount: 3,
-                          //   crossAxisSpacing: 0,
-                          //   mainAxisSpacing: 0,
-                          //   padding: EdgeInsets.zero,
-                          //   builder: (context, index) {
-                          //     final item = subjectList.value.data[index];
-                          //     final dateItems = item.date.split("-");
-                          //     return MediaPageItem(
-                          //       item.image,
-                          //       date: dateItems.length >= 2
-                          //           ? "${dateItems[0]}年${dateItems[1]}月"
-                          //           : "",
-                          //       title: item.name,
-                          //       score: item.score,
-                          //       rank: item.rank,
-                          //     );
-                          //   },
-                          //   itemCount: subjectList.value.data.length,
-                          //   physics: const NeverScrollableScrollPhysics(),
-                          // ),
                         ],
                       )))
               : null,

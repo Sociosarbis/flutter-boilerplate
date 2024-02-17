@@ -33,6 +33,9 @@ class LoadMoreState extends State<LoadMore> {
   void initState() {
     super.initState();
     _loadState = const LoadState.notLoading(endOfPaginationReached: false);
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      _loadAction();
+    });
   }
 
   Future<void> _loadAction() async {
