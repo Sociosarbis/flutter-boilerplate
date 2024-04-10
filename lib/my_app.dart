@@ -284,176 +284,196 @@ class Main extends HookWidget {
     final bgmService = Provider.of<BgmService?>(context);
     final weekday = DateTime.now().weekday - 1;
     final subjectList = usePagedData<Subject>(pageSize: 21);
-    final controller = useRef<ScrollController>(ScrollController());
     return WillPopScope(
         onWillPop: handleBackButtonPressed,
         child: Scaffold(
-          appBar: AppBar(
-            title: Consumer<FragmentPrograms?>(
-                builder: (context, programs, chlid) {
-              const textWidget = Text('Welcome to Flutter');
-              return programs == null
-                  ? textWidget
-                  : TickingBuilder(builder: (context, time) {
-                      return SnapshotWidget(
-                          controller: snapshotController.value,
-                          painter: GlitchSnapshotPainter(
-                              time: time, program: programs.ui),
-                          child: textWidget);
-                    });
-            }),
-          ),
           floatingActionButton: FloatingRollMenu(
             onSelect: goToDetails,
           ),
           body: bgmService != null
-              ? SwipeToRefresh(
-                  initRefresh: false,
-                  onRefresh: () async {
-                    return Future.delayed(const Duration(seconds: 3));
+              ? NestedScrollView(
+                  headerSliverBuilder: (context, innerBoxIsScrolled) {
+                    return [
+                      SliverAppBar(
+                        expandedHeight: 200,
+                        pinned: true,
+                        flexibleSpace: Container(
+                          height: 280,
+                          decoration: const BoxDecoration(
+                              gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                Colors.transparent,
+                                Color(0xA0000000)
+                              ])),
+                        ),
+                        title: Consumer<FragmentPrograms?>(
+                            builder: (context, programs, chlid) {
+                          const textWidget = Text('Welcome to Flutter');
+                          return programs == null
+                              ? textWidget
+                              : TickingBuilder(builder: (context, time) {
+                                  return SnapshotWidget(
+                                      controller: snapshotController.value,
+                                      painter: GlitchSnapshotPainter(
+                                          time: time, program: programs.ui),
+                                      child: textWidget);
+                                });
+                        }),
+                      )
+                    ];
                   },
-                  child: LoadMore(
-                      onLoad: () async {
-                        final res = await bgmService.searchSubjects(
-                            offset: (subjectList.value.getNextPage() - 1) *
-                                subjectList.value.pageSize,
-                            limit: subjectList.value.pageSize,
-                            types: [2],
-                            sort: "rank");
-                        subjectList.value = subjectList.value.addPage(res.data);
-                        return subjectList.value.data.length >= res.total;
+                  body: SwipeToRefresh(
+                      initRefresh: false,
+                      onRefresh: () async {
+                        return Future.delayed(const Duration(seconds: 3));
                       },
-                      child: CustomScrollView(
-                        cacheExtent: 0,
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        controller: controller.value,
-                        slivers: [
-                          SliverToBoxAdapter(
-                              child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              buttonSection,
-                              ElevatedButton(
-                                  onPressed: () {
-                                    routerContext.to('/bgm/login');
-                                  },
-                                  child: const Text('BGM Login')),
-                              ElevatedButton(
-                                  onPressed: () {
-                                    !isServiceRunning.value
-                                        ? startService()
-                                        : stopService();
-                                    isServiceRunning.value =
-                                        !isServiceRunning.value;
-                                  },
-                                  child: Text(
-                                      '${isServiceRunning.value ? 'running' : 'stopped'} (${counter.value})')),
-                              ElevatedButton(onPressed: () async {
-                                final res = await bookServiceClient.createBook(
-                                    Book(
-                                        isbn: "0-670-81302-9",
-                                        title: "白銀の墟　玄の月　第一巻　十二国記 (新潮文庫)",
-                                        author: Author(
-                                            firstName: "不由美", lastName: "小野")));
-                                print(res);
-                              }, child: Consumer<FragmentPrograms?>(
-                                  builder: (context, programs, chlid) {
-                                const textWidget = Text('call grpc');
-                                return programs == null
-                                    ? textWidget
-                                    : TickingBuilder(builder: (context, time) {
-                                        return SnapshotWidget(
-                                            controller:
-                                                snapshotController.value,
-                                            painter: GlitchSnapshotPainter(
-                                                time: time,
-                                                program: programs.ui),
-                                            child: textWidget);
-                                      });
-                              })),
-                              SizedBox(
-                                  height: 200,
-                                  child: FutureCacheBuilder(
-                                      futureBuilder: () {
-                                        return bgmService.getCalendar();
+                      child: LoadMore(
+                          onLoad: () async {
+                            final res = await bgmService.searchSubjects(
+                                offset: (subjectList.value.getNextPage() - 1) *
+                                    subjectList.value.pageSize,
+                                limit: subjectList.value.pageSize,
+                                types: [2],
+                                sort: "rank");
+                            subjectList.value =
+                                subjectList.value.addPage(res.data);
+                            return subjectList.value.data.length >= res.total;
+                          },
+                          child: CustomScrollView(
+                            cacheExtent: 0,
+                            slivers: [
+                              SliverToBoxAdapter(
+                                  child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  buttonSection,
+                                  ElevatedButton(
+                                      onPressed: () {
+                                        routerContext.to('/bgm/login');
                                       },
-                                      cacheBuilder: () {
-                                        return CacheDiskUtils.getInstance()
-                                            .then((value) => value.getJSONArray(
-                                                BgmService.calendarCacheKey))
-                                            .then((value) => value
-                                                ?.map((item) =>
-                                                    GetCalendarItem.fromJson(
-                                                        item))
-                                                .toList());
+                                      child: const Text('BGM Login')),
+                                  ElevatedButton(
+                                      onPressed: () {
+                                        !isServiceRunning.value
+                                            ? startService()
+                                            : stopService();
+                                        isServiceRunning.value =
+                                            !isServiceRunning.value;
                                       },
-                                      deps: [weekday],
-                                      builder: (_, snapshot, cacheSnapshot) {
-                                        final hasData = snapshot.hasData ||
-                                            (cacheSnapshot.hasData &&
-                                                cacheSnapshot.data != null);
-                                        final data =
-                                            snapshot.data ?? cacheSnapshot.data;
-                                        if (!hasData ||
-                                            weekday >= data!.length) {
-                                          return const SizedBox.shrink();
-                                        }
-                                        final items = data[weekday].items;
-                                        return ScrollConfiguration(
-                                            behavior:
-                                                AndroidStretchScrollBehavior(),
-                                            child: ListView.separated(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 8),
-                                              scrollDirection: Axis.horizontal,
-                                              itemCount: items.length,
-                                              cacheExtent: 0,
-                                              separatorBuilder: (_, __) =>
-                                                  const SizedBox(width: 8),
-                                              itemBuilder: (_, i) {
-                                                return AutomaticKeepAliveClient(
-                                                    keepAlive: true,
-                                                    child: HomeCardItem(
-                                                      items[i].images?.tryGet(
-                                                              ImageSize
-                                                                  .large) ??
-                                                          "",
-                                                      attention: items[i]
-                                                              .collection
-                                                              ?.getFollow() ??
-                                                          0,
-                                                      width: 120,
-                                                      title: items[i].name,
-                                                    ));
-                                              },
-                                            ));
-                                      }))
+                                      child: Text(
+                                          '${isServiceRunning.value ? 'running' : 'stopped'} (${counter.value})')),
+                                  ElevatedButton(onPressed: () async {
+                                    final res =
+                                        await bookServiceClient.createBook(Book(
+                                            isbn: "0-670-81302-9",
+                                            title: "白銀の墟　玄の月　第一巻　十二国記 (新潮文庫)",
+                                            author: Author(
+                                                firstName: "不由美",
+                                                lastName: "小野")));
+                                    print(res);
+                                  }, child: Consumer<FragmentPrograms?>(
+                                      builder: (context, programs, chlid) {
+                                    const textWidget = Text('call grpc');
+                                    return programs == null
+                                        ? textWidget
+                                        : TickingBuilder(
+                                            builder: (context, time) {
+                                            return SnapshotWidget(
+                                                controller:
+                                                    snapshotController.value,
+                                                painter: GlitchSnapshotPainter(
+                                                    time: time,
+                                                    program: programs.ui),
+                                                child: textWidget);
+                                          });
+                                  })),
+                                  SizedBox(
+                                      height: 200,
+                                      child: FutureCacheBuilder(
+                                          futureBuilder: () {
+                                            return bgmService.getCalendar();
+                                          },
+                                          cacheBuilder: () {
+                                            return CacheDiskUtils.getInstance()
+                                                .then((value) => value
+                                                    .getJSONArray(BgmService
+                                                        .calendarCacheKey))
+                                                .then((value) => value
+                                                    ?.map((item) =>
+                                                        GetCalendarItem
+                                                            .fromJson(item))
+                                                    .toList());
+                                          },
+                                          deps: [weekday],
+                                          builder:
+                                              (_, snapshot, cacheSnapshot) {
+                                            final hasData = snapshot.hasData ||
+                                                (cacheSnapshot.hasData &&
+                                                    cacheSnapshot.data != null);
+                                            final data = snapshot.data ??
+                                                cacheSnapshot.data;
+                                            if (!hasData ||
+                                                weekday >= data!.length) {
+                                              return const SizedBox.shrink();
+                                            }
+                                            final items = data[weekday].items;
+                                            return ScrollConfiguration(
+                                                behavior:
+                                                    AndroidStretchScrollBehavior(),
+                                                child: ListView.separated(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(horizontal: 8),
+                                                  scrollDirection:
+                                                      Axis.horizontal,
+                                                  itemCount: items.length,
+                                                  cacheExtent: 0,
+                                                  separatorBuilder: (_, __) =>
+                                                      const SizedBox(width: 8),
+                                                  itemBuilder: (_, i) {
+                                                    return AutomaticKeepAliveClient(
+                                                        keepAlive: true,
+                                                        child: HomeCardItem(
+                                                          items[i].images?.tryGet(
+                                                                  ImageSize
+                                                                      .large) ??
+                                                              "",
+                                                          attention: items[i]
+                                                                  .collection
+                                                                  ?.getFollow() ??
+                                                              0,
+                                                          width: 120,
+                                                          title: items[i].name,
+                                                        ));
+                                                  },
+                                                ));
+                                          }))
+                                ],
+                              )),
+                              AutoHeightSliverGrid(
+                                crossAxisSpacing: 0,
+                                crossAxisCount: 3,
+                                mainAxisSpacing: 0,
+                                builder: (context, index) {
+                                  final item = subjectList.value.data[index];
+                                  final dateItems = item.date.split("-");
+                                  return AutomaticKeepAliveClient(
+                                      keepAlive: true,
+                                      child: MediaPageItem(
+                                        item.image,
+                                        date: dateItems.length >= 2
+                                            ? "${int.parse(dateItems[0])}年${int.parse(dateItems[1])}月"
+                                            : "",
+                                        title: item.name,
+                                        score: item.score,
+                                        rank: item.rank,
+                                      ));
+                                },
+                                itemCount: subjectList.value.data.length,
+                              )
                             ],
-                          )),
-                          AutoHeightSliverGrid(
-                            crossAxisSpacing: 0,
-                            crossAxisCount: 3,
-                            mainAxisSpacing: 0,
-                            builder: (context, index) {
-                              final item = subjectList.value.data[index];
-                              final dateItems = item.date.split("-");
-                              return AutomaticKeepAliveClient(
-                                  keepAlive: true,
-                                  child: MediaPageItem(
-                                    item.image,
-                                    date: dateItems.length >= 2
-                                        ? "${int.parse(dateItems[0])}年${int.parse(dateItems[1])}月"
-                                        : "",
-                                    title: item.name,
-                                    score: item.score,
-                                    rank: item.rank,
-                                  ));
-                            },
-                            itemCount: subjectList.value.data.length,
-                          )
-                        ],
-                      )))
+                          ))))
               : null,
         ));
   }
