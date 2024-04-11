@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -295,18 +296,35 @@ class Main extends HookWidget {
                   headerSliverBuilder: (context, innerBoxIsScrolled) {
                     return [
                       SliverAppBar(
-                        expandedHeight: 200,
+                        expandedHeight: 280,
                         pinned: true,
-                        flexibleSpace: Container(
-                          height: 280,
-                          decoration: const BoxDecoration(
-                              gradient: LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [
-                                Colors.transparent,
-                                Color(0xA0000000)
-                              ])),
+                        flexibleSpace: Stack(
+                          children: [
+                            FlexibleSpaceBar(
+                                background: Container(
+                              height: double.infinity,
+                              clipBehavior: Clip.hardEdge,
+                              decoration: const BoxDecoration(),
+                              child: ImageFiltered(
+                                  imageFilter:
+                                      ImageFilter.blur(sigmaX: 25, sigmaY: 10),
+                                  child: Image.asset(
+                                    "images/lake.jpg",
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                  )),
+                            )),
+                            Container(
+                              decoration: const BoxDecoration(
+                                  gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                    Colors.transparent,
+                                    Color(0xA0000000)
+                                  ])),
+                            ),
+                          ],
                         ),
                         title: Consumer<FragmentPrograms?>(
                             builder: (context, programs, chlid) {
