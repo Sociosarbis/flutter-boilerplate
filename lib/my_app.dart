@@ -7,6 +7,8 @@ import 'package:flutter_boilerplate/assets.dart';
 import 'package:flutter_boilerplate/components/anime_image_view.dart';
 import 'package:flutter_boilerplate/components/auto_height_sliver_grid.dart';
 import 'package:flutter_boilerplate/components/automatic_keep_alive_client.dart';
+import 'package:flutter_boilerplate/components/bgm_app_bar.dart';
+import 'package:flutter_boilerplate/components/bgm_flexible_space_bar.dart';
 import 'package:flutter_boilerplate/components/future_cache_builder.dart';
 import 'package:flutter_boilerplate/components/load_more.dart';
 import 'package:flutter_boilerplate/components/swipe_to_refresh.dart';
@@ -300,20 +302,22 @@ class Main extends HookWidget {
                         pinned: true,
                         flexibleSpace: Stack(
                           children: [
-                            FlexibleSpaceBar(
+                            BgmFlexibleSpaceBar(
+                                collapseParallaxMultiplier: 0.2,
                                 background: Container(
-                              height: double.infinity,
-                              clipBehavior: Clip.hardEdge,
-                              decoration: const BoxDecoration(),
-                              child: ImageFiltered(
-                                  imageFilter:
-                                      ImageFilter.blur(sigmaX: 25, sigmaY: 10),
-                                  child: Image.asset(
-                                    "images/lake.jpg",
-                                    width: double.infinity,
-                                    fit: BoxFit.cover,
-                                  )),
-                            )),
+                                  height: double.infinity,
+                                  clipBehavior: Clip.hardEdge,
+                                  decoration: const BoxDecoration(),
+                                  child: ImageFiltered(
+                                      imageFilter: ImageFilter.blur(
+                                          sigmaX: 25, sigmaY: 10),
+                                      child: Image.asset(
+                                        "images/lake.jpg",
+                                        width: double.infinity,
+                                        height: double.infinity,
+                                        fit: BoxFit.cover,
+                                      )),
+                                )),
                             Container(
                               decoration: const BoxDecoration(
                                   gradient: LinearGradient(
@@ -324,21 +328,28 @@ class Main extends HookWidget {
                                     Color(0xA0000000)
                                   ])),
                             ),
+                            BgmAppBar(
+                                scrimVisibleHeightTrigger: 180,
+                                title: Consumer<FragmentPrograms?>(
+                                    builder: (context, programs, chlid) {
+                                  const textWidget = Text('Welcome to Flutter');
+                                  return textWidget;
+                                }),
+                                actions: [
+                                  IconButton(
+                                      onPressed: () {},
+                                      icon: const Icon(
+                                          Icons.notifications_active)),
+                                  IconButton(
+                                      onPressed: () {},
+                                      icon: const Icon(Icons.email)),
+                                  IconButton(
+                                      onPressed: () {},
+                                      icon: const Icon(Icons.settings)),
+                                ])
                           ],
                         ),
-                        title: Consumer<FragmentPrograms?>(
-                            builder: (context, programs, chlid) {
-                          const textWidget = Text('Welcome to Flutter');
-                          return programs == null
-                              ? textWidget
-                              : TickingBuilder(builder: (context, time) {
-                                  return SnapshotWidget(
-                                      controller: snapshotController.value,
-                                      painter: GlitchSnapshotPainter(
-                                          time: time, program: programs.ui),
-                                      child: textWidget);
-                                });
-                        }),
+                        leading: const SizedBox.shrink(),
                       )
                     ];
                   },
