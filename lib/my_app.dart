@@ -225,7 +225,8 @@ class Main extends HookWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    Color color = Theme.of(context).primaryColor;
+    final theme = Theme.of(context);
+    Color color = theme.primaryColor;
     final channel = useRef<MethodChannel?>(null);
     final snapshotController =
         useRef(SnapshotController(allowSnapshotting: true));
@@ -328,6 +329,52 @@ class Main extends HookWidget {
                                     Color(0xA0000000)
                                   ])),
                             ),
+                            BgmFlexibleSpaceBar(
+                                collapseParallaxMultiplier: 0.1,
+                                background: Center(
+                                    child: OverflowBox(
+                                        maxHeight: double.infinity,
+                                        child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              CircleAvatar(
+                                                  radius: 45,
+                                                  backgroundColor: Colors.white,
+                                                  child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              2),
+                                                      child: ClipOval(
+                                                          child: Image.asset(
+                                                        "images/lake.jpg",
+                                                        width: 90,
+                                                        height: 90,
+                                                        fit: BoxFit.cover,
+                                                      )))),
+                                              SizedBox(
+                                                  height: 0,
+                                                  child: OverflowBox(
+                                                      alignment:
+                                                          Alignment.topCenter,
+                                                      maxHeight:
+                                                          double.infinity,
+                                                      child: Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                    .only(
+                                                                top: 40,
+                                                                bottom: 16),
+                                                        child: Text(
+                                                          "136657577@qq.com",
+                                                          style: theme.textTheme
+                                                              .bodySmall
+                                                              ?.copyWith(
+                                                                  color: theme
+                                                                      .colorScheme
+                                                                      .onPrimary),
+                                                        ),
+                                                      )))
+                                            ])))),
                             BgmAppBar(
                                 scrimVisibleHeightTrigger: 180,
                                 title: Consumer<FragmentPrograms?>(

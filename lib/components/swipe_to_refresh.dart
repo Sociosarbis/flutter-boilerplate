@@ -22,6 +22,8 @@ class SwipeToRefreshState extends State<SwipeToRefresh> {
 
   late bool _isRefreshing;
 
+  bool shouldTrigger = false;
+
   @override
   void initState() {
     super.initState();
@@ -58,6 +60,16 @@ class SwipeToRefreshState extends State<SwipeToRefresh> {
         key: indicatorKey,
         color: bgmTheme?.primary,
         backgroundColor: bgmTheme?.colorSurface,
+        notificationPredicate: (notification) {
+          if (notification case ScrollStartNotification(dragDetails: DragStartDetails details)) {
+            final box = context.findRenderObject() as RenderBox?;
+            if (box != null) {
+              final boxPos = box.localToGlobal(Offset.zero);
+              shouldTrigger = boxPos.dy <= details.globalPosition.dy;
+            }
+          }
+          return shouldTrigger && notification.depth == 0;
+        },
         child: widget.child,
         onRefresh: () async {
           _isRefreshing = true;

@@ -35,28 +35,43 @@ class BgmAppBarState extends State<BgmAppBar> {
                     (widget.scrimVisibleHeightTrigger! - settings.minExtent)
             : 0;
     final bgColor = t > 0 ? primaryContainer : Colors.transparent;
-    return Material(
-        color: bgColor,
-        child: SizedBox(
-            height: settings.minExtent,
-            child: Padding(
-                padding: EdgeInsets.only(top: top),
-                child: Theme(
-                    data: theme.copyWith(
-                        iconTheme: theme.iconTheme.copyWith(
-                            color: t == 1 ? onPrimary : onPrimaryContainer)),
-                    child: DefaultTextStyle(
-                        style: (theme.appBarTheme.titleTextStyle ??
-                                theme.textTheme.titleLarge!)
-                            .copyWith(color: onPrimary.withOpacity(t)),
-                        child: NavigationToolbar(
-                          middle: widget.title,
-                          centerMiddle: false,
-                          trailing: widget.actions?.isNotEmpty ?? false
-                              ? Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: widget.actions!)
-                              : null,
-                        ))))));
+    return Stack(children: [
+      if (widget.title != null)
+        Align(
+          alignment: Alignment.bottomCenter,
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 65),
+            child: DefaultTextStyle(
+                style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: onPrimary.withOpacity(1 - t)),
+                child: widget.title!),
+          ),
+        ),
+      Material(
+          color: bgColor,
+          child: SizedBox(
+              height: settings.minExtent,
+              child: Padding(
+                  padding: EdgeInsets.only(top: top),
+                  child: Theme(
+                      data: theme.copyWith(
+                          iconTheme: theme.iconTheme.copyWith(
+                              color: t == 1 ? onPrimary : onPrimaryContainer)),
+                      child: DefaultTextStyle(
+                          style: (theme.appBarTheme.titleTextStyle ??
+                                  theme.textTheme.titleLarge!)
+                              .copyWith(color: onPrimary.withOpacity(t)),
+                          child: NavigationToolbar(
+                            middle: widget.title,
+                            centerMiddle: false,
+                            trailing: widget.actions?.isNotEmpty ?? false
+                                ? Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: widget.actions!)
+                                : null,
+                          ))))))
+    ]);
   }
 }
