@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_boilerplate/packages/center_scroll/demo.dart';
 import 'package:flutter_boilerplate/packages/map/map_page.dart';
 import 'components/router/lib.dart';
 import 'packages/features/physis_animation.dart' as PhysisAnimation;
@@ -12,10 +13,10 @@ import 'packages/bgm/video_page.dart';
 import 'my_app.dart';
 
 final slidePageSettings = CustomPageSettings(
-    transitionDuration: Duration(milliseconds: 250),
-    reverseTransitionDuration: Duration(milliseconds: 200),
+    transitionDuration: const Duration(milliseconds: 250),
+    reverseTransitionDuration: const Duration(milliseconds: 200),
     transitionsBuilder: (context, animation, secondaryAnimation, page) {
-      final begin = Offset(1.0, 0.0);
+      final begin = const Offset(1.0, 0.0);
       final end = Offset.zero;
       final tween =
           Tween(begin: begin, end: end).chain(CurveTween(curve: Curves.ease));
@@ -24,32 +25,27 @@ final slidePageSettings = CustomPageSettings(
     });
 
 final routes = [
-  AppRoute(path: '/', builder: () => Main(), middlewares: [
+  AppRoute(path: '/', builder: () => const Main(), middlewares: [
     RouteMiddlewareBuilder(canPopFunc: () {
       final completer = Completer<bool>();
-      routerContext.show(AppDialog(
-        builder: (pop) {
-          return AlertDialog(
-                title: Text('提示'),
-                content: Text('确认退出？'),
-                actions: [
-                  TextButton(
-                    child: Text('取消'),
-                    onPressed: () {
-                      pop();
-                      completer.complete(false);
-                    },
-                  ),
-                  TextButton(
-                    child: Text('确认'),
-                    onPressed: () {
-                      pop();
-                      completer.complete(true);
-                    },
-                  )
-                ]);
-        }
-      ));
+      routerContext.show(AppDialog(builder: (pop) {
+        return AlertDialog(title: const Text('提示'), content: const Text('确认退出？'), actions: [
+          TextButton(
+            child: const Text('取消'),
+            onPressed: () {
+              pop();
+              completer.complete(false);
+            },
+          ),
+          TextButton(
+            child: const Text('确认'),
+            onPressed: () {
+              pop();
+              completer.complete(true);
+            },
+          )
+        ]);
+      }));
       return completer.future;
     })
   ]),
@@ -81,6 +77,8 @@ final routes = [
       pageSettings: slidePageSettings,
       builder: () => AnimatedContainer.Main()),
   AppRoute(
+      path: '/center-scroll/demo', builder: () => const CenterScrollDemo()),
+  AppRoute(
       path: '/login',
       pageSettings: slidePageSettings,
       builder: () => Login.Main()),
@@ -92,5 +90,8 @@ final routes = [
       path: '/weather',
       pageSettings: slidePageSettings,
       builder: () => WeatherPage()),
-  AppRoute(path: "/map", pageSettings: slidePageSettings, builder: () => const MapPage())
+  AppRoute(
+      path: "/map",
+      pageSettings: slidePageSettings,
+      builder: () => const MapPage())
 ];

@@ -73,11 +73,15 @@ class _FavoriteWidgetState extends State<FavoriteWidget> {
 }
 
 class FavoriteWidget extends StatefulWidget {
+  const FavoriteWidget({super.key});
+
   @override
   _FavoriteWidgetState createState() => _FavoriteWidgetState();
 }
 
 class MyApp extends StatefulWidget {
+  const MyApp({super.key});
+
   @override
   MyAppState createState() => MyAppState();
 }
@@ -125,7 +129,9 @@ class MyAppState extends State<MyApp> {
     }
   }
 
-  final _appRouterDelegate = AppRouterDelegate(routes);
+  final _appRouterDelegate = AppRouterDelegate(routes,
+      initPath: const String.fromEnvironment("initial_url", defaultValue: "/"),
+      alwaysAddInitPath: true);
   final _appRouteInformationParser = const AppRouteInformationParser();
   @override
   Widget build(BuildContext context) {
@@ -562,7 +568,8 @@ class ButtonColumn extends StatelessWidget {
   final Function() onPress;
 
   ButtonColumn(
-      {required this.color,
+      {super.key,
+      required this.color,
       required this.icon,
       required this.label,
       required this.onPress});

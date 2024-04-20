@@ -1,5 +1,4 @@
 import 'package:flutter/widgets.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_boilerplate/components/router/context.dart';
 import 'package:flutter_boilerplate/components/router/controllers/router_controller.dart';
 import 'package:flutter_boilerplate/components/router/types/pop_result.dart';

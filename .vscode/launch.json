@@ -8,7 +8,10 @@
             "name": "flutter_boilerplate (dev)",
             "request": "launch",
             "type": "dart",
-            "program": "lib/main_dev.dart"
+            "program": "lib/main_dev.dart",
+            "args": [
+                "--dart-define-from-file=app.config.json"
+            ]
         },
         {
             "name": "flutter_boilerplate (prod)",
