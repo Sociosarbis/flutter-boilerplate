@@ -171,6 +171,10 @@ class AnimeImageView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final MediaQueryData(
+      size: Size(width: width),
+      devicePixelRatio: devicePixelRatio
+    ) = MediaQuery.of(context);
     final mask = InkWell(
         highlightColor: theme.bgm.selectableItemBackground,
         splashFactory: InkSparkle.splashFactory,
@@ -192,7 +196,8 @@ class AnimeImageView extends StatelessWidget {
             borderRadius: theme.bgm.imageCornerSmall,
             child: src != null
                 ? Ink.image(
-                    image: CachedNetworkImageProvider(src!),
+                    image: CachedNetworkImageProvider(src!,
+                        maxWidth: (width * devicePixelRatio).round()),
                     width: double.infinity,
                     height: double.infinity,
                     fit: BoxFit.cover,

@@ -1,6 +1,5 @@
 import 'dart:math';
 
-import 'package:flutter/gestures.dart';
 import "package:flutter/material.dart";
 import 'package:flutter_boilerplate/models/bgm/author.dart';
 import "package:flutter_boilerplate/models/bgm/comment.dart" as CommentModel;
@@ -76,6 +75,8 @@ query GetEpisodePoster(\$id: Int!) {
 """;
 
 class Main extends StatefulWidget {
+  const Main({super.key});
+
   @override
   MainState createState() => MainState();
 }
@@ -88,14 +89,14 @@ class MainState extends State<Main> {
   String poster = '';
   CommentModel.Comment? replyTo;
   CommentModel.Comment? replyBelongTo;
-  ScrollController _controller = ScrollController();
+  final ScrollController _controller = ScrollController();
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!Provider.of<UserStore>(context, listen: false).isAuth) {
-      WidgetsBinding.instance?.addPostFrameCallback((_) {
-        final currentUrl = '${routerContext.currentPath}';
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final currentUrl = routerContext.currentPath;
         routerContext.replace("/bgm/login?redirect_from=${Uri.encodeComponent(currentUrl)}");
       });
     } else {
@@ -107,6 +108,7 @@ class MainState extends State<Main> {
 
   @override
   Widget build(BuildContext context) {
+    final MediaQueryData(devicePixelRatio: devicePixelRatio) = MediaQuery.of(context);
     return Provider.of<UserStore>(context).isAuth
         ? ClickOutsideListener(
             child: Scaffold(
@@ -122,7 +124,7 @@ class MainState extends State<Main> {
                       final newPoster =
                           result.data!['subjectDetail']['image'] as String;
                       if (newPoster != poster) {
-                        WidgetsBinding.instance?.addPostFrameCallback((_) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
                           setState(() {
                             poster = newPoster;
                           });
@@ -130,7 +132,7 @@ class MainState extends State<Main> {
                       }
                     }
                   }
-                  return SizedBox.shrink();
+                  return const SizedBox.shrink();
                 }),
             Query(
                 options: QueryOptions(
@@ -162,13 +164,13 @@ class MainState extends State<Main> {
                             floating: true,
                             pinned: true,
                             flexibleSpace: FlexibleSpaceBar(
-                                title: Text('Comment'),
+                                title: const Text('Comment'),
                                 background: poster.isNotEmpty
                                     ? Image.network(poster,
                                         fit: BoxFit.cover,
                                         color: Colors.black.withOpacity(0.5),
-                                        colorBlendMode: BlendMode.hardLight)
-                                    : SizedBox.shrink()),
+                                        colorBlendMode: BlendMode.hardLight, cacheHeight: (250 * devicePixelRatio).round(),)
+                                    : const SizedBox.shrink()),
                             expandedHeight: 250,
                           ),
                           model != null
@@ -205,14 +207,14 @@ class MainState extends State<Main> {
                   ]);
                 })
           ])))
-        : SizedBox.shrink();
+        : const SizedBox.shrink();
   }
 
   setShowInput(bool state) {
     showInput = state;
     if (state == true) {
       _controller.animateTo(_controller.offset + 192,
-          duration: Duration(milliseconds: 100), curve: Curves.easeOutCubic);
+          duration: const Duration(milliseconds: 100), curve: Curves.easeOutCubic);
     }
   }
 
@@ -233,12 +235,12 @@ class MainState extends State<Main> {
     if (text.isEmpty) return;
     var floor = "#${model!.length + 1}";
     if (replyTo != null) {
-      floor = replyTo!.floor!.replaceAllMapped(new RegExp(r'(\d).*'), (match) {
+      floor = replyTo!.floor!.replaceAllMapped(RegExp(r'(\d).*'), (match) {
         return "${match.group(1)}-${replyBelongTo!.replies!.length + 1}";
       });
     }
     var now = DateTime.now();
-    var newComment = new CommentModel.Comment(
+    var newComment = CommentModel.Comment(
         author: Author(
             id: 0,
             msg: '(我思故我在)',
@@ -257,7 +259,7 @@ class MainState extends State<Main> {
       if (replyBelongTo == null) {
         final req = Request(
             operation: Operation(document: gql(GetEpisodeTopicReq)),
-            variables: {'id': 969984});
+            variables: const {'id': 969984});
         final cache = client.readQuery(req)!;
         (cache['episodeTopic']['comments'] as List<dynamic>).add(json);
         client.writeQuery(req, data: cache);
@@ -285,23 +287,24 @@ class Comment extends StatelessWidget {
       : super(key: ValueKey(data.id));
   @override
   Widget build(BuildContext context) {
+    final MediaQueryData(devicePixelRatio: devicePixelRatio) = MediaQuery.of(context);
     return Column(
       children: [
         Container(
             padding: isReply
-                ? EdgeInsets.only(left: 20, top: 10, bottom: 10, right: 10)
-                : EdgeInsets.all(10),
+                ? const EdgeInsets.only(left: 20, top: 10, bottom: 10, right: 10)
+                : const EdgeInsets.all(10),
             child:
                 Row(crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic, children: [
               Container(
-                  margin: EdgeInsets.only(right: 3),
+                  margin: const EdgeInsets.only(right: 3),
                   child: Container(
                       height: 40,
                       width: 40,
-                      padding: EdgeInsets.all(1),
+                      padding: const EdgeInsets.all(1),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(5),
-                        boxShadow: [
+                        boxShadow: const [
                           BoxShadow(
                             color: Color(0xffbbbbbb),
                           ),
@@ -316,6 +319,7 @@ class Comment extends StatelessWidget {
                           child: Image.network(
                             data.author?.avatar ?? '',
                             fit: BoxFit.fill,
+                            cacheWidth: (40 * devicePixelRatio).round(),
                           )))),
               Expanded(
                   child: Column(
@@ -328,12 +332,12 @@ class Comment extends StatelessWidget {
                         Expanded(
                             child: RichText(
                                 text: TextSpan(
-                                    style: TextStyle(color: Color(0xff999999)),
+                                    style: const TextStyle(color: Color(0xff999999)),
                                     children: <InlineSpan>[
                               TextSpan(
                                   text: data.author?.name,
                                   style: TextStyle(
-                                      color: Color(0xff0084B4),
+                                      color: const Color(0xff0084B4),
                                       fontWeight: FontWeight.bold,
                                       fontSize:
                                           data.replies == null ? 16 : 14)),
@@ -344,7 +348,7 @@ class Comment extends StatelessWidget {
                                       onTap: () {
                                         onReply(data);
                                       },
-                                      child: Text.rich(TextSpan(
+                                      child: const Text.rich(TextSpan(
                                           style: TextStyle(
                                               color: Color(0xffcccccc)),
                                           children: [
@@ -358,7 +362,7 @@ class Comment extends StatelessWidget {
                             ]))),
                         RichText(
                             text: TextSpan(
-                                style: TextStyle(color: Color(0xff999999)),
+                                style: const TextStyle(color: Color(0xff999999)),
                                 children: <TextSpan>[
                               TextSpan(text: '#${data.floor}'),
                               TextSpan(text: '- ${data.time}')
@@ -371,27 +375,27 @@ class Comment extends StatelessWidget {
                             child: Container(
                                 height: 14,
                                 transform:
-                                    Transform.translate(offset: Offset(0, -8))
+                                    Transform.translate(offset: const Offset(0, -8))
                                         .transform,
-                                child: Text('“',
+                                child: const Text('“',
                                     style: TextStyle(
                                         fontSize: 30,
                                         color: Color(0xffcccccc))))),
                         TextSpan(
                             text: data.quote?.from,
-                            style: TextStyle(
+                            style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black)),
                         TextSpan(
                             text: '说: ${data.quote?.text}',
-                            style: TextStyle(color: Color(0xff666666))),
+                            style: const TextStyle(color: Color(0xff666666))),
                         WidgetSpan(
                             child: Container(
                                 height: 14,
                                 transform:
-                                    Transform.translate(offset: Offset(0, -8))
+                                    Transform.translate(offset: const Offset(0, -8))
                                         .transform,
-                                child: Text('”',
+                                child: const Text('”',
                                     style: TextStyle(
                                         fontSize: 30,
                                         color: Color(0xffcccccc))))),
@@ -399,7 +403,7 @@ class Comment extends StatelessWidget {
                     ),
                   RichText(
                       text: TextSpan(
-                          style: TextStyle(color: Colors.black),
+                          style: const TextStyle(color: Colors.black),
                           children: [TextSpan(text: data.text)]))
                 ],
               ))
@@ -416,13 +420,13 @@ class CommentInput extends StatefulWidget {
   final bool? show;
   final CommentModel.Comment? replyTo;
   final void Function(String text) onCommit;
-  CommentInput({this.show, this.replyTo, required this.onCommit});
+  const CommentInput({super.key, this.show, this.replyTo, required this.onCommit});
   @override
   CommentInputState createState() => CommentInputState();
 }
 
 class CommentInputState extends State<CommentInput> {
-  TextEditingController _controller = new TextEditingController(text: '');
+  final TextEditingController _controller = TextEditingController(text: '');
   @override
   Widget build(BuildContext context) {
     return Positioned(
@@ -438,9 +442,9 @@ class CommentInputState extends State<CommentInput> {
                 width: MediaQuery.of(context).size.width,
                 height: 192,
                 transform:
-                    Transform.translate(offset: Offset(0, value as double))
+                    Transform.translate(offset: Offset(0, value))
                         .transform,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: Colors.white,
                   boxShadow: [
                     BoxShadow(
@@ -453,9 +457,9 @@ class CommentInputState extends State<CommentInput> {
             child: GestureDetector(
                 onTap: () {},
                 child: SingleChildScrollView(
-                    padding: EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(10),
                     child: Container(
-                        constraints: BoxConstraints(minHeight: 172),
+                        constraints: const BoxConstraints(minHeight: 172),
                         child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -463,13 +467,13 @@ class CommentInputState extends State<CommentInput> {
                                   widget.replyTo == null
                                       ? '添加新回复'
                                       : '回复：${widget.replyTo?.author?.name}',
-                                  style: TextStyle(color: Color(0xff3399ff))),
+                                  style: const TextStyle(color: Color(0xff3399ff))),
                               Container(
-                                  margin: EdgeInsets.symmetric(vertical: 3),
+                                  margin: const EdgeInsets.symmetric(vertical: 3),
                                   child: TextField(
                                       maxLines: null,
                                       controller: _controller,
-                                      decoration: InputDecoration(
+                                      decoration: const InputDecoration(
                                         enabledBorder: OutlineInputBorder(
                                             borderSide: BorderSide(
                                                 color: Color(0xffd9d9d9))),
@@ -487,9 +491,9 @@ class CommentInputState extends State<CommentInput> {
                                           borderRadius:
                                               BorderRadius.circular(5)),
                                       elevation: 0,
-                                      padding: EdgeInsets.all(0),
-                                      primary: Color(0xff319abf),
-                                      textStyle: TextStyle(color: Colors.white),
+                                      padding: const EdgeInsets.all(0),
+                                      backgroundColor: const Color(0xff319abf),
+                                      textStyle: const TextStyle(color: Colors.white),
                                     ),
                                     child: Text(
                                         widget.replyTo == null ? '加上去' : '写好了'),
