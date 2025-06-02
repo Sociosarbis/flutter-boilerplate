@@ -16,6 +16,7 @@ import 'package:flutter_boilerplate/models/bgm/res.dart';
 import 'package:flutter_boilerplate/models/bgm/subject.dart';
 import 'package:flutter_boilerplate/models/config/app.dart';
 import 'package:flutter_boilerplate/models/paged_data.dart';
+import 'package:flutter_boilerplate/packages/bgm/components/web_media_resolver/web_media_resolver.dart';
 import 'package:flutter_boilerplate/services/bgm.dart';
 import 'package:flutter_boilerplate/theme/bgm.dart';
 import 'package:flutter_boilerplate/utils/android_stretch_scroll_behavior.dart';
@@ -430,6 +431,15 @@ class Main extends HookWidget {
                                   child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
+                                  SizedBox.shrink(
+                                      child: WebMediaResolver(
+                                          onMatched: (matched) {
+                                            print(matched);
+                                          },
+                                          matchVideoUrl:
+                                              "(^http(s)?:\\/\\/(?!.*http(s)?:\\/\\/).+((m3u8)).*(\\?.+)?)|(akamaized)|(bilivideo.com)|(url=(?<v>.+playlist.m3u8))",
+                                          url:
+                                              "https://anime.girigirilove.com/playGV26483-1-8/")),
                                   buttonSection,
                                   ElevatedButton(
                                       onPressed: () {

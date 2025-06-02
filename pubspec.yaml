@@ -21,6 +21,7 @@ environment:
   sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
+  collection: ^1.17.1
   cached_network_image: ^3.3.1
   dio: ^5.4.0
   flutter:
@@ -39,6 +40,7 @@ dependencies:
   flutter_baidu_mapapi_map: ^3.3.2
   flutter_baidu_mapapi_search: ^3.3.2
   freezed_annotation: ^2.0.3
+  flutter_inappwebview: ^5.8.0
   geolocator: ^7.3.1
   grpc: ^3.0.0
   rust_sdk:
