@@ -1,9 +1,4 @@
-import 'dart:math';
-
-import 'package:collection/collection.dart';
-import 'package:flutter_boilerplate/utils/selector_media_source_engine/model.dart';
-import 'package:flutter_boilerplate/utils/string_extension.dart';
-import 'package:html/dom.dart';
+part of 'selector_format.dart';
 
 sealed class SelectorSubjectFormat<Config extends SelectorFormatConfig>
     extends SelectorFormat {
@@ -24,26 +19,6 @@ sealed class SelectorSubjectFormat<Config extends SelectorFormatConfig>
       href = href.substring(index + 1);
     }
     return href;
-  }
-
-  static String _computeAbsoluteUrl(String baseUrl, String relativeUrl) {
-    if (relativeUrl.startsWith("http")) {
-      return relativeUrl;
-    }
-    if (relativeUrl.startsWith("/")) {
-      return "${baseUrl.removeSuffix("/")}$relativeUrl";
-    } else {
-      if (baseUrl.endsWith("/")) {
-        return "$baseUrl$relativeUrl";
-      } else {
-        final index = baseUrl.lastIndexOf("/");
-        if (index == -1 || (index > 1 && baseUrl[index - 1] == "/")) {
-          return "$baseUrl/$relativeUrl";
-        } else {
-          return "${baseUrl.substring(0, index)}/$relativeUrl";
-        }
-      }
-    }
   }
 
   static SelectorSubjectFormat? findById(SelectorFormatId id) {
@@ -81,7 +56,7 @@ class SelectorSubjectFormatIndexed
       return WebSearchSubjectInfo(
           internalId: id,
           name: name,
-          fullUrl: SelectorSubjectFormat._computeAbsoluteUrl(baseUrl, href),
+          fullUrl: SelectorFormat.computeAbsoluteUrl(baseUrl, href),
           partialUrl: href);
     });
     if (config.preferShorterName) {

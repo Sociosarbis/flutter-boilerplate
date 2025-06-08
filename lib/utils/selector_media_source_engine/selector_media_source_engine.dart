@@ -1,7 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_boilerplate/utils/selector_media_source_engine/model.dart';
-import 'package:flutter_boilerplate/utils/selector_media_source_engine/selector_subject_format.dart';
+import 'package:flutter_boilerplate/utils/selector_media_source_engine/selector_format.dart';
 import 'package:flutter_boilerplate/utils/string_extension.dart';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart';
@@ -158,5 +158,47 @@ class SelectorMediaSourceEngine {
     final originalList =
         subjectFormat.select(document, config.finalBaseUrl, formatConfig);
     return originalList;
+  }
+
+  Future<Document?> searchEpisodes(String subjectDetailsPageUrl) {
+    return Dio()
+        .get(subjectDetailsPageUrl, options: Options(headers: headers))
+        .then((value) {
+      if (value.data case String s) {
+        try {
+          return parse(s);
+        } catch (e) {
+          //
+        }
+      }
+      return null;
+    }, onError: (_) {
+      return null;
+    });
+  }
+
+  SelectedChannelEpisodes? selectEpisodes(Element subjectDetailsPage,
+      String subjectUrl, SelectorSearchConfig config) {
+    final channelFormat =
+        SelectorChannelFormat.findById(config.channelFormatId);
+    if (channelFormat == null) {
+      return null;
+    }
+    final formatConfig = config.getFormatConfig(channelFormat);
+    var finalBaseUrl = Uri.tryParse(subjectUrl);
+    if (finalBaseUrl != null) {
+      if (finalBaseUrl.pathSegments.length > 1) {
+        finalBaseUrl = Uri(
+          scheme: finalBaseUrl.scheme,
+          host: finalBaseUrl.host,
+          userInfo: finalBaseUrl.userInfo,
+          port: finalBaseUrl.port,
+          pathSegments: finalBaseUrl.pathSegments
+              .take(finalBaseUrl.pathSegments.length - 1),
+        );
+      }
+    }
+    return channelFormat.select(
+        subjectDetailsPage, finalBaseUrl?.toString() ?? "", formatConfig);
   }
 }
