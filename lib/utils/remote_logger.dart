@@ -29,11 +29,16 @@ class RemoteLogger {
   final _lastMsgs = <String, Msg>{};
   final int maxSize;
   final int batchSize;
+  final int uploadInterval;
+  final int maxBackOffSeconds;
   late final QueueList<Item> _uploadQueue;
   final Future<void> Function(List<Map<String, Object?>> msgs) upload;
+  var _backOffSeconds = 2;
+  final _random = Random();
   Future<void>? _uploadFut;
   bool _disposed = false;
-  RemoteLogger(this.upload, {this.maxSize = 1000, this.batchSize = 10}) {
+  RemoteLogger(this.upload,
+      {this.maxSize = 1000, this.batchSize = 50, this.uploadInterval = 5000, this.maxBackOffSeconds = 32}) {
     _uploadQueue = QueueList(maxSize);
   }
 
@@ -67,6 +72,7 @@ class RemoteLogger {
       return;
     }
     _uploadFut = Future.value().then((_) async {
+      final waitFut = Future.delayed(Duration(milliseconds: uploadInterval));
       if (_uploadQueue.isNotEmpty) {
         final count = min(_uploadQueue.length, batchSize);
         final items = _uploadQueue.sublist(0, count);
@@ -76,11 +82,18 @@ class RemoteLogger {
               return {"tag": item.tag, ...item.msg.toJson()};
             }).toList(growable: false));
           } catch (e) {
-            return Future.delayed(const Duration(seconds: 2));
+            if (_disposed) {
+              return;
+            }
+            final waitFut = Future.delayed(Duration(seconds: _random.nextInt(_backOffSeconds)));
+            _backOffSeconds = min(_backOffSeconds * 2, maxBackOffSeconds);
+            return waitFut;
           }
           _uploadQueue.removeRange(0, count);
         }
       }
+      _backOffSeconds = 2;
+      return waitFut;
     })
       ..then((_) {
         _uploadFut = null;
