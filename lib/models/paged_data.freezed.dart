@@ -12,7 +12,7 @@ part of 'paged_data.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 /// @nodoc
 mixin _$PagedData<T> {
@@ -69,22 +69,22 @@ class _$PagedDataCopyWithImpl<T, $Res, $Val extends PagedData<T>>
 }
 
 /// @nodoc
-abstract class _$$_PagedDataCopyWith<T, $Res>
+abstract class _$$PagedDataImplCopyWith<T, $Res>
     implements $PagedDataCopyWith<T, $Res> {
-  factory _$$_PagedDataCopyWith(
-          _$_PagedData<T> value, $Res Function(_$_PagedData<T>) then) =
-      __$$_PagedDataCopyWithImpl<T, $Res>;
+  factory _$$PagedDataImplCopyWith(
+          _$PagedDataImpl<T> value, $Res Function(_$PagedDataImpl<T>) then) =
+      __$$PagedDataImplCopyWithImpl<T, $Res>;
   @override
   @useResult
   $Res call({int pageSize, List<T> data, bool hasMore});
 }
 
 /// @nodoc
-class __$$_PagedDataCopyWithImpl<T, $Res>
-    extends _$PagedDataCopyWithImpl<T, $Res, _$_PagedData<T>>
-    implements _$$_PagedDataCopyWith<T, $Res> {
-  __$$_PagedDataCopyWithImpl(
-      _$_PagedData<T> _value, $Res Function(_$_PagedData<T>) _then)
+class __$$PagedDataImplCopyWithImpl<T, $Res>
+    extends _$PagedDataCopyWithImpl<T, $Res, _$PagedDataImpl<T>>
+    implements _$$PagedDataImplCopyWith<T, $Res> {
+  __$$PagedDataImplCopyWithImpl(
+      _$PagedDataImpl<T> _value, $Res Function(_$PagedDataImpl<T>) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -94,7 +94,7 @@ class __$$_PagedDataCopyWithImpl<T, $Res>
     Object? data = null,
     Object? hasMore = null,
   }) {
-    return _then(_$_PagedData<T>(
+    return _then(_$PagedDataImpl<T>(
       pageSize: null == pageSize
           ? _value.pageSize
           : pageSize // ignore: cast_nullable_to_non_nullable
@@ -113,8 +113,8 @@ class __$$_PagedDataCopyWithImpl<T, $Res>
 
 /// @nodoc
 
-class _$_PagedData<T> extends _PagedData<T> {
-  const _$_PagedData(
+class _$PagedDataImpl<T> extends _PagedData<T> {
+  const _$PagedDataImpl(
       {required this.pageSize,
       required final List<T> data,
       this.hasMore = true})
@@ -141,10 +141,10 @@ class _$_PagedData<T> extends _PagedData<T> {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_PagedData<T> &&
+            other is _$PagedDataImpl<T> &&
             (identical(other.pageSize, pageSize) ||
                 other.pageSize == pageSize) &&
             const DeepCollectionEquality().equals(other._data, _data) &&
@@ -158,15 +158,15 @@ class _$_PagedData<T> extends _PagedData<T> {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_PagedDataCopyWith<T, _$_PagedData<T>> get copyWith =>
-      __$$_PagedDataCopyWithImpl<T, _$_PagedData<T>>(this, _$identity);
+  _$$PagedDataImplCopyWith<T, _$PagedDataImpl<T>> get copyWith =>
+      __$$PagedDataImplCopyWithImpl<T, _$PagedDataImpl<T>>(this, _$identity);
 }
 
 abstract class _PagedData<T> extends PagedData<T> {
   const factory _PagedData(
       {required final int pageSize,
       required final List<T> data,
-      final bool hasMore}) = _$_PagedData<T>;
+      final bool hasMore}) = _$PagedDataImpl<T>;
   const _PagedData._() : super._();
 
   @override
@@ -177,6 +177,6 @@ abstract class _PagedData<T> extends PagedData<T> {
   bool get hasMore;
   @override
   @JsonKey(ignore: true)
-  _$$_PagedDataCopyWith<T, _$_PagedData<T>> get copyWith =>
+  _$$PagedDataImplCopyWith<T, _$PagedDataImpl<T>> get copyWith =>
       throw _privateConstructorUsedError;
 }

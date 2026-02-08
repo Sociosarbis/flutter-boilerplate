@@ -18,7 +18,7 @@ void main() {
         print(msgs);
       });
       for (var i = 0; i < 100; i++) {
-        logger.add("test", Msg(i.toString()));
+        logger.add(Msg("test", i.toString()));
       }
       expect(logger.length, 100);
       await Future.delayed(const Duration(seconds: 11));
@@ -33,7 +33,7 @@ void main() {
         return Future.error(Exception("network error"));
       });
       for (var i = 0; i < 100; i++) {
-        logger.add("test", Msg(i.toString()));
+        logger.add(Msg("test", i.toString()));
       }
       await Future.delayed(const Duration(seconds: 11));
       expect(logger.length, 100);

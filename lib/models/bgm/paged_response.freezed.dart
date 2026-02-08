@@ -12,7 +12,7 @@ part of 'paged_response.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 PagedResponse<T> _$PagedResponseFromJson<T>(
     Map<String, dynamic> json, T Function(Object?) fromJsonT) {
@@ -82,22 +82,22 @@ class _$PagedResponseCopyWithImpl<T, $Res, $Val extends PagedResponse<T>>
 }
 
 /// @nodoc
-abstract class _$$_PagedResponseCopyWith<T, $Res>
+abstract class _$$PagedResponseImplCopyWith<T, $Res>
     implements $PagedResponseCopyWith<T, $Res> {
-  factory _$$_PagedResponseCopyWith(
-          _$_PagedResponse<T> value, $Res Function(_$_PagedResponse<T>) then) =
-      __$$_PagedResponseCopyWithImpl<T, $Res>;
+  factory _$$PagedResponseImplCopyWith(_$PagedResponseImpl<T> value,
+          $Res Function(_$PagedResponseImpl<T>) then) =
+      __$$PagedResponseImplCopyWithImpl<T, $Res>;
   @override
   @useResult
   $Res call({int total, int limit, int offset, List<T> data});
 }
 
 /// @nodoc
-class __$$_PagedResponseCopyWithImpl<T, $Res>
-    extends _$PagedResponseCopyWithImpl<T, $Res, _$_PagedResponse<T>>
-    implements _$$_PagedResponseCopyWith<T, $Res> {
-  __$$_PagedResponseCopyWithImpl(
-      _$_PagedResponse<T> _value, $Res Function(_$_PagedResponse<T>) _then)
+class __$$PagedResponseImplCopyWithImpl<T, $Res>
+    extends _$PagedResponseCopyWithImpl<T, $Res, _$PagedResponseImpl<T>>
+    implements _$$PagedResponseImplCopyWith<T, $Res> {
+  __$$PagedResponseImplCopyWithImpl(_$PagedResponseImpl<T> _value,
+      $Res Function(_$PagedResponseImpl<T>) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -108,7 +108,7 @@ class __$$_PagedResponseCopyWithImpl<T, $Res>
     Object? offset = null,
     Object? data = null,
   }) {
-    return _then(_$_PagedResponse<T>(
+    return _then(_$PagedResponseImpl<T>(
       total: null == total
           ? _value.total
           : total // ignore: cast_nullable_to_non_nullable
@@ -131,17 +131,17 @@ class __$$_PagedResponseCopyWithImpl<T, $Res>
 
 /// @nodoc
 @JsonSerializable(genericArgumentFactories: true)
-class _$_PagedResponse<T> implements _PagedResponse<T> {
-  const _$_PagedResponse(
+class _$PagedResponseImpl<T> implements _PagedResponse<T> {
+  const _$PagedResponseImpl(
       {required this.total,
       required this.limit,
       required this.offset,
       required final List<T> data})
       : _data = data;
 
-  factory _$_PagedResponse.fromJson(
+  factory _$PagedResponseImpl.fromJson(
           Map<String, dynamic> json, T Function(Object?) fromJsonT) =>
-      _$$_PagedResponseFromJson(json, fromJsonT);
+      _$$PagedResponseImplFromJson(json, fromJsonT);
 
   @override
   final int total;
@@ -163,10 +163,10 @@ class _$_PagedResponse<T> implements _PagedResponse<T> {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_PagedResponse<T> &&
+            other is _$PagedResponseImpl<T> &&
             (identical(other.total, total) || other.total == total) &&
             (identical(other.limit, limit) || other.limit == limit) &&
             (identical(other.offset, offset) || other.offset == offset) &&
@@ -181,12 +181,13 @@ class _$_PagedResponse<T> implements _PagedResponse<T> {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_PagedResponseCopyWith<T, _$_PagedResponse<T>> get copyWith =>
-      __$$_PagedResponseCopyWithImpl<T, _$_PagedResponse<T>>(this, _$identity);
+  _$$PagedResponseImplCopyWith<T, _$PagedResponseImpl<T>> get copyWith =>
+      __$$PagedResponseImplCopyWithImpl<T, _$PagedResponseImpl<T>>(
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson(Object? Function(T) toJsonT) {
-    return _$$_PagedResponseToJson<T>(this, toJsonT);
+    return _$$PagedResponseImplToJson<T>(this, toJsonT);
   }
 }
 
@@ -195,11 +196,11 @@ abstract class _PagedResponse<T> implements PagedResponse<T> {
       {required final int total,
       required final int limit,
       required final int offset,
-      required final List<T> data}) = _$_PagedResponse<T>;
+      required final List<T> data}) = _$PagedResponseImpl<T>;
 
   factory _PagedResponse.fromJson(
           Map<String, dynamic> json, T Function(Object?) fromJsonT) =
-      _$_PagedResponse<T>.fromJson;
+      _$PagedResponseImpl<T>.fromJson;
 
   @override
   int get total;
@@ -211,6 +212,6 @@ abstract class _PagedResponse<T> implements PagedResponse<T> {
   List<T> get data;
   @override
   @JsonKey(ignore: true)
-  _$$_PagedResponseCopyWith<T, _$_PagedResponse<T>> get copyWith =>
+  _$$PagedResponseImplCopyWith<T, _$PagedResponseImpl<T>> get copyWith =>
       throw _privateConstructorUsedError;
 }

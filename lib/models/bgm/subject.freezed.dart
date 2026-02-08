@@ -12,7 +12,7 @@ part of 'subject.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 Subject _$SubjectFromJson(Map<String, dynamic> json) {
   return _Subject.fromJson(json);
@@ -111,10 +111,10 @@ class _$SubjectCopyWithImpl<$Res, $Val extends Subject>
 }
 
 /// @nodoc
-abstract class _$$_SubjectCopyWith<$Res> implements $SubjectCopyWith<$Res> {
-  factory _$$_SubjectCopyWith(
-          _$_Subject value, $Res Function(_$_Subject) then) =
-      __$$_SubjectCopyWithImpl<$Res>;
+abstract class _$$SubjectImplCopyWith<$Res> implements $SubjectCopyWith<$Res> {
+  factory _$$SubjectImplCopyWith(
+          _$SubjectImpl value, $Res Function(_$SubjectImpl) then) =
+      __$$SubjectImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -129,10 +129,11 @@ abstract class _$$_SubjectCopyWith<$Res> implements $SubjectCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$_SubjectCopyWithImpl<$Res>
-    extends _$SubjectCopyWithImpl<$Res, _$_Subject>
-    implements _$$_SubjectCopyWith<$Res> {
-  __$$_SubjectCopyWithImpl(_$_Subject _value, $Res Function(_$_Subject) _then)
+class __$$SubjectImplCopyWithImpl<$Res>
+    extends _$SubjectCopyWithImpl<$Res, _$SubjectImpl>
+    implements _$$SubjectImplCopyWith<$Res> {
+  __$$SubjectImplCopyWithImpl(
+      _$SubjectImpl _value, $Res Function(_$SubjectImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -147,7 +148,7 @@ class __$$_SubjectCopyWithImpl<$Res>
     Object? rank = null,
     Object? score = null,
   }) {
-    return _then(_$_Subject(
+    return _then(_$SubjectImpl(
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
@@ -186,8 +187,8 @@ class __$$_SubjectCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_Subject implements _Subject {
-  const _$_Subject(
+class _$SubjectImpl implements _Subject {
+  const _$SubjectImpl(
       {required this.id,
       required this.type,
       required this.name,
@@ -197,8 +198,8 @@ class _$_Subject implements _Subject {
       required this.rank,
       required this.score});
 
-  factory _$_Subject.fromJson(Map<String, dynamic> json) =>
-      _$$_SubjectFromJson(json);
+  factory _$SubjectImpl.fromJson(Map<String, dynamic> json) =>
+      _$$SubjectImplFromJson(json);
 
   @override
   final int id;
@@ -224,10 +225,10 @@ class _$_Subject implements _Subject {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_Subject &&
+            other is _$SubjectImpl &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.type, type) || other.type == type) &&
             (identical(other.name, name) || other.name == name) &&
@@ -246,12 +247,12 @@ class _$_Subject implements _Subject {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_SubjectCopyWith<_$_Subject> get copyWith =>
-      __$$_SubjectCopyWithImpl<_$_Subject>(this, _$identity);
+  _$$SubjectImplCopyWith<_$SubjectImpl> get copyWith =>
+      __$$SubjectImplCopyWithImpl<_$SubjectImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_SubjectToJson(
+    return _$$SubjectImplToJson(
       this,
     );
   }
@@ -266,9 +267,9 @@ abstract class _Subject implements Subject {
       required final String image,
       @JsonKey(name: "name_cn") required final String nameCN,
       required final int rank,
-      required final double score}) = _$_Subject;
+      required final double score}) = _$SubjectImpl;
 
-  factory _Subject.fromJson(Map<String, dynamic> json) = _$_Subject.fromJson;
+  factory _Subject.fromJson(Map<String, dynamic> json) = _$SubjectImpl.fromJson;
 
   @override
   int get id;
@@ -289,6 +290,6 @@ abstract class _Subject implements Subject {
   double get score;
   @override
   @JsonKey(ignore: true)
-  _$$_SubjectCopyWith<_$_Subject> get copyWith =>
+  _$$SubjectImplCopyWith<_$SubjectImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

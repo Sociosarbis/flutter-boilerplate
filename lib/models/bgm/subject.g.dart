@@ -89,7 +89,8 @@ Map<String, dynamic> _$LegacySubjectSmallToJson(LegacySubjectSmall instance) {
   return val;
 }
 
-_$_Subject _$$_SubjectFromJson(Map<String, dynamic> json) => _$_Subject(
+_$SubjectImpl _$$SubjectImplFromJson(Map<String, dynamic> json) =>
+    _$SubjectImpl(
       id: json['id'] as int,
       type: json['type'] as int,
       name: json['name'] as String,
@@ -100,7 +101,7 @@ _$_Subject _$$_SubjectFromJson(Map<String, dynamic> json) => _$_Subject(
       score: (json['score'] as num).toDouble(),
     );
 
-Map<String, dynamic> _$$_SubjectToJson(_$_Subject instance) =>
+Map<String, dynamic> _$$SubjectImplToJson(_$SubjectImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
       'type': instance.type,

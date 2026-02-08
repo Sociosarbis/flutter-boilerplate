@@ -8,8 +8,9 @@ String formatDateTime(DateTime dateTime) {
 
 class Msg {
   final time = DateTime.now().millisecondsSinceEpoch;
+  final String tag;
   final Object? payload;
-  Msg(this.payload);
+  Msg(this.tag, this.payload);
 
   bool isEqual(Msg other) {
     return false;
@@ -18,12 +19,11 @@ class Msg {
   Map<String, Object?> toJson() {
     return {
       "time": formatDateTime(DateTime.fromMillisecondsSinceEpoch(time)),
+      "tag": tag,
       "payload": payload
     };
   }
 }
-
-typedef Item = ({String tag, Msg msg});
 
 class RemoteLogger {
   final _lastMsgs = <String, Msg>{};
@@ -31,7 +31,7 @@ class RemoteLogger {
   final int batchSize;
   final int uploadInterval;
   final int maxBackOffSeconds;
-  late final QueueList<Item> _uploadQueue;
+  late final QueueList<Msg> _uploadQueue;
   final Future<void> Function(List<Map<String, Object?>> msgs) upload;
   var _backOffSeconds = 2;
   final _random = Random();
@@ -46,20 +46,20 @@ class RemoteLogger {
     return _uploadQueue.length;
   }
 
-  bool _updateLastMsg(String tag, Msg msg) {
-    if (_lastMsgs[tag]?.isEqual(msg) ?? false) {
+  bool _updateLastMsg(Msg msg) {
+    if (_lastMsgs[msg.tag]?.isEqual(msg) ?? false) {
       return false;
     }
-    _lastMsgs[tag] = msg;
+    _lastMsgs[msg.tag] = msg;
     return true;
   }
 
-  void add(String tag, Msg msg) {
+  void add(Msg msg) {
     if (_disposed) {
       return;
     }
-    if (_updateLastMsg(tag, msg)) {
-      _uploadQueue.add((tag: tag, msg: msg));
+    if (_updateLastMsg(msg)) {
+      _uploadQueue.add(msg);
       if (_uploadQueue.length > maxSize) {
         _uploadQueue.removeRange(0, _uploadQueue.length - maxSize);
       }
@@ -79,7 +79,7 @@ class RemoteLogger {
         if (items.isNotEmpty) {
           try {
             await upload(items.map((item) {
-              return {"tag": item.tag, ...item.msg.toJson()};
+              return item.toJson();
             }).toList(growable: false));
           } catch (e) {
             if (_disposed) {
@@ -103,7 +103,7 @@ class RemoteLogger {
       });
   }
 
-  Item? elementAtOrNull(int index) {
+  Msg? elementAtOrNull(int index) {
     return _uploadQueue.elementAtOrNull(index);
   }
 

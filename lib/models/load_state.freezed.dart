@@ -12,7 +12,7 @@ part of 'load_state.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 /// @nodoc
 mixin _$LoadState {
@@ -86,22 +86,24 @@ class _$LoadStateCopyWithImpl<$Res, $Val extends LoadState>
 }
 
 /// @nodoc
-abstract class _$$NoneCopyWith<$Res> {
-  factory _$$NoneCopyWith(_$None value, $Res Function(_$None) then) =
-      __$$NoneCopyWithImpl<$Res>;
+abstract class _$$NoneImplCopyWith<$Res> {
+  factory _$$NoneImplCopyWith(
+          _$NoneImpl value, $Res Function(_$NoneImpl) then) =
+      __$$NoneImplCopyWithImpl<$Res>;
 }
 
 /// @nodoc
-class __$$NoneCopyWithImpl<$Res> extends _$LoadStateCopyWithImpl<$Res, _$None>
-    implements _$$NoneCopyWith<$Res> {
-  __$$NoneCopyWithImpl(_$None _value, $Res Function(_$None) _then)
+class __$$NoneImplCopyWithImpl<$Res>
+    extends _$LoadStateCopyWithImpl<$Res, _$NoneImpl>
+    implements _$$NoneImplCopyWith<$Res> {
+  __$$NoneImplCopyWithImpl(_$NoneImpl _value, $Res Function(_$NoneImpl) _then)
       : super(_value, _then);
 }
 
 /// @nodoc
 
-class _$None implements None {
-  const _$None();
+class _$NoneImpl implements None {
+  const _$NoneImpl();
 
   @override
   String toString() {
@@ -109,9 +111,9 @@ class _$None implements None {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
-        (other.runtimeType == runtimeType && other is _$None);
+        (other.runtimeType == runtimeType && other is _$NoneImpl);
   }
 
   @override
@@ -193,24 +195,24 @@ class _$None implements None {
 }
 
 abstract class None implements LoadState {
-  const factory None() = _$None;
+  const factory None() = _$NoneImpl;
 }
 
 /// @nodoc
-abstract class _$$NotLoadingCopyWith<$Res> {
-  factory _$$NotLoadingCopyWith(
-          _$NotLoading value, $Res Function(_$NotLoading) then) =
-      __$$NotLoadingCopyWithImpl<$Res>;
+abstract class _$$NotLoadingImplCopyWith<$Res> {
+  factory _$$NotLoadingImplCopyWith(
+          _$NotLoadingImpl value, $Res Function(_$NotLoadingImpl) then) =
+      __$$NotLoadingImplCopyWithImpl<$Res>;
   @useResult
   $Res call({bool endOfPaginationReached});
 }
 
 /// @nodoc
-class __$$NotLoadingCopyWithImpl<$Res>
-    extends _$LoadStateCopyWithImpl<$Res, _$NotLoading>
-    implements _$$NotLoadingCopyWith<$Res> {
-  __$$NotLoadingCopyWithImpl(
-      _$NotLoading _value, $Res Function(_$NotLoading) _then)
+class __$$NotLoadingImplCopyWithImpl<$Res>
+    extends _$LoadStateCopyWithImpl<$Res, _$NotLoadingImpl>
+    implements _$$NotLoadingImplCopyWith<$Res> {
+  __$$NotLoadingImplCopyWithImpl(
+      _$NotLoadingImpl _value, $Res Function(_$NotLoadingImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -218,7 +220,7 @@ class __$$NotLoadingCopyWithImpl<$Res>
   $Res call({
     Object? endOfPaginationReached = null,
   }) {
-    return _then(_$NotLoading(
+    return _then(_$NotLoadingImpl(
       endOfPaginationReached: null == endOfPaginationReached
           ? _value.endOfPaginationReached
           : endOfPaginationReached // ignore: cast_nullable_to_non_nullable
@@ -229,8 +231,8 @@ class __$$NotLoadingCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$NotLoading implements NotLoading {
-  const _$NotLoading({required this.endOfPaginationReached});
+class _$NotLoadingImpl implements NotLoading {
+  const _$NotLoadingImpl({required this.endOfPaginationReached});
 
   @override
   final bool endOfPaginationReached;
@@ -241,10 +243,10 @@ class _$NotLoading implements NotLoading {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$NotLoading &&
+            other is _$NotLoadingImpl &&
             (identical(other.endOfPaginationReached, endOfPaginationReached) ||
                 other.endOfPaginationReached == endOfPaginationReached));
   }
@@ -255,8 +257,8 @@ class _$NotLoading implements NotLoading {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$NotLoadingCopyWith<_$NotLoading> get copyWith =>
-      __$$NotLoadingCopyWithImpl<_$NotLoading>(this, _$identity);
+  _$$NotLoadingImplCopyWith<_$NotLoadingImpl> get copyWith =>
+      __$$NotLoadingImplCopyWithImpl<_$NotLoadingImpl>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -335,32 +337,34 @@ class _$NotLoading implements NotLoading {
 
 abstract class NotLoading implements LoadState {
   const factory NotLoading({required final bool endOfPaginationReached}) =
-      _$NotLoading;
+      _$NotLoadingImpl;
 
   bool get endOfPaginationReached;
   @JsonKey(ignore: true)
-  _$$NotLoadingCopyWith<_$NotLoading> get copyWith =>
+  _$$NotLoadingImplCopyWith<_$NotLoadingImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$LoadingCopyWith<$Res> {
-  factory _$$LoadingCopyWith(_$Loading value, $Res Function(_$Loading) then) =
-      __$$LoadingCopyWithImpl<$Res>;
+abstract class _$$LoadingImplCopyWith<$Res> {
+  factory _$$LoadingImplCopyWith(
+          _$LoadingImpl value, $Res Function(_$LoadingImpl) then) =
+      __$$LoadingImplCopyWithImpl<$Res>;
 }
 
 /// @nodoc
-class __$$LoadingCopyWithImpl<$Res>
-    extends _$LoadStateCopyWithImpl<$Res, _$Loading>
-    implements _$$LoadingCopyWith<$Res> {
-  __$$LoadingCopyWithImpl(_$Loading _value, $Res Function(_$Loading) _then)
+class __$$LoadingImplCopyWithImpl<$Res>
+    extends _$LoadStateCopyWithImpl<$Res, _$LoadingImpl>
+    implements _$$LoadingImplCopyWith<$Res> {
+  __$$LoadingImplCopyWithImpl(
+      _$LoadingImpl _value, $Res Function(_$LoadingImpl) _then)
       : super(_value, _then);
 }
 
 /// @nodoc
 
-class _$Loading implements Loading {
-  const _$Loading();
+class _$LoadingImpl implements Loading {
+  const _$LoadingImpl();
 
   @override
   String toString() {
@@ -368,9 +372,9 @@ class _$Loading implements Loading {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
-        (other.runtimeType == runtimeType && other is _$Loading);
+        (other.runtimeType == runtimeType && other is _$LoadingImpl);
   }
 
   @override
@@ -452,21 +456,22 @@ class _$Loading implements Loading {
 }
 
 abstract class Loading implements LoadState {
-  const factory Loading() = _$Loading;
+  const factory Loading() = _$LoadingImpl;
 }
 
 /// @nodoc
-abstract class _$$ErrCopyWith<$Res> {
-  factory _$$ErrCopyWith(_$Err value, $Res Function(_$Err) then) =
-      __$$ErrCopyWithImpl<$Res>;
+abstract class _$$ErrImplCopyWith<$Res> {
+  factory _$$ErrImplCopyWith(_$ErrImpl value, $Res Function(_$ErrImpl) then) =
+      __$$ErrImplCopyWithImpl<$Res>;
   @useResult
   $Res call({Exception error});
 }
 
 /// @nodoc
-class __$$ErrCopyWithImpl<$Res> extends _$LoadStateCopyWithImpl<$Res, _$Err>
-    implements _$$ErrCopyWith<$Res> {
-  __$$ErrCopyWithImpl(_$Err _value, $Res Function(_$Err) _then)
+class __$$ErrImplCopyWithImpl<$Res>
+    extends _$LoadStateCopyWithImpl<$Res, _$ErrImpl>
+    implements _$$ErrImplCopyWith<$Res> {
+  __$$ErrImplCopyWithImpl(_$ErrImpl _value, $Res Function(_$ErrImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -474,7 +479,7 @@ class __$$ErrCopyWithImpl<$Res> extends _$LoadStateCopyWithImpl<$Res, _$Err>
   $Res call({
     Object? error = null,
   }) {
-    return _then(_$Err(
+    return _then(_$ErrImpl(
       error: null == error
           ? _value.error
           : error // ignore: cast_nullable_to_non_nullable
@@ -485,8 +490,8 @@ class __$$ErrCopyWithImpl<$Res> extends _$LoadStateCopyWithImpl<$Res, _$Err>
 
 /// @nodoc
 
-class _$Err implements Err {
-  const _$Err({required this.error});
+class _$ErrImpl implements Err {
+  const _$ErrImpl({required this.error});
 
   @override
   final Exception error;
@@ -497,10 +502,10 @@ class _$Err implements Err {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$Err &&
+            other is _$ErrImpl &&
             (identical(other.error, error) || other.error == error));
   }
 
@@ -510,8 +515,8 @@ class _$Err implements Err {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$ErrCopyWith<_$Err> get copyWith =>
-      __$$ErrCopyWithImpl<_$Err>(this, _$identity);
+  _$$ErrImplCopyWith<_$ErrImpl> get copyWith =>
+      __$$ErrImplCopyWithImpl<_$ErrImpl>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -589,9 +594,10 @@ class _$Err implements Err {
 }
 
 abstract class Err implements LoadState {
-  const factory Err({required final Exception error}) = _$Err;
+  const factory Err({required final Exception error}) = _$ErrImpl;
 
   Exception get error;
   @JsonKey(ignore: true)
-  _$$ErrCopyWith<_$Err> get copyWith => throw _privateConstructorUsedError;
+  _$$ErrImplCopyWith<_$ErrImpl> get copyWith =>
+      throw _privateConstructorUsedError;
 }

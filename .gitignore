@@ -51,3 +51,4 @@ target
 .cargo
 
 app.config.json
+*.db
